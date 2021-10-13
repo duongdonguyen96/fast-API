@@ -1,0 +1,7 @@
+-r base.
+
+# format code
+pre-commit==2.13.0 #https://pypi.org/project/pre-commit/2.13.0/
+
+#generetor model
+sqlacodegen==2.3.0 #https://pypi.org/project/sqlacodegen/2.3.0/
