@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import List, Union
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy.orm import Session
@@ -15,7 +15,8 @@ class Controller:
     Controller use business
     """
 
-    def __init__(self, paging=None):
+    def __init__(self, current_user=None, paging=None):
+        self.current_user = current_user
         self.paging = paging
         self.errors = []
 

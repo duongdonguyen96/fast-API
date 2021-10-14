@@ -2,7 +2,7 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.openapi import utils
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.cors import CORSMiddleware
@@ -54,7 +54,7 @@ async def except_custom(_: Request, exc: ExceptionHandle) -> JSONResponse:
 
 # handler exception
 @app.exception_handler(RequestValidationError)
-async def except_custom(_: Request, exc: RequestValidationError) -> JSONResponse:
+async def request_validation_except_custom(_: Request, exc: RequestValidationError) -> JSONResponse:
     errors = []
     if exc.errors():
         for temp in exc.errors():
@@ -65,6 +65,22 @@ async def except_custom(_: Request, exc: RequestValidationError) -> JSONResponse
                     "detail": f"{temp['msg']}",
                 }
             )
+
+    return JSONResponse(
+        content=jsonable_encoder({"data": None, "errors": errors}),
+        status_code=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_except_custom(_: Request, exc: HTTPException) -> JSONResponse:
+    errors = [
+        {
+            "loc": None,
+            "msg": None,
+            "detail": f"{exc.detail}",
+        }
+    ]
 
     return JSONResponse(
         content=jsonable_encoder({"data": None, "errors": errors}),
