@@ -15,3 +15,5 @@ MESSAGE_STATUS = {
     USERNAME_OR_PASSWORD_INVALID: "Username or password is invalid",
     ERROR_INVALID_TOKEN: "Token is invalid",
 }
+
+ERROR_CUSTOMER_ID_NOT_EXIST = "CUSTOMER_ID_NOT_EXIST"
