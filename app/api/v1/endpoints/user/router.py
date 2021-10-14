@@ -51,7 +51,7 @@ async def view_retrieve_current_user(
 )
 async def view_retrieve_user(
         user_id: str,
-        current_user: UserInfoRes = Depends(get_current_user_from_header())  # noqa
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     user_info = await CtrUser().ctr_get_user_info(user_id)
     return ResponseData[UserInfoRes](**user_info)
