@@ -13,7 +13,7 @@ First, Setup venv python `Document Setup <https://docs.python.org/3.9/library/ve
     Windows:
     - Cmd: .\venv\Scripts\activate
     Linux:
-    - Terminal: source venv/bin/active
+    - Terminal: source venv/bin/activate
 
 Then run the following commands to bootstrap your environment with ``PIP``: ::
 
