@@ -20,14 +20,14 @@ class Controller:
         self.errors = []
 
     @staticmethod
-    async def _get_oracle_session() -> Session:
+    async def get_oracle_session() -> Session:
         return oracle_session().__next__()
 
     @staticmethod
-    async def _get_mongo_session() -> AsyncIOMotorDatabase:
+    async def get_mongo_session() -> AsyncIOMotorDatabase:
         return mongo_db
 
-    def _exception(self, msg: str, loc: str = None, detail: str = ""):  # noqa
+    def append_error(self, msg: str, loc: str = None, detail: str = ""):
         """
         Hàm add exception để trả về
         :param msg: code exception
@@ -43,7 +43,11 @@ class Controller:
             errors.append(temp.dict())
         raise ExceptionHandle(errors=errors, status_code=error_status_code)
 
-    def _response(self, data, error_status_code=status.HTTP_400_BAD_REQUEST):
+    def response_exception(self, msg, loc="", detail="", error_status_code=status.HTTP_400_BAD_REQUEST):
+        self.append_error(msg=msg, loc=loc, detail=detail)
+        self._raise_exception(error_status_code=error_status_code)
+
+    def response(self, data, error_status_code=status.HTTP_400_BAD_REQUEST):
         if self.errors:
             self._raise_exception(error_status_code=error_status_code)
         else:
@@ -52,7 +56,7 @@ class Controller:
                 "errors": self.errors,
             }
 
-    def _response_paging(
+    def response_paging(
             self,
             data,
             total_items: int = 1,
@@ -70,10 +74,6 @@ class Controller:
                 "current_page": current_page,
                 "errors": self.errors,
             }
-
-    def _response_exception(self, msg, loc="", detail="", error_status_code=status.HTTP_400_BAD_REQUEST):
-        self._exception(msg=msg, loc=loc, detail=detail)
-        return self._response(None, error_status_code)
 
     def nested_list(
             self,
