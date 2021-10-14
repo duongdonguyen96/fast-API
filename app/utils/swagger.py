@@ -15,7 +15,7 @@ response_status_codes = {
     # status.HTTP_407_PROXY_AUTHENTICATION_REQUIRED: "Proxy Authentication Required",
     # status.HTTP_408_REQUEST_TIMEOUT: "Request Timeout",
     # status.HTTP_409_CONFLICT: "Conflict",
-    status.HTTP_422_UNPROCESSABLE_ENTITY: "Unprocessable Entity",
+    # status.HTTP_422_UNPROCESSABLE_ENTITY: "Unprocessable Entity",
     # status.HTTP_500_INTERNAL_SERVER_ERROR: "Internal Server Error",
     # status.HTTP_501_NOT_IMPLEMENTED: "Not Implemented",
     # status.HTTP_503_SERVICE_UNAVAILABLE: "Bad Gateway",

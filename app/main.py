@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi import utils
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
@@ -70,6 +71,10 @@ async def except_custom(_: Request, exc: RequestValidationError) -> JSONResponse
         status_code=status.HTTP_400_BAD_REQUEST,
     )
 
+# mặc định khi generate file openapi.json có gọi hàm get_openapi_path() trong fastapi.openapi.utils
+# hàm này sẽ kiểm tra chưa có http422 thì sẽ tự thêm vào response
+# đã override lại exception validator trả về 400 nên ghi đè lại giá trị http422=400 trong utils để khỏi tạo response 422
+utils.HTTP_422_UNPROCESSABLE_ENTITY = status.HTTP_400_BAD_REQUEST
 
 if __name__ == "__main__":
     uvicorn.run('app.main:app', host="127.0.0.1", port=7111, reload=True)
