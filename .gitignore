@@ -66,6 +66,3 @@ obj/
 *.sln
 
 log.txt
-
-setup.cfg
-.pre-commit-config.yaml
