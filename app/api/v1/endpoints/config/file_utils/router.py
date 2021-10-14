@@ -4,11 +4,11 @@ from fastapi import APIRouter, File, Query, UploadFile
 from fastapi.params import Body
 from starlette import status
 
-from app.api.base.response import ResponseData
-from app.api.base.utils import (
+from app.api.base.schema import ResponseData
+from app.api.v1.endpoints.config.file_utils.ctr_file import CtrFileUtils
+from app.api.v1.endpoints.schema import (
     CheckFileRes, FileBDSServiceRes, FileDBSServiceDownloadRes
 )
-from app.api.v1.endpoints.config.file_utils.ctr_file import CtrFileUtils
 from app.utils.swagger import swagger_response
 
 router = APIRouter()
