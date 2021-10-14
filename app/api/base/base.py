@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from app.api.base.errors import Error
-from app.third_party.mongo.base import mongo_db
-from app.third_party.oracle.base import oracle_session
+from app.third_parties.mongo.base import mongo_db
+from app.third_parties.oracle.base import oracle_session
 from app.utils.status.except_custom import ExceptionHandle
 
 
