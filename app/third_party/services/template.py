@@ -39,7 +39,6 @@ class ServiceTemplate:
                         return False, SERVICE_ERROR
 
                     data = await res.json()
-                    print(data)
                     data_parse_url = urlparse(data['file_url'])
                     new_data_parse_url = data_parse_url._replace(netloc='', scheme='')
 

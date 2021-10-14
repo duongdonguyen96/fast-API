@@ -19,9 +19,6 @@ APPLICATION = {
     "allowed_hosts": list(os.getenv("ALLOWED_HOSTS", ["*"])),
 }
 
-logger.info("=== config APPLICATION ===")
-print(json.dumps(APPLICATION, indent=4, sort_keys=True))
-
 # logging configuration
 LOGGING_LEVEL = logging.DEBUG if APPLICATION["debug"] else logging.INFO
 LOGGERS = ("uvicorn.asgi", "uvicorn.access", "sqlalchemy.engine")  # noqa

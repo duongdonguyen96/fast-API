@@ -19,6 +19,3 @@ SERVICE = {
         "server-auth": os.getenv("SERVICE_TEMPLATE_SERVICE_AUTH")
     }
 }
-
-logger.info("=== config service ===")
-print(json.dumps(SERVICE, indent=4, sort_keys=True))

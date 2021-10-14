@@ -5,19 +5,6 @@ from pydantic import Field
 from app.api.v1.schemas.base import CustomBaseModel
 
 
-# chi nhánh ngân hàng
-class BranchRes(CustomBaseModel):
-    branch_code: str
-    branch_name: str
-    branch_address: str
-    branch_parent_code: str
-    branch_tax_code: str
-    branch_phone: str
-    branch_status: str
-    branch_region_code: str
-    branch_region_name: str
-
-
 # Schema upload file response DMS
 class FileBDSServiceRes(CustomBaseModel):
     created_at: datetime = Field(None)

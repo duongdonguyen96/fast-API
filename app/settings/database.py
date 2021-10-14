@@ -18,9 +18,3 @@ MONGO_CONFIG = {
     "password": os.getenv("MONGO_PASSWORD"),
     "database": os.getenv("MONGO_DATABASE"),
 }
-
-logger.info("=== config oracle ===")
-print(json.dumps(ORACLE_CONFIG, indent=4, sort_keys=True))
-
-logger.info("=== config mongo ===")
-print(json.dumps(MONGO_CONFIG, indent=4, sort_keys=True))
