@@ -1,8 +1,8 @@
-from starlette import status
-
 from app.api.v1.controllers.base import Controller
+from app.api.v1.repositories.user.repos_user import (
+    repos_get_user_info, repos_login
+)
 from app.api.v1.schemas.user.auth import AuthReq
-from app.api.v1.repositories.user.repos_user import repos_get_user_info, repos_login
 
 
 class CtrUser(Controller):
@@ -12,6 +12,9 @@ class CtrUser(Controller):
             return self.response_exception(msg=auth_res, loc="username, password")
 
         return self.response(data=auth_res)
+
+    async def ctr_get_current_user_info(self):
+        return self.response(data=self.current_user)
 
     async def ctr_get_user_info(self, user_id: str):
         is_found, info_user_data = await repos_get_user_info(user_id)
