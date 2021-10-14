@@ -1,8 +1,8 @@
-from app.api.v1.controllers.base import Controller
-from app.api.v1.repositories.user.repos_user import (
+from app.api.base.base import Controller
+from app.api.v1.endpoints.user.repository import (
     repos_get_user_info, repos_login
 )
-from app.api.v1.schemas.user.auth import AuthReq
+from app.api.v1.endpoints.user.schema import AuthReq
 
 
 class CtrUser(Controller):

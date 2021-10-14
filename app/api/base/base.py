@@ -4,7 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy.orm import Session
 from starlette import status
 
-from app.api.v1.schemas.errors import Error
+from app.api.base.errors import Error
 from app.third_party.mongo.base import mongo_db
 from app.third_party.oracle.base import oracle_session
 from app.utils.status.except_custom import ExceptionHandle

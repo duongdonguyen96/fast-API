@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints.cif.basic_information import router as views_step_1
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document import \
-    router as views_step_i_1_a
+    view as views_step_i_1_a
 
 router_module = APIRouter()
 

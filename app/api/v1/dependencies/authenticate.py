@@ -3,8 +3,8 @@ from typing import Callable, Optional, Union
 from fastapi import Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.api.v1.repositories.user.repos_user import repos_check_token
-from app.api.v1.schemas.user.auth import UserInfoRes
+from app.api.v1.endpoints.user.repository import repos_check_token
+from app.api.v1.endpoints.user.schema import UserInfoRes
 from app.utils.status.except_custom import ExceptionHandle
 from app.utils.status.message import ERROR_INVALID_TOKEN
 

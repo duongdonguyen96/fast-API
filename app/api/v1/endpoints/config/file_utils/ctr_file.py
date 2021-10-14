@@ -3,13 +3,13 @@ from typing import List
 from fastapi import UploadFile
 from starlette import status
 
-from app.api.v1.controllers.base import Controller
-from app.api.v1.controllers.config.file_utils.validators import (
-    file_validator, files_validator
-)
-from app.api.v1.repositories.config.repos_file_utils import (
+from app.api.base.base import Controller
+from app.api.v1.endpoints.config.file_utils.repos_file_utils import (
     repos_check_exist_files, repos_download_files, repos_required_upload_file,
     repos_upload_file, repos_upload_files
+)
+from app.api.v1.endpoints.config.file_utils.validators import (
+    file_validator, files_validator
 )
 from app.utils.status.message import BAD_REQUEST
 

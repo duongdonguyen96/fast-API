@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from app.api.v1.schemas.base import CustomBaseModel
+from app.api.base.base_schema import CustomBaseModel
 
 
 class AuthReq(CustomBaseModel):

@@ -2,8 +2,8 @@ from typing import Dict, Generic, List, TypeVar, Union
 
 from pydantic.generics import GenericModel
 
-from app.api.v1.schemas.base import CustomBaseModel
-from app.api.v1.schemas.errors import Error
+from app.api.base.base_schema import CustomBaseModel
+from app.api.base.errors import Error
 
 TypeX = TypeVar("TypeX")
 

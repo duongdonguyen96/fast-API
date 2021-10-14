@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from starlette import status
 
-from app.api.v1.controllers.user.ctr_user import CtrUser
+from app.api.base.response import ResponseData
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
-from app.api.v1.schemas.response import ResponseData
-from app.api.v1.schemas.user.auth import AuthReq, AuthRes, UserInfoRes
+from app.api.v1.endpoints.user.controller import CtrUser
+from app.api.v1.endpoints.user.schema import AuthReq, AuthRes, UserInfoRes
 from app.utils.swagger import swagger_response
 
 router = APIRouter()
