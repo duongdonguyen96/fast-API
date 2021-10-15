@@ -1,11 +1,17 @@
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPBasicCredentials
 from starlette import status
 
 from app.api.base.schema import PagingResponse, ResponseData
-from app.api.v1.dependencies.authenticate import get_current_user_from_header
+from app.api.v1.dependencies.authenticate import (
+    basic_auth, get_current_user_from_header
+)
 from app.api.v1.dependencies.paging import PaginationParams
 from app.api.v1.endpoints.user.controller import CtrUser
-from app.api.v1.endpoints.user.schema import AuthReq, AuthRes, UserInfoRes
+from app.api.v1.endpoints.user.schema import (
+    EXAMPLE_RES_FAIL_LOGIN, EXAMPLE_RES_SUCCESS_DETAIL_USER, AuthRes,
+    UserInfoRes
+)
 from app.utils.swagger import swagger_response
 
 router = APIRouter()
@@ -34,11 +40,12 @@ async def view_list_user(
     description="Đăng nhập",
     responses=swagger_response(
         response_model=ResponseData[AuthRes],
-        success_status_code=status.HTTP_200_OK
+        success_status_code=status.HTTP_200_OK,
+        fail_examples=EXAMPLE_RES_FAIL_LOGIN
     ),
 )
-async def view_login(login_req: AuthReq):
-    data = await CtrUser().ctr_login(login_req)
+async def view_login(credentials: HTTPBasicCredentials = Depends(basic_auth)):
+    data = await CtrUser().ctr_login(credentials)
     return ResponseData[AuthRes](**data)
 
 
@@ -48,7 +55,8 @@ async def view_login(login_req: AuthReq):
     description="Lấy thông tin user hiện tại",
     responses=swagger_response(
         response_model=ResponseData[UserInfoRes],
-        success_status_code=status.HTTP_200_OK
+        success_status_code=status.HTTP_200_OK,
+        success_examples=EXAMPLE_RES_SUCCESS_DETAIL_USER
     )
 )
 async def view_retrieve_current_user(
@@ -64,7 +72,8 @@ async def view_retrieve_current_user(
     description="Lấy thông tin user",
     responses=swagger_response(
         response_model=ResponseData[UserInfoRes],
-        success_status_code=status.HTTP_200_OK
+        success_status_code=status.HTTP_200_OK,
+        success_examples=EXAMPLE_RES_SUCCESS_DETAIL_USER
     )
 )
 async def view_retrieve_user(
