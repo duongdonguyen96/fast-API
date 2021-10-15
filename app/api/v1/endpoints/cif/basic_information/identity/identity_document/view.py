@@ -1,56 +1,124 @@
 from fastapi import APIRouter, Depends, Path
-from pydantic.generics import GenericModel
 from starlette import status
 
 from app.api.base.schema import ResponseData
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.controller import CtrIdentity
-from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import TYPE_PASSPORT, \
-    TYPE_CITIZEN_CARD, TYPE_IDENTITY_CARD
-from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema import PassportRes, \
-    CitizenCardDocumentRes, IdentityCardDocumentRes
-from app.api.v1.endpoints.user.schema import UserInfoRes
+
+from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema import IdentityCardDetailRes, \
+    IdentityCardCreateSuccessRes, CitizenCardCreateSuccessRes, PassportCreateSuccessRes, PassportDocumentReqRes, \
+    IdentityCardReqRes, CitizenCardReqRes
 from app.utils.swagger import swagger_response
 
 router_special = APIRouter()
 
 
+# CMND
 @router_special.post(
-    path="/basic-information/identity/identity-document/",
-    name="1. GTĐD - A. GTĐD",
-    description="Create",
+    path="/basic-information/identity/identity-document/identity-card/",
+    name="1. GTĐD - A. GTĐD - CMND - Lưu",
+    description="Lưu",
     responses=swagger_response(
-        response_model=ResponseData[UserInfoRes],
+        response_model=ResponseData[IdentityCardCreateSuccessRes],
         success_status_code=status.HTTP_200_OK
     ),
     tags=['[CIF] I. TTCN']
 )
-async def view_create_identity_document(current_user=Depends(get_current_user_from_header())):
-    data = {}
-    return ResponseData[UserInfoRes](**data)
+async def view_create(
+        identity_card_document_req: IdentityCardReqRes,
+        current_user=Depends(get_current_user_from_header())
+):
+    identity_card_info = await CtrIdentity(current_user).save_identity_card(identity_card_document_req)
+    return ResponseData[IdentityCardCreateSuccessRes](**identity_card_info)
 
 
 router = APIRouter()
 
 
 @router.get(
-    path="/",
-    name="1. GTĐD - A. GTĐD - Chi tiết",
+    path="/identity-card/",
+    name="1. GTĐD - A. GTĐD - CMND - Chi Tiết",
     description="Chi tiết",
     responses=swagger_response(
-        response_model=ResponseData[CitizenCardDocumentRes],
+        response_model=ResponseData[IdentityCardDetailRes],
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_detail(
-        identity_document_type: int,
+async def view_detail_identity_card(
         cif_id: str = Path(...),
         current_user=Depends(get_current_user_from_header())
 ):
-    data = await CtrIdentity().detail(cif_id, identity_document_type)
-    if identity_document_type == TYPE_IDENTITY_CARD:
-        return ResponseData[IdentityCardDocumentRes](**data)
-    elif identity_document_type == TYPE_CITIZEN_CARD:
-        return ResponseData[CitizenCardDocumentRes](**data)
-    else:
-        return ResponseData[PassportRes](**data)
+    identity_card_info = await CtrIdentity().detail_identity_document(cif_id)
+    return ResponseData[IdentityCardDetailRes](**identity_card_info)
+
+
+# CCCD
+@router_special.post(
+    path="/basic-information/identity/identity-document/citizen-card/",
+    name="1. GTĐD - A. GTĐD - CCCD",
+    description="Lưu",
+    responses=swagger_response(
+        response_model=ResponseData[CitizenCardCreateSuccessRes],
+        success_status_code=status.HTTP_200_OK
+    ),
+    tags=['[CIF] I. TTCN']
+)
+async def view_create(
+        citizen_card_document_req: CitizenCardReqRes,
+        current_user=Depends(get_current_user_from_header())
+):
+    identity_card_info = await CtrIdentity(current_user).save_citizen_card(citizen_card_document_req)
+    return ResponseData[IdentityCardCreateSuccessRes](**identity_card_info)
+
+
+@router.get(
+    path="/citizen-card/",
+    name="1. GTĐD - A. GTĐD - CCCD - Chi Tiết",
+    description="Chi tiết",
+    responses=swagger_response(
+        response_model=ResponseData[CitizenCardCreateSuccessRes],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_detail_citizen_card(
+        cif_id: str = Path(...),
+        current_user=Depends(get_current_user_from_header())
+):
+    identity_card_info = await CtrIdentity().detail_identity_document(cif_id)
+    return ResponseData[CitizenCardReqRes](**identity_card_info)
+
+
+# HC
+@router_special.post(
+    path="/basic-information/identity/identity-document/passport/",
+    name="1. GTĐD - A. GTĐD - HC",
+    description="Lưu",
+    responses=swagger_response(
+        response_model=ResponseData[PassportCreateSuccessRes],
+        success_status_code=status.HTTP_200_OK
+    ),
+    tags=['[CIF] I. TTCN']
+)
+async def view_create(
+        passport_document_req: PassportDocumentReqRes,
+        current_user=Depends(get_current_user_from_header())
+):
+    passport_info = await CtrIdentity(current_user).save_passport(passport_document_req)
+    return ResponseData[PassportCreateSuccessRes](**passport_info)
+
+
+@router.get(
+    path="/passport/",
+    name="1. GTĐD - A. GTĐD - HC - Chi Tiết",
+    description="Chi tiết",
+    responses=swagger_response(
+        response_model=ResponseData[PassportDocumentReqRes],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_detail_passport(
+        cif_id: str = Path(...),
+        current_user=Depends(get_current_user_from_header())
+):
+    passport_info = await CtrIdentity().detail_identity_document(cif_id)
+    return ResponseData[PassportDocumentReqRes](**passport_info)

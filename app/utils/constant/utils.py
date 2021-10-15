@@ -1,63 +1,63 @@
 from pydantic import Field
 
-from app.api.base.base_schema import CustomBaseModel
+from app.api.base.schema import BaseSchema
 
 
-class IdentityDocumentTypeRes(CustomBaseModel):
+class IdentityDocumentTypeRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class HandSideRes(CustomBaseModel):
+class HandSideRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class FingerTypeRes(CustomBaseModel):
+class FingerTypeRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class PlaceOfIssueRes(CustomBaseModel):
+class PlaceOfIssueRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class GenderRes(CustomBaseModel):
+class GenderRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class NationalityRes(CustomBaseModel):
+class NationalityRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class ProvinceRes(CustomBaseModel):
+class ProvinceRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class DistrictRes(CustomBaseModel):
+class DistrictRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class WardRes(CustomBaseModel):
+class WardRes(BaseSchema):
     id: str = Field(...)
     code: str = Field(...)
     name: str = Field(...)
 
 
-class FingerPrintRes(CustomBaseModel):
+class FingerPrintRes(BaseSchema):
     id: str = Field(...)
     image_url: str = Field(...)
     hand_side: HandSideRes

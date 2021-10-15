@@ -1,8 +1,12 @@
+import datetime
 from typing import Union, Dict
 
-from app.utils.status.message import ERROR_IDENTITY_CARD_NOT_EXIST
+from app.api.base.repository import ReposReturn
+from app.utils.status.message import ERROR_IDENTITY_DOCUMENT_NOT_EXIST
 
-CIF_ID = "123"
+IDENTITY_CARD_CIF_ID = "CMND123"
+CITIZEN_CARD_CIF_ID = "CCCD123"
+PASSPORT_CIF_ID = "PASSPORT123"
 TYPE_IDENTITY_CARD = 0
 TYPE_CITIZEN_CARD = 1
 TYPE_PASSPORT = 2
@@ -21,16 +25,16 @@ IDENTITY_CARD_INFO = {
         "name": "Chứng minh nhân dân"
     },
     "frontside_information": {
-        "identity_image_url": "http://example.com/example.jpg",
-        "face_compare_image_url": "http://example.com/example.jpg",
+        "identity_image_url": "https://example.com/example.jpg",
+        "face_compare_image_url": "https://example.com/example.jpg",
         "similar_percent": 94
     },
     "backside_information": {
-        "identity_image_url": "http://example.com/example.jpg",
+        "identity_image_url": "https://example.com/example.jpg",
         "fingerprint": [
             {
                 "id": "1",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYTRAI",
@@ -44,7 +48,7 @@ IDENTITY_CARD_INFO = {
             },
             {
                 "id": "2",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYTRAI",
@@ -58,7 +62,7 @@ IDENTITY_CARD_INFO = {
             },
             {
                 "id": "3",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYPHAI",
@@ -72,7 +76,7 @@ IDENTITY_CARD_INFO = {
             },
             {
                 "id": "4",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYPHAI",
@@ -179,16 +183,16 @@ CITIZEN_CARD_INFO = {
         "name": "Căn cước công dân"
     },
     "frontside_information": {
-        "identity_image_url": "http://example.com/example.jpg",
-        "face_compare_image_url": "http://example.com/example.jpg",
+        "identity_image_url": "https://example.com/example.jpg",
+        "face_compare_image_url": "https://example.com/example.jpg",
         "similar_percent": 94
     },
     "backside_information": {
-        "identity_image_url": "http://example.com/example.jpg",
+        "identity_image_url": "https://example.com/example.jpg",
         "fingerprint": [
             {
                 "id": "1",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYTRAI",
@@ -202,7 +206,7 @@ CITIZEN_CARD_INFO = {
             },
             {
                 "id": "2",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYTRAI",
@@ -216,7 +220,7 @@ CITIZEN_CARD_INFO = {
             },
             {
                 "id": "3",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYPHAI",
@@ -230,7 +234,7 @@ CITIZEN_CARD_INFO = {
             },
             {
                 "id": "4",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYPHAI",
@@ -258,7 +262,7 @@ CITIZEN_CARD_INFO = {
             "expired_date": "07/02/2021",
             "mrz_content": "IDVNM~079195236~8~079197258639~<< "
                            "122909199~X~Nu~23092031~X~VNM<<<<<<<<<<<~4Tran~<<~Minh~<~Huyen~<<<….",
-            "qr_code_content": "079087007923||Nguyễn Thái Anh |27061987|Nam|236/11 Lê Thị Hông, Phường 17, Gò Vấp, "
+            "qr_code_content": "079087007923||Nguyễn Thái Anh |27061987|Nam|236/11 Lê Thị Hồng, Phường 17, Gò Vấp, "
                                "TPHCM | 21022021 "
         },
         "basic_information": {
@@ -329,13 +333,13 @@ PASSPORT_INFO = {
         "name": "Hộ chiếu"
     },
     "passport_information": {
-        "identity_image_url": "http://example.com/example.jpg",
-        "face_compare_image_url": "http://example.com/example.jpg",
+        "identity_image_url": "https://example.com/example.jpg",
+        "face_compare_image_url": "https://example.com/example.jpg",
         "similar_percent": 94,
         "fingerprint": [
             {
                 "id": "1",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYTRAI",
@@ -349,7 +353,7 @@ PASSPORT_INFO = {
             },
             {
                 "id": "2",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYTRAI",
@@ -363,7 +367,7 @@ PASSPORT_INFO = {
             },
             {
                 "id": "3",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYPHAI",
@@ -377,7 +381,7 @@ PASSPORT_INFO = {
             },
             {
                 "id": "4",
-                "image_url": "http://example.com/example.jpg",
+                "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
                     "code": "TAYPHAI",
@@ -437,13 +441,27 @@ PASSPORT_INFO = {
 }
 
 
-async def repos_get_detail_identity_document(cif_id: str, identity_document_type: int) -> (bool, Union[str, Dict]):
-    if cif_id == CIF_ID:
-        if identity_document_type == TYPE_IDENTITY_CARD:
-            return True, IDENTITY_CARD_INFO
-        elif identity_document_type == TYPE_CITIZEN_CARD:
-            return True, CITIZEN_CARD_INFO
-        else:
-            return True, PASSPORT_INFO
+async def repos_get_detail_identity_document(cif_id: str) -> (bool, Union[str, Dict]):
+    if cif_id == IDENTITY_CARD_CIF_ID:
+        return ReposReturn(data=IDENTITY_CARD_INFO)
+    elif cif_id == CITIZEN_CARD_CIF_ID:
+        return ReposReturn(data=CITIZEN_CARD_INFO)
+    elif cif_id == PASSPORT_CIF_ID:
+        return ReposReturn(data=PASSPORT_INFO)
     else:
-        return False, ERROR_IDENTITY_CARD_NOT_EXIST
+        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='cif_id')
+
+
+async def repos_save_identity_document(identity_card_document_req, created_by):
+    identity_document_type_id = int(identity_card_document_req.identity_document_type.id)
+    if identity_document_type_id == TYPE_IDENTITY_CARD \
+            or identity_document_type_id == TYPE_CITIZEN_CARD \
+            or identity_document_type_id == TYPE_PASSPORT:
+        cif_id = identity_card_document_req.identity_document_type.code
+        return ReposReturn(data={
+            "cif_id": cif_id,
+            "created_at": datetime.datetime.now(),
+            "created_by": created_by
+        })
+    else:
+        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='cif_id')
