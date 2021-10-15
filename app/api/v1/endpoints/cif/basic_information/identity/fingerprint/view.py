@@ -4,10 +4,10 @@ from starlette import status
 from app.api.base.schema import ResponseData
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.controller import (
-    CtrDocument
+    CtrFingerPrint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
-    DocumentRes
+    FingerPrintRes
 )
 from app.api.v1.endpoints.user.schema import UserInfoRes
 from app.utils.swagger import swagger_response
@@ -34,7 +34,7 @@ async def view_create_identity_document(current_user=Depends(get_current_user_fr
     name="1. GTĐD - C. Vân tay",
     description="Detail",
     responses=swagger_response(
-        response_model=ResponseData[DocumentRes],
+        response_model=ResponseData[FingerPrintRes],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -42,5 +42,5 @@ async def view_retrieve_user(
         cif_id: str = Path(...),
         current_user=Depends(get_current_user_from_header())
 ):
-    data = await CtrDocument().ctr_document()
-    return ResponseData[DocumentRes](**data)
+    data = await CtrFingerPrint().ctr_get_fingerprint()
+    return ResponseData[FingerPrintRes](**data)

@@ -1,26 +1,26 @@
 from typing import List
 
-from app.api.base.base_schema import CustomBaseModel
+from app.api.base.schema import BaseSchema
 
 
-class HandSide(CustomBaseModel):
+class HandSide(BaseSchema):
     id: str
     code: str
     name: str
 
 
-class FingerType(CustomBaseModel):
+class FingerType(BaseSchema):
     id: str
     code: str
     name: str
 
 
-class Fingerprint(CustomBaseModel):
+class FingerPrint(BaseSchema):
     image_url: str
     hand_side: HandSide
     finger_type: FingerType
 
 
-class DocumentRes(CustomBaseModel):
-    fingerprint_1: List[Fingerprint]
-    fingerprint_2: List[Fingerprint]
+class FingerPrintRes(BaseSchema):
+    fingerprint_1: List[FingerPrint]
+    fingerprint_2: List[FingerPrint]
