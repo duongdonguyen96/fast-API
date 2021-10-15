@@ -7,9 +7,7 @@ from app.api.v1.endpoints.user.schema import AuthReq
 
 class CtrUser(BaseController):
     async def ctr_login(self, login_req: AuthReq):
-        is_auth, auth_res = await repos_login(username=login_req.username, password=login_req.password)
-        if not is_auth:
-            return self.response_exception(msg=auth_res, loc="username, password")
+        auth_res = self.call_repos(await repos_login(username=login_req.username, password=login_req.password))
 
         return self.response(data=auth_res)
 
@@ -17,8 +15,6 @@ class CtrUser(BaseController):
         return self.response(data=self.current_user)
 
     async def ctr_get_user_info(self, user_id: str):
-        is_found, info_user_data = await repos_get_user_info(user_id)
-        if not is_found:
-            return self.response_exception(msg=info_user_data, loc="user_id")
+        info_user_data = self.call_repos(await repos_get_user_info(user_id))
 
         return self.response(data=info_user_data)

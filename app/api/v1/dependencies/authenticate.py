@@ -16,14 +16,13 @@ def get_current_user_from_header(is_require_login: bool = True) -> Callable:
 async def _get_authorization_header(
         scheme_and_credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())
 ) -> UserInfoRes:
-    is_valid, user_info = await repos_check_token(token=scheme_and_credentials.credentials)
-    if is_valid:
-        return UserInfoRes(**user_info)
-    else:
+    result_check_token = await repos_check_token(token=scheme_and_credentials.credentials)
+    if result_check_token.is_error:
         raise ExceptionHandle(
             errors=[{'loc': None, 'msg': ERROR_INVALID_TOKEN}],
             status_code=status.HTTP_400_BAD_REQUEST
         )
+    return UserInfoRes(**result_check_token.data)
 
 
 async def _get_authorization_header_optional(
