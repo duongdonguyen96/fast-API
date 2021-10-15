@@ -40,7 +40,7 @@ class Error(BaseSchema):
 class PagingResponse(BaseSchema, GenericModel, Generic[TypeX]):
     data: List[TypeX]
     errors: List[Error] = []
-    total_items = 0
+    total_item = 0
     total_page = 0
     current_page = 0
 
