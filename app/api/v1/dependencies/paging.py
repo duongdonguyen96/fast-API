@@ -1,7 +1,6 @@
 from enum import Enum
 
-from fastapi import Depends
-from pydantic import Field
+from fastapi.params import Query
 from pydantic.main import BaseModel
 
 
@@ -10,11 +9,11 @@ class OrderBy(str, Enum):
     desc = "desc"
 
 
-class Paging(BaseModel):
+class PaginationParams(BaseModel):
     order_by: OrderBy = OrderBy.asc
-    limit: int = Field(20, gt=0)
-    page: int = Field(1, gt=0)
+    limit: int = Query(50, ge=1, description="Page size")
+    page: int = Query(1, ge=1, description="Page number")
 
-
-def get_paging(paging=Depends(Paging)):
-    return paging
+    @property
+    def offset(self):
+        return self.limit * (self.page - 1)
