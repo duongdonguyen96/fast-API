@@ -1,13 +1,31 @@
 from fastapi import APIRouter, Depends
 from starlette import status
 
-from app.api.base.schema import ResponseData
+from app.api.base.schema import PagingResponse, ResponseData
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
+from app.api.v1.dependencies.paging import PaginationParams
 from app.api.v1.endpoints.user.controller import CtrUser
 from app.api.v1.endpoints.user.schema import AuthReq, AuthRes, UserInfoRes
 from app.utils.swagger import swagger_response
 
 router = APIRouter()
+
+
+@router.get(
+    path="/",
+    name="List user",
+    description="Danh sách các người dùng",
+    responses=swagger_response(
+        response_model=PagingResponse[UserInfoRes],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_list_user(
+        current_user=Depends(get_current_user_from_header()),  # noqa
+        pagination_params: PaginationParams = Depends()
+):
+    paging_users = await CtrUser(pagination_params=pagination_params).ctr_get_list_user()
+    return PagingResponse[UserInfoRes](**paging_users)
 
 
 @router.post(

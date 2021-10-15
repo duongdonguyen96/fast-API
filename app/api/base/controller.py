@@ -4,6 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy.orm import Session
 from starlette import status
 
+from app.api.base.repository import ReposReturn
 from app.api.base.schema import Error
 from app.third_parties.mongo.base import mongo_db
 from app.third_parties.oracle.base import oracle_session
@@ -15,9 +16,9 @@ class BaseController:
     BaseController use business
     """
 
-    def __init__(self, current_user=None, paging=None):
+    def __init__(self, current_user=None, pagination_params=None):
         self.current_user = current_user
-        self.paging = paging
+        self.pagination_params = pagination_params
         self.errors = []
 
     @staticmethod
@@ -27,6 +28,16 @@ class BaseController:
     @staticmethod
     async def get_mongo_session() -> AsyncIOMotorDatabase:
         return mongo_db
+
+    def call_repos(self, result_call_repos: ReposReturn):
+        if result_call_repos.is_error:
+            self.response_exception(
+                msg=result_call_repos.msg,
+                loc=result_call_repos.loc,
+                detail=result_call_repos.detail
+            )
+
+        return result_call_repos.data
 
     def append_error(self, msg: str, loc: str = None, detail: str = ""):
         """
@@ -60,7 +71,7 @@ class BaseController:
     def response_paging(
             self,
             data,
-            total_items: int = 1,
+            total_item: int = 1,
             current_page: int = 1,
             total_page: int = 1,
             error_status_code=status.HTTP_400_BAD_REQUEST
@@ -70,7 +81,7 @@ class BaseController:
         else:
             return {
                 "data": data,
-                "total_items": total_items,
+                "total_item": total_item,
                 "total_page": total_page,
                 "current_page": current_page,
                 "errors": self.errors,
