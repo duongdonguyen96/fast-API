@@ -28,7 +28,7 @@ async def view_create(
         identity_card_document_req: IdentityCardReqRes,
         current_user=Depends(get_current_user_from_header())
 ):
-    identity_card_info = await CtrIdentity(current_user).save_identity_card(identity_card_document_req)
+    identity_card_info = await CtrIdentity(current_user).save_identity_document(identity_card_document_req)
     return ResponseData[IdentityCardCreateSuccessRes](**identity_card_info)
 
 
@@ -67,7 +67,7 @@ async def view_create(
         citizen_card_document_req: CitizenCardReqRes,
         current_user=Depends(get_current_user_from_header())
 ):
-    identity_card_info = await CtrIdentity(current_user).save_citizen_card(citizen_card_document_req)
+    identity_card_info = await CtrIdentity(current_user).save_identity_document(citizen_card_document_req)
     return ResponseData[IdentityCardCreateSuccessRes](**identity_card_info)
 
 
@@ -76,7 +76,7 @@ async def view_create(
     name="1. GTĐD - A. GTĐD - CCCD - Chi Tiết",
     description="Chi tiết",
     responses=swagger_response(
-        response_model=ResponseData[CitizenCardCreateSuccessRes],
+        response_model=ResponseData[CitizenCardReqRes],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -103,7 +103,7 @@ async def view_create(
         passport_document_req: PassportDocumentReqRes,
         current_user=Depends(get_current_user_from_header())
 ):
-    passport_info = await CtrIdentity(current_user).save_passport(passport_document_req)
+    passport_info = await CtrIdentity(current_user).save_identity_document(passport_document_req)
     return ResponseData[PassportCreateSuccessRes](**passport_info)
 
 

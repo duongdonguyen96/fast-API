@@ -10,6 +10,11 @@ PASSPORT_CIF_ID = "PASSPORT123"
 TYPE_IDENTITY_CARD = 0
 TYPE_CITIZEN_CARD = 1
 TYPE_PASSPORT = 2
+IDENTITY_DOCUMENT_TYPES = [
+    TYPE_IDENTITY_CARD,
+    TYPE_CITIZEN_CARD,
+    TYPE_PASSPORT
+]
 IDENTITY_CARD = "Chứng minh nhân dân"
 CITIZEN_IDENTITY_CARD = "Căn cước công dân"
 PASSPORT = "Hộ chiếu"
@@ -454,9 +459,7 @@ async def repos_get_detail_identity_document(cif_id: str) -> (bool, Union[str, D
 
 async def repos_save_identity_document(identity_card_document_req, created_by):
     identity_document_type_id = int(identity_card_document_req.identity_document_type.id)
-    if identity_document_type_id == TYPE_IDENTITY_CARD \
-            or identity_document_type_id == TYPE_CITIZEN_CARD \
-            or identity_document_type_id == TYPE_PASSPORT:
+    if identity_document_type_id in IDENTITY_DOCUMENT_TYPES:
         cif_id = identity_card_document_req.identity_document_type.code
         return ReposReturn(data={
             "cif_id": cif_id,
