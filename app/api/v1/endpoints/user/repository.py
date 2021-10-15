@@ -39,4 +39,4 @@ async def repos_get_user_info(user_id: str) -> ReposReturn:
     if user_id == USER_ID:
         return ReposReturn(data=USER_INFO)
     else:
-        return ReposReturn(is_error=False, msg=USER_ID_NOT_EXIST, loc='user_id')
+        return ReposReturn(is_error=True, msg=USER_ID_NOT_EXIST, loc='user_id')
