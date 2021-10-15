@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from app.api.base.errors import Error
+from app.api.base.schema import Error
 from app.settings.service import SERVICE
 from app.utils.status.message import (
     FILE_IS_NULL, FILE_TOO_LARGE, TOO_MANY_FILE

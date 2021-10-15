@@ -1,5 +1,4 @@
-from typing import Any, Dict, Union
-
+from app.api.base.repository import ReposReturn
 from app.utils.status.message import (
     ERROR_INVALID_TOKEN, USER_ID_NOT_EXIST, USERNAME_OR_PASSWORD_INVALID
 )
@@ -15,25 +14,29 @@ USER_INFO = {
 }
 
 
-async def repos_login(username: str, password: str) -> (bool, Union[str, Any]):
+async def repos_get_list_user() -> ReposReturn:
+    return ReposReturn(data=[USER_INFO])
+
+
+async def repos_login(username: str, password: str) -> ReposReturn:
     if username == 'dev1' and password == '12345678':
-        return True, {
+        return ReposReturn(data={
             "token": USER_TOKEN,
             "user_info": USER_INFO
-        }
+        })
     else:
-        return False, USERNAME_OR_PASSWORD_INVALID
+        return ReposReturn(is_error=True, msg=USERNAME_OR_PASSWORD_INVALID, loc='username, password')
 
 
-async def repos_check_token(token: str) -> (bool, Union[str, Any]):
+async def repos_check_token(token: str) -> ReposReturn:
     if token == USER_TOKEN:
-        return True, USER_INFO
+        return ReposReturn(data=USER_INFO)
     else:
-        return False, ERROR_INVALID_TOKEN
+        return ReposReturn(is_error=True, msg=ERROR_INVALID_TOKEN, loc='token')
 
 
-async def repos_get_user_info(user_id: str) -> (bool, Union[str, Dict]):
+async def repos_get_user_info(user_id: str) -> ReposReturn:
     if user_id == USER_ID:
-        return True, USER_INFO
+        return ReposReturn(data=USER_INFO)
     else:
-        return False, USER_ID_NOT_EXIST
+        return ReposReturn(is_error=True, msg=USER_ID_NOT_EXIST, loc='user_id')

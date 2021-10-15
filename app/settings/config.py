@@ -8,7 +8,6 @@ from loguru import logger
 
 from app.settings.logging_config import InterceptHandler
 
-
 ROOT_APP = str(pathlib.Path(__file__).parent.absolute().parent)
 
 APPLICATION = {

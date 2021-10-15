@@ -2,7 +2,7 @@ from typing import Dict, List, Set, Union
 
 from fastapi import status
 
-from app.api.base.response import ResponseError
+from app.api.base.schema import ResponseError
 
 response_status_codes = {
     status.HTTP_400_BAD_REQUEST: "Bad Request",
