@@ -12,7 +12,7 @@ from starlette.responses import JSONResponse
 load_dotenv('.env')  # noqa
 
 from app.api.v1.endpoints import router as v1_router
-from app.settings.configs import APPLICATION
+from app.settings.config import APPLICATION
 from app.settings.middleware import middleware_setting
 from app.utils.status.except_custom import ExceptionHandle
 from app.utils.status.message import VALIDATE_ERROR

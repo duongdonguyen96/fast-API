@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import pathlib
@@ -7,7 +6,6 @@ import sys
 from loguru import logger
 
 from app.settings.logging_config import InterceptHandler
-
 
 ROOT_APP = str(pathlib.Path(__file__).parent.absolute().parent)
 
@@ -18,6 +16,12 @@ APPLICATION = {
     "debug": bool(os.getenv("DEBUG", True)),
     "allowed_hosts": list(os.getenv("ALLOWED_HOSTS", ["*"])),
 }
+
+DATETIME_INPUT_OUTPUT_FORMAT = '%Y/%m/%d %H:%M:%S'
+
+DATE_INPUT_OUTPUT_FORMAT = '%Y-%m-%d'
+
+TIME_INPUT_OUTPUT_FORMAT = '%H:%M:%S'
 
 # logging configuration
 LOGGING_LEVEL = logging.DEBUG if APPLICATION["debug"] else logging.INFO

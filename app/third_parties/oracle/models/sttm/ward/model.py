@@ -1,7 +1,7 @@
 from sqlalchemy import CHAR, CLOB, VARCHAR, Column, DateTime, Float
 from sqlalchemy.dialects.oracle import NUMBER
 
-from app.third_party.oracle.models.utils import Base
+from app.third_parties.oracle.models.utils import Base
 
 
 class Ward(Base):

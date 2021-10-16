@@ -1,23 +1,24 @@
-from typing import List, Union
+from typing import Union
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy.orm import Session
 from starlette import status
 
-from app.api.base.errors import Error
-from app.third_party.mongo.base import mongo_db
-from app.third_party.oracle.base import oracle_session
+from app.api.base.repository import ReposReturn
+from app.api.base.schema import Error
+from app.third_parties.mongo.base import mongo_db
+from app.third_parties.oracle.base import oracle_session
 from app.utils.status.except_custom import ExceptionHandle
 
 
-class Controller:
+class BaseController:
     """
-    Controller use business
+    BaseController use business
     """
 
-    def __init__(self, current_user=None, paging=None):
+    def __init__(self, current_user=None, pagination_params=None):
         self.current_user = current_user
-        self.paging = paging
+        self.pagination_params = pagination_params
         self.errors = []
 
     @staticmethod
@@ -27,6 +28,16 @@ class Controller:
     @staticmethod
     async def get_mongo_session() -> AsyncIOMotorDatabase:
         return mongo_db
+
+    def call_repos(self, result_call_repos: ReposReturn):
+        if result_call_repos.is_error:
+            self.response_exception(
+                msg=result_call_repos.msg,
+                loc=result_call_repos.loc,
+                detail=result_call_repos.detail
+            )
+
+        return result_call_repos.data
 
     def append_error(self, msg: str, loc: str = None, detail: str = ""):
         """
@@ -60,7 +71,7 @@ class Controller:
     def response_paging(
             self,
             data,
-            total_items: int = 1,
+            total_item: int = 1,
             current_page: int = 1,
             total_page: int = 1,
             error_status_code=status.HTTP_400_BAD_REQUEST
@@ -70,7 +81,7 @@ class Controller:
         else:
             return {
                 "data": data,
-                "total_items": total_items,
+                "total_item": total_item,
                 "total_page": total_page,
                 "current_page": current_page,
                 "errors": self.errors,
@@ -249,35 +260,3 @@ class Controller:
                 })
 
         return parent_temp
-
-
-class BaseValidate:
-    def __init__(self, session_mongo=None, session_oracle=None):
-        self.session_mongo = session_mongo
-        self.session_oracle = session_oracle
-        self.errors: List[Error] = []
-
-    def _handle_list_error(self, errors: list):
-        for temp in errors:
-            self.errors.append(
-                Error(
-                    loc=" -> ".join([str(err) for err in temp["loc"]]) if len(temp["loc"]) != 0 else None,
-                    msg=f"{temp['msg']}",
-                    detail=temp.detail if hasattr(temp, 'detail') else None
-                )
-            )
-
-    def _handle_error(self, msg: str, loc: str = None, detail: str = ""):  # noqa
-        """
-        Hàm add exception để trả về
-        :param msg: code exception
-        :param loc: fields cần thông báo
-        :param detail: Thông tin thông báo
-        :return:
-        """
-        self.errors.append(Error(msg=msg, detail=detail, loc=loc))
-
-    def is_success(self):
-        if self.errors:
-            return False
-        return True

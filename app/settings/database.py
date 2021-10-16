@@ -1,7 +1,4 @@
-import json
 import os
-
-from loguru import logger
 
 ORACLE_CONFIG = {
     "host": os.getenv("ORACLE_HOST"),

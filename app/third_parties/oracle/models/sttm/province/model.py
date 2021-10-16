@@ -1,17 +1,17 @@
 from sqlalchemy import CHAR, CLOB, VARCHAR, Column, DateTime, Float
 from sqlalchemy.dialects.oracle import NUMBER
 
-from app.third_party.oracle.models.utils import Base
+from app.third_parties.oracle.models.utils import Base
 
 
-class District(Base):
-    __tablename__ = "los_sttm_district"
+class Province(Base):
+    __tablename__ = "los_sttm_province"
 
-    district_code = Column("DISTRICT_CODE", VARCHAR(6), primary_key=True)
+    province_code = Column("PROVINCE_CODE", VARCHAR(6), primary_key=True)
 
     description = Column("DESCRIPTION", VARCHAR(105))
 
-    loc_code = Column("LOC_CODE", VARCHAR(6))
+    loc_code = Column("LOC_CODE", VARCHAR(3))
 
     record_stat = Column("RECORD_STAT", CHAR(1))
 

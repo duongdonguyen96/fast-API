@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from app.third_party.services.file import ServiceFile
+from app.third_parties.services.file import ServiceFile
 
 
 async def repos_upload_file(file: bytes) -> Tuple[bool, Union[Dict, str]]:
