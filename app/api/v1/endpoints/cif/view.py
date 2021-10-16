@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -11,17 +11,17 @@ router = APIRouter()
 
 
 @router.get(
-    path="/{customer_id}/",
+    path="/{cif_id}/",
     name="Detail",
-    description="Lấy thông tin cif của khách hàng",
+    description="Lấy dữ liệu tab `THÔNG TIN CIF` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[CifInformationRes],
         success_status_code=status.HTTP_200_OK
     )
 )
 async def view_cif_info(
-        customer_id: str,
+        cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header()) # noqa
 ):
-    cif_info = await CtrCustomer().ctr_cif_info(customer_id)
+    cif_info = await CtrCustomer().ctr_cif_info(cif_id)
     return ResponseData[CifInformationRes](**cif_info)
