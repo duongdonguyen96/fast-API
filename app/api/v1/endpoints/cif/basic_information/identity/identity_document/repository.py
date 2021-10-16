@@ -1,28 +1,13 @@
-import datetime
-from typing import Union, Dict
-
 from app.api.base.repository import ReposReturn
-from app.utils.status.message import ERROR_IDENTITY_DOCUMENT_NOT_EXIST
+from app.utils.constant.cif import (
+    CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
+    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
+)
+from app.utils.functions import now
+from app.utils.status.message import (
+    ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST
+)
 
-IDENTITY_CARD_CIF_ID = "CMND123"
-CITIZEN_CARD_CIF_ID = "CCCD123"
-PASSPORT_CIF_ID = "PASSPORT123"
-TYPE_IDENTITY_CARD = 0
-TYPE_CITIZEN_CARD = 1
-TYPE_PASSPORT = 2
-IDENTITY_DOCUMENT_TYPES = [
-    TYPE_IDENTITY_CARD,
-    TYPE_CITIZEN_CARD,
-    TYPE_PASSPORT
-]
-IDENTITY_CARD = "Chứng minh nhân dân"
-CITIZEN_IDENTITY_CARD = "Căn cước công dân"
-PASSPORT = "Hộ chiếu"
-IDENTITY_DOCUMENT_TYPE = {
-    TYPE_IDENTITY_CARD: IDENTITY_CARD,
-    TYPE_CITIZEN_CARD: CITIZEN_IDENTITY_CARD,
-    TYPE_PASSPORT: PASSPORT
-}
 IDENTITY_CARD_INFO = {
     "identity_document_type": {
         "id": "0",
@@ -446,25 +431,28 @@ PASSPORT_INFO = {
 }
 
 
-async def repos_get_detail_identity_document(cif_id: str) -> (bool, Union[str, Dict]):
-    if cif_id == IDENTITY_CARD_CIF_ID:
+async def repos_get_detail_identity_document(cif_id: str, identity_document_type_code: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    if identity_document_type_code not in IDENTITY_DOCUMENT_TYPE:
+        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type_id')
+
+    if identity_document_type_code == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
         return ReposReturn(data=IDENTITY_CARD_INFO)
-    elif cif_id == CITIZEN_CARD_CIF_ID:
+    elif identity_document_type_code == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
         return ReposReturn(data=CITIZEN_CARD_INFO)
-    elif cif_id == PASSPORT_CIF_ID:
+    else:
         return ReposReturn(data=PASSPORT_INFO)
-    else:
-        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='cif_id')
 
 
-async def repos_save_identity_document(identity_card_document_req, created_by):
-    identity_document_type_id = int(identity_card_document_req.identity_document_type.id)
-    if identity_document_type_id in IDENTITY_DOCUMENT_TYPES:
-        cif_id = identity_card_document_req.identity_document_type.code
-        return ReposReturn(data={
-            "cif_id": cif_id,
-            "created_at": datetime.datetime.now(),
-            "created_by": created_by
-        })
-    else:
-        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='cif_id')
+async def repos_save_identity_document(identity_card_document_req, created_by: str):
+    identity_document_type_code = identity_card_document_req.identity_document_type.code
+    if identity_document_type_code not in IDENTITY_DOCUMENT_TYPE:
+        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> code')
+
+    return ReposReturn(data={
+        "cif_id": identity_card_document_req.cif_id,
+        "created_at": now(),
+        "created_by": created_by
+    })
