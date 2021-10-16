@@ -1,12 +1,18 @@
 from typing import Callable, Optional, Union
 
 from fastapi import Security, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials, HTTPBasic, HTTPBearer
+)
 
 from app.api.v1.endpoints.user.repository import repos_check_token
 from app.api.v1.endpoints.user.schema import UserInfoRes
 from app.utils.status.except_custom import ExceptionHandle
 from app.utils.status.message import ERROR_INVALID_TOKEN
+
+bearer_token = HTTPBearer()
+
+basic_auth = HTTPBasic()
 
 
 def get_current_user_from_header(is_require_login: bool = True) -> Callable:
@@ -14,7 +20,7 @@ def get_current_user_from_header(is_require_login: bool = True) -> Callable:
 
 
 async def _get_authorization_header(
-        scheme_and_credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())
+        scheme_and_credentials: HTTPAuthorizationCredentials = Security(bearer_token)
 ) -> UserInfoRes:
     result_check_token = await repos_check_token(token=scheme_and_credentials.credentials)
     if result_check_token.is_error:

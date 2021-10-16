@@ -8,8 +8,8 @@ USER_TOKEN = "OTY1MWNkZmQ5YTlhNGViNjkxZjlhM2ExMjVhYzQ2YjA6N2VlN2E2ZTg1MTUzN2M2Yz
 
 USER_INFO = {
     "user_id": str(USER_ID),
-    "user_name": "dev1",
-    "full_name": "Developer 1",
+    "username": "dev1",
+    "full_name_vn": "Developer 1",
     "avatar_url": "cdn/users/avatar/dev1.jpg"
 }
 
