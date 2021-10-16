@@ -1,10 +1,8 @@
-from typing import Dict, Union
-
 from app.api.base.repository import ReposReturn
 from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
 
 
-async def repos_get_cif_info(cif_id: str) -> (bool, Union[str, Dict]):
+async def repos_get_cif_info(cif_id: str) -> ReposReturn:
     if cif_id == '123':
         return ReposReturn(data={
             "self_selected_cif_flag": True,
