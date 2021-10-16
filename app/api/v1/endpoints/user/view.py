@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends
 from fastapi.security import HTTPBasicCredentials
 from starlette import status
 
@@ -9,8 +9,10 @@ from app.api.v1.dependencies.authenticate import (
 from app.api.v1.dependencies.paging import PaginationParams
 from app.api.v1.endpoints.user.controller import CtrUser
 from app.api.v1.endpoints.user.schema import (
-    EXAMPLE_RES_FAIL_LOGIN, EXAMPLE_RES_SUCCESS_DETAIL_USER, AuthRes,
-    UserInfoRes
+    EXAMPLE_REQ_UPDATE_USER, EXAMPLE_RES_FAIL_LOGIN,
+    EXAMPLE_RES_FAIL_UPDATE_USER, EXAMPLE_RES_SUCCESS_DETAIL_USER,
+    EXAMPLE_RES_SUCCESS_UPDATE_USER, AuthRes, UserInfoRes, UserUpdateReq,
+    UserUpdateRes
 )
 from app.utils.swagger import swagger_response
 
@@ -82,3 +84,27 @@ async def view_retrieve_user(
 ):
     user_info = await CtrUser().ctr_get_user_info(user_id)
     return ResponseData[UserInfoRes](**user_info)
+
+
+@router.post(
+    path="/{user_id}/",
+    name="Update",
+    description="Cập nhật thông tin user",
+    responses=swagger_response(
+        response_model=ResponseData[UserUpdateRes],
+        success_status_code=status.HTTP_200_OK,
+        success_examples=EXAMPLE_RES_SUCCESS_UPDATE_USER,
+        fail_examples=EXAMPLE_RES_FAIL_UPDATE_USER
+    ),
+    deprecated=True
+)
+async def view_update(
+        user_id: str,
+        user_update_req: UserUpdateReq = Body(
+            ...,
+            examples=EXAMPLE_REQ_UPDATE_USER,
+        ),
+        current_user=Depends(get_current_user_from_header())  # noqa
+):
+    data = await CtrUser().ctr_update_user_info(user_id=user_id, user_update_req=user_update_req)
+    return ResponseData[UserUpdateRes](**data)
