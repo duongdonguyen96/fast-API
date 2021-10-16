@@ -27,7 +27,6 @@ class CtrUser(BaseController):
         return self.response(data=info_user_data)
 
     async def ctr_update_user_info(self, user_id: str, user_update_req: UserUpdateReq):
-        print(user_update_req)
         return self.response(data={
             'user_id': user_id,
             'full_name_vn': user_update_req.full_name_vn,

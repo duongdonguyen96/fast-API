@@ -104,7 +104,7 @@ async def view_update(
             ...,
             examples=EXAMPLE_REQ_UPDATE_USER,
         ),
-        current_user=Depends(get_current_user_from_header())  # noqa
+        current_user=Depends(get_current_user_from_header())
 ):
-    data = await CtrUser().ctr_update_user_info(user_id=user_id, user_update_req=user_update_req)
+    data = await CtrUser(current_user).ctr_update_user_info(user_id=user_id, user_update_req=user_update_req)
     return ResponseData[UserUpdateRes](**data)
