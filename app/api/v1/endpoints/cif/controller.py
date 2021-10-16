@@ -1,8 +1,8 @@
-from app.api.base.base import Controller
+from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.repository import repos_get_cif_info
 
 
-class CtrCustomer(Controller):
+class CtrCustomer(BaseController):
     async def ctr_cif_info(self, customer_id: str):
         is_found, cif_info = await repos_get_cif_info(customer_id)
         if not is_found:

@@ -1,25 +1,25 @@
-from app.api.base.base_schema import CustomBaseModel
+from app.api.base.schema import BaseSchema
 
 
-class CustomerClassification(CustomBaseModel):
+class CustomerClassification(BaseSchema):
     id: str
     code: str
     name: str
 
 
-class CustomerEconomicProfession(CustomBaseModel):
+class CustomerEconomicProfession(BaseSchema):
     id: str
     code: str
     name: str
 
 
-class KYCLevel(CustomBaseModel):
+class KYCLevel(BaseSchema):
     id: str
     code: str
     name: str
 
 
-class CifInformationRes(CustomBaseModel):
+class CifInformationRes(BaseSchema):
     self_selected_cif_flag: bool
     cif_number: str
     customer_classification: CustomerClassification
