@@ -1,24 +1,9 @@
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-
-
-class CustomerClassification(BaseSchema):
-    id: str
-    code: str
-    name: str
-
-
-class CustomerEconomicProfession(BaseSchema):
-    id: str
-    code: str
-    name: str
-
-
-class KYCLevel(BaseSchema):
-    id: str
-    code: str
-    name: str
+from app.api.v1.schemas.cif import (
+    CustomerClassification, CustomerEconomicProfession, KYCLevel
+)
 
 
 class CifInformationRes(BaseSchema):
