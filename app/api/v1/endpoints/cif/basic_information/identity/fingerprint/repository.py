@@ -4,5 +4,5 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.fake_data i
 )
 
 
-async def repos_get_data_finger() -> ReposReturn:
+async def repos_get_data_finger(cif_id: str) -> ReposReturn:
     return ReposReturn(data=FINGERPRINT_DATA)

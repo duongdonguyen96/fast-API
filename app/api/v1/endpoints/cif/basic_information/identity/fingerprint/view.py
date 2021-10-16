@@ -38,9 +38,9 @@ async def view_create_identity_document(current_user=Depends(get_current_user_fr
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_retrieve_user(
+async def view_retrieve_fingerprint(
         cif_id: str = Path(...),
         current_user=Depends(get_current_user_from_header())
 ):
-    data = await CtrFingerPrint().ctr_get_fingerprint()
-    return ResponseData[FingerPrintRes](**data)
+    fingerprint_info = await CtrFingerPrint().ctr_get_fingerprint(cif_id)
+    return ResponseData[FingerPrintRes](**fingerprint_info)
