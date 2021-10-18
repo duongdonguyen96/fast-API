@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get(
     path="/",
     name="Detail",
-    description="Lấy dữ liệu tab `THÔNG TIN KHÁC` của khách hàng",
+    description="Lấy dữ liệu tab `II. THÔNG TIN KHÁC` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[OtherInformationResponse],
         success_status_code=status.HTTP_200_OK
@@ -23,7 +23,7 @@ router = APIRouter()
 )
 async def view_cif_info(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        current_user=Depends(get_current_user_from_header()) # noqa
+        current_user=Depends(get_current_user_from_header())
 ):
-    other_info = await CtrOtherInfo().ctr_other_info(cif_id)
+    other_info = await CtrOtherInfo(current_user).ctr_other_info(cif_id)
     return ResponseData[OtherInformationResponse](**other_info)

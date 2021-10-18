@@ -14,9 +14,10 @@ router_module.include_router(router=views_cif_info.router, tags=["[CIF] Informat
 # step I. Thông tin cá nhân
 router_module.include_router(router=views_step_1.router_step, prefix="/{cif_id}/basic-information",
                              tags=['[CIF] I. TTCN'])
-# step II. Thông tin khác
-router_module.include_router(router=views_other_info.router, prefix="/{cif_id}/other-information",
-                             tags=['[CIF] II. TTK'])
 
 # router đặc biệt, do không sử dụng prefix có path param là {cif_id}
 router_module.include_router(router=views_step_i_1_a.router_special, prefix="")
+
+# step II. Thông tin khác
+router_module.include_router(router=views_other_info.router, prefix="/{cif_id}/other-information",
+                             tags=['[CIF] II. TTK'])

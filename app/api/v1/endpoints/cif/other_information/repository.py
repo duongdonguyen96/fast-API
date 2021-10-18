@@ -3,7 +3,7 @@ from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
 
 
-async def repo_other_info(cif_id: str) -> ReposReturn:
+async def repos_other_info(cif_id: str) -> ReposReturn:
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data={
             "legal_agreement_flag": True,
