@@ -21,6 +21,6 @@ class FingerPrint(BaseSchema):
     finger_type: FingerType
 
 
-class FingerPrintRes(BaseSchema):
+class FingerPrintResponse(BaseSchema):
     fingerprint_1: List[FingerPrint]
     fingerprint_2: List[FingerPrint]

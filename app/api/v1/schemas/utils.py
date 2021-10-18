@@ -3,27 +3,35 @@ from pydantic import Field
 from app.api.base.schema import BaseSchema
 
 
-class Dropdown(BaseSchema):
+class DropdownResponse(BaseSchema):
     id: str = Field(..., description='`Chuỗi định danh`')
     code: str = Field(..., description='`Mã`')
     name: str = Field(..., description='`Tên`')
 
 
-class Gender(Dropdown):
+class DropdownRequest(BaseSchema):
+    id: str = Field(..., description='`Chuỗi định danh`')
+
+
+class GenderResponse(DropdownResponse):
     pass
 
 
-class Nationality(Dropdown):
+class GenderRequest(DropdownRequest):
     pass
 
 
-class Province(Dropdown):
+class NationalityResponse(DropdownResponse):
     pass
 
 
-class District(Dropdown):
+class ProvinceResponse(DropdownResponse):
     pass
 
 
-class Ward(Dropdown):
+class DistrictResponse(DropdownResponse):
+    pass
+
+
+class WardResponse(DropdownResponse):
     pass
