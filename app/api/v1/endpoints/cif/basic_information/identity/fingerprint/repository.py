@@ -1,13 +1,17 @@
-from typing import Any, Union
-
 from app.api.base.repository import ReposReturn
 from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.functions import now
 from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
 
 
-async def repos_fingerprint(finger_request) -> (bool, Union[str, Any]):
-    data = finger_request  # noqa
-    return ReposReturn(data=data)
+async def repos_save_fingerprint(cif_id, finger_request, created_by: str):
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+    return ReposReturn(data={
+        "cif_id": cif_id,
+        "created_at": now(),
+        "created_by": created_by
+    })
 
 
 async def repos_get_data_finger(cif_id: str) -> ReposReturn:
