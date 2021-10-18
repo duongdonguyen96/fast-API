@@ -1,18 +1,15 @@
-from enum import Enum
-
 from fastapi.params import Query
-from pydantic.main import BaseModel
 
 
-class OrderBy(str, Enum):
-    asc = "asc"
-    desc = "desc"
-
-
-class PaginationParams(BaseModel):
-    order_by: OrderBy = OrderBy.asc
-    limit: int = Query(50, ge=1, description="Page size")
-    page: int = Query(1, ge=1, description="Page number")
+# https://fastapi.tiangolo.com/tutorial/dependencies/classes-as-dependencies/#shortcut
+class PaginationParams:
+    def __init__(
+            self,
+            limit: int = Query(default=50, ge=1, description="Số phần tử trong một trang"),
+            page: int = Query(default=1, ge=1, description="Trang số mấy?")
+    ):
+        self.limit = limit
+        self.page = page
 
     @property
     def offset(self):
