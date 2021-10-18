@@ -30,7 +30,6 @@ async def view_create_fingerprint(
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    print('hmmmmmmmmmmmmmmmmmmmmmmmm')
     data = await CtrFingerPrint(current_user).ctr_save_fingerprint(cif_id, finger_request)
     return ResponseData[FingerPrintSaveSuccessResponse](**data)
 
