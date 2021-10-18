@@ -5,9 +5,9 @@ from fastapi.security import (
     HTTPAuthorizationCredentials, HTTPBasic, HTTPBearer
 )
 
+from app.api.base.except_custom import ExceptionHandle
 from app.api.v1.endpoints.user.repository import repos_check_token
 from app.api.v1.endpoints.user.schema import UserInfoResponse
-from app.utils.status.except_custom import ExceptionHandle
 from app.utils.status.message import ERROR_INVALID_TOKEN
 
 bearer_token = HTTPBearer()

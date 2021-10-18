@@ -4,11 +4,11 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy.orm import Session
 from starlette import status
 
+from app.api.base.except_custom import ExceptionHandle
 from app.api.base.repository import ReposReturn
 from app.api.base.schema import Error
 from app.third_parties.mongo.base import mongo_db
 from app.third_parties.oracle.base import oracle_session
-from app.utils.status.except_custom import ExceptionHandle
 
 
 class BaseController:
