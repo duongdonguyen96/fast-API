@@ -7,7 +7,7 @@ from app.utils.functions import now
 from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
 
 
-async def repos_save_fingerprint(cif_id, finger_request: TwoFingerPrintRequest, created_by: str):
+async def repos_save_fingerprint(cif_id: str, finger_request: TwoFingerPrintRequest, created_by: str):
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
     return ReposReturn(data={
