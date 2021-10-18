@@ -1,6 +1,10 @@
 import uuid
 from datetime import date, datetime
-from typing import Callable, Dict, List, Set, Tuple, Union
+from typing import Callable, Dict
+
+from app.settings.config import (
+    DATE_INPUT_OUTPUT_FORMAT, DATETIME_INPUT_OUTPUT_FORMAT
+)
 
 
 def today():
@@ -11,8 +15,55 @@ def today():
     return date.today()
 
 
-def get_current_date():
+def now():
     return datetime.now()
+
+
+def datetime_to_string(_time: datetime, _format=DATETIME_INPUT_OUTPUT_FORMAT) -> str:
+    if _time:
+        return _time.strftime(_format)
+    return ''
+
+
+def string_to_datetime(string: str, default=None, _format=DATETIME_INPUT_OUTPUT_FORMAT) -> datetime:
+    try:
+        return datetime.strptime(string, _format)
+    except (ValueError, TypeError):
+        return default
+
+
+def date_to_string(_date: date, _format=DATE_INPUT_OUTPUT_FORMAT) -> str:
+    if _date:
+        return _date.strftime(_format)
+    return ''
+
+
+def string_to_date(string: str, default=None, _format=DATE_INPUT_OUTPUT_FORMAT) -> datetime:
+    try:
+        return datetime.strptime(string, _format)
+    except (ValueError, TypeError):
+        return default
+
+
+def date_to_datetime(date_input: date, default=None) -> datetime:
+    try:
+        return datetime.combine(date_input, datetime.min.time())
+    except (ValueError, TypeError):
+        return default
+
+
+def datetime_to_date(datetime_input: datetime, default=None) -> date:
+    try:
+        return datetime_input.date()
+    except (ValueError, TypeError):
+        return default
+
+
+def end_time_of_day(datetime_input: datetime, default=None) -> datetime:
+    try:
+        return datetime_input.replace(hour=23, minute=59, second=59)
+    except (ValueError, TypeError):
+        return default
 
 
 def generate_uuid() -> str:
