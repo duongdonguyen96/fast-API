@@ -1,43 +1,43 @@
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import Dropdown
+from app.api.v1.schemas.utils import DropdownResponse
 
 
 # Đối tượng khách hàng
-class CustomerClassification(Dropdown):
+class CustomerClassificationResponse(DropdownResponse):
     pass
 
 
 # Mã ngành KT
-class CustomerEconomicProfession(Dropdown):
+class CustomerEconomicProfessionResponse(DropdownResponse):
     pass
 
 
 # Cấp độ KYC
-class KYCLevel(Dropdown):
+class KYCLevelResponse(DropdownResponse):
     pass
 
 
 # Loại giấy tờ định danh
-class IdentityDocumentType(Dropdown):
+class IdentityDocumentTypeResponse(DropdownResponse):
     pass
 
 
-class PlaceOfIssue(Dropdown):
+class PlaceOfIssueResponse(DropdownResponse):
     pass
 
 
-class HandSide(Dropdown):
+class HandSideResponse(DropdownResponse):
     pass
 
 
-class FingerType(Dropdown):
+class FingerTypeResponse(DropdownResponse):
     pass
 
 
-class FingerPrint(BaseSchema):
+class FingerPrintResponse(BaseSchema):
     id: str = Field(...)
     image_url: str = Field(...)
-    hand_side: HandSide
-    finger_type: FingerType
+    hand_side: HandSideResponse
+    finger_type: FingerTypeResponse

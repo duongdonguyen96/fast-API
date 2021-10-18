@@ -7,7 +7,7 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.controller 
     CtrFingerPrint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
-    FingerPrintRes
+    FingerPrintResponse
 )
 from app.api.v1.endpoints.user.schema import UserInfoRes
 from app.utils.swagger import swagger_response
@@ -34,7 +34,7 @@ async def view_create_identity_document(current_user=Depends(get_current_user_fr
     name="1. GTĐD - C. Vân tay",
     description="Detail",
     responses=swagger_response(
-        response_model=ResponseData[FingerPrintRes],
+        response_model=ResponseData[FingerPrintResponse],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -43,4 +43,4 @@ async def view_retrieve_fingerprint(
         current_user=Depends(get_current_user_from_header())
 ):
     fingerprint_info = await CtrFingerPrint().ctr_get_fingerprint(cif_id)
-    return ResponseData[FingerPrintRes](**fingerprint_info)
+    return ResponseData[FingerPrintResponse](**fingerprint_info)
