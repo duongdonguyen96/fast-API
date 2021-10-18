@@ -2,10 +2,13 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.repository import (
     repos_get_data_finger, repos_save_fingerprint
 )
+from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
+    TwoFingerPrintRequest
+)
 
 
 class CtrFingerPrint(BaseController):
-    async def ctr_save_fingerprint(self, cif_id: str, finger_request):
+    async def ctr_save_fingerprint(self, cif_id: str, finger_request: TwoFingerPrintRequest):
         data = self.call_repos(
             await repos_save_fingerprint(
                 cif_id,
