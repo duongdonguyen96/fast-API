@@ -7,7 +7,8 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.controller 
     CtrFingerPrint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
-    FingerPrintSaveSuccessResponse, TwoFingerPrintResponse
+    FingerPrintSaveSuccessResponse, TwoFingerPrintRequest,
+    TwoFingerPrintResponse
 )
 from app.utils.swagger import swagger_response
 
@@ -25,10 +26,11 @@ router = APIRouter()
     )
 )
 async def view_create_fingerprint(
-        finger_request: TwoFingerPrintResponse,
+        finger_request: TwoFingerPrintRequest,
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
+    print('hmmmmmmmmmmmmmmmmmmmmmmmm')
     data = await CtrFingerPrint(current_user).ctr_save_fingerprint(cif_id, finger_request)
     return ResponseData[FingerPrintSaveSuccessResponse](**data)
 

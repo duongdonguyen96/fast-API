@@ -9,6 +9,7 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema impo
 
 class CtrFingerPrint(BaseController):
     async def ctr_save_fingerprint(self, cif_id: str, finger_request: TwoFingerPrintResponse):
+        print('hmmmmm controller')
         data = self.call_repos(
             await repos_save_fingerprint(
                 cif_id,
