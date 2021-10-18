@@ -41,3 +41,11 @@ class FingerPrintResponse(BaseSchema):
     image_url: str = Field(...)
     hand_side: HandSideResponse
     finger_type: FingerTypeResponse
+
+
+class SaleStaffResponse(DropdownResponse):
+    pass
+
+
+class IndirectSaleStaffResponse(DropdownResponse):
+    pass
