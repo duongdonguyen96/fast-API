@@ -13,6 +13,6 @@ class TwoFingerPrintResponse(BaseSchema):
 
 
 class FingerPrintSaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(...)
-    created_at: datetime
-    created_by: str = Field(...)
+    cif_id: str = Field(..., description='Id CIF ảo')
+    created_at: datetime = Field(..., description='Ngày và giờ')
+    created_by: str = Field(..., description='Người tạo')
