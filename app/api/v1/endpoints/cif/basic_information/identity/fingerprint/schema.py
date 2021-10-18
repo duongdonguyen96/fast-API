@@ -1,6 +1,7 @@
 from typing import List
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.schemas.cif import FingerPrint
 
 
 class HandSide(BaseSchema):
@@ -15,17 +16,11 @@ class FingerType(BaseSchema):
     name: str
 
 
-class Fingerprint(BaseSchema):
-    image_url: str
-    hand_side: HandSide
-    finger_type: FingerType
-
-
-class DocumentRes(BaseSchema):
-    fingerprint_1: List[Fingerprint]
-    fingerprint_2: List[Fingerprint]
-
-
 class FingerReq(BaseSchema):
-    fingerprint_1: List[Fingerprint]
-    fingerprint_2: List[Fingerprint]
+    fingerprint_1: List[FingerPrint]
+    fingerprint_2: List[FingerPrint]
+
+
+class FingerPrintRes(BaseSchema):
+    fingerprint_1: List[FingerPrint]
+    fingerprint_2: List[FingerPrint]
