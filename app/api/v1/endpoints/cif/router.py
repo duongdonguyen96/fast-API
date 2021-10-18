@@ -4,6 +4,7 @@ from app.api.v1.endpoints.cif import view as views_cif_info
 from app.api.v1.endpoints.cif.basic_information import router as routers_step_1
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document import \
     view as views_step_i_1_a
+from app.api.v1.endpoints.cif.e_banking import view as views_e_banking
 from app.api.v1.endpoints.cif.other_information import view as views_other_info
 from app.api.v1.endpoints.cif.payment_account import \
     router as routers_payment_account
@@ -27,3 +28,7 @@ router_module.include_router(router=views_other_info.router, prefix="/{cif_id}/o
 # step III. Tài khoản thanh toán
 router_module.include_router(router=routers_payment_account.router_step, prefix="/{cif_id}/payment-account",
                              tags=['[CIF] III. TKTT'])
+
+# step IV. E-banking
+router_module.include_router(router=views_e_banking.router, prefix="/{cif_id}/e-banking",
+                             tags=['[CIF] IV. E-banking'])
