@@ -7,9 +7,9 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.controller 
     CtrFingerPrint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
+    FingerPrintSaveSuccessResponse, TwoFingerPrintRequest,
     TwoFingerPrintResponse
 )
-from app.api.v1.endpoints.user.schema import UserInfoResponse
 from app.utils.swagger import swagger_response
 
 router = APIRouter()
@@ -18,15 +18,20 @@ router = APIRouter()
 @router.post(
     path="/",
     name="1. GTĐD - C. Vân tay",
-    description="Create",
+    description="Lưu dữ liệu `MẪU VÂN TAY` của khách hàng",
+    status_code=status.HTTP_200_OK,
     responses=swagger_response(
-        response_model=ResponseData[UserInfoResponse],
+        response_model=ResponseData[FingerPrintSaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
-    ),
+    )
 )
-async def view_create_identity_document(current_user=Depends(get_current_user_from_header())):
-    data = {}
-    return ResponseData[UserInfoResponse](**data)
+async def view_create_fingerprint(
+        finger_request: TwoFingerPrintRequest,
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header())
+):
+    data = await CtrFingerPrint(current_user).ctr_save_fingerprint(cif_id, finger_request)
+    return ResponseData[FingerPrintSaveSuccessResponse](**data)
 
 
 @router.get(

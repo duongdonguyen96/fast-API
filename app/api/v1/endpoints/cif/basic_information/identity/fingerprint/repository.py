@@ -1,6 +1,20 @@
 from app.api.base.repository import ReposReturn
+from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
+    TwoFingerPrintRequest
+)
 from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.functions import now
 from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
+
+
+async def repos_save_fingerprint(cif_id, finger_request: TwoFingerPrintRequest, created_by: str):
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+    return ReposReturn(data={
+        "cif_id": cif_id,
+        "created_at": now(),
+        "created_by": created_by
+    })
 
 
 async def repos_get_data_finger(cif_id: str) -> ReposReturn:
