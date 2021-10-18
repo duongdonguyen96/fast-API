@@ -11,8 +11,8 @@ from app.api.v1.endpoints.user.controller import CtrUser
 from app.api.v1.endpoints.user.schema import (
     EXAMPLE_REQ_UPDATE_USER, EXAMPLE_RES_FAIL_LOGIN,
     EXAMPLE_RES_FAIL_UPDATE_USER, EXAMPLE_RES_SUCCESS_DETAIL_USER,
-    EXAMPLE_RES_SUCCESS_UPDATE_USER, AuthRes, UserInfoRes, UserUpdateReq,
-    UserUpdateRes
+    EXAMPLE_RES_SUCCESS_UPDATE_USER, AuthResponse, UserInfoResponse,
+    UserUpdateRequest, UserUpdateResponse
 )
 from app.utils.swagger import swagger_response
 
@@ -24,7 +24,7 @@ router = APIRouter()
     name="List user",
     description="Danh sách các người dùng",
     responses=swagger_response(
-        response_model=PagingResponse[UserInfoRes],
+        response_model=PagingResponse[UserInfoResponse],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -33,7 +33,7 @@ async def view_list_user(
         pagination_params: PaginationParams = Depends()
 ):
     paging_users = await CtrUser(pagination_params=pagination_params).ctr_get_list_user()
-    return PagingResponse[UserInfoRes](**paging_users)
+    return PagingResponse[UserInfoResponse](**paging_users)
 
 
 @router.post(
@@ -41,14 +41,14 @@ async def view_list_user(
     name="Login",
     description="Đăng nhập",
     responses=swagger_response(
-        response_model=ResponseData[AuthRes],
+        response_model=ResponseData[AuthResponse],
         success_status_code=status.HTTP_200_OK,
         fail_examples=EXAMPLE_RES_FAIL_LOGIN
     ),
 )
 async def view_login(credentials: HTTPBasicCredentials = Depends(basic_auth)):
     data = await CtrUser().ctr_login(credentials)
-    return ResponseData[AuthRes](**data)
+    return ResponseData[AuthResponse](**data)
 
 
 @router.get(
@@ -56,7 +56,7 @@ async def view_login(credentials: HTTPBasicCredentials = Depends(basic_auth)):
     name="Detail current user",
     description="Lấy thông tin user hiện tại",
     responses=swagger_response(
-        response_model=ResponseData[UserInfoRes],
+        response_model=ResponseData[UserInfoResponse],
         success_status_code=status.HTTP_200_OK,
         success_examples=EXAMPLE_RES_SUCCESS_DETAIL_USER
     )
@@ -65,7 +65,7 @@ async def view_retrieve_current_user(
         current_user=Depends(get_current_user_from_header())
 ):
     user_info = await CtrUser(current_user).ctr_get_current_user_info()
-    return ResponseData[UserInfoRes](**user_info)
+    return ResponseData[UserInfoResponse](**user_info)
 
 
 @router.get(
@@ -73,7 +73,7 @@ async def view_retrieve_current_user(
     name="Detail",
     description="Lấy thông tin user",
     responses=swagger_response(
-        response_model=ResponseData[UserInfoRes],
+        response_model=ResponseData[UserInfoResponse],
         success_status_code=status.HTTP_200_OK,
         success_examples=EXAMPLE_RES_SUCCESS_DETAIL_USER
     )
@@ -83,7 +83,7 @@ async def view_retrieve_user(
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
     user_info = await CtrUser().ctr_get_user_info(user_id)
-    return ResponseData[UserInfoRes](**user_info)
+    return ResponseData[UserInfoResponse](**user_info)
 
 
 @router.post(
@@ -91,7 +91,7 @@ async def view_retrieve_user(
     name="Update",
     description="Cập nhật thông tin user",
     responses=swagger_response(
-        response_model=ResponseData[UserUpdateRes],
+        response_model=ResponseData[UserUpdateResponse],
         success_status_code=status.HTTP_200_OK,
         success_examples=EXAMPLE_RES_SUCCESS_UPDATE_USER,
         fail_examples=EXAMPLE_RES_FAIL_UPDATE_USER
@@ -100,11 +100,11 @@ async def view_retrieve_user(
 )
 async def view_update(
         user_id: str,
-        user_update_req: UserUpdateReq = Body(
+        user_update_req: UserUpdateRequest = Body(
             ...,
             examples=EXAMPLE_REQ_UPDATE_USER,
         ),
         current_user=Depends(get_current_user_from_header())
 ):
     data = await CtrUser(current_user).ctr_update_user_info(user_id=user_id, user_update_req=user_update_req)
-    return ResponseData[UserUpdateRes](**data)
+    return ResponseData[UserUpdateResponse](**data)

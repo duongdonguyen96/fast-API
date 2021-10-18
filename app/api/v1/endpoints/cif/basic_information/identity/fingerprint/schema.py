@@ -1,26 +1,13 @@
 from typing import List
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import FingerPrint
+from app.api.v1.schemas.cif import FingerPrintResponse
 
 
-class HandSide(BaseSchema):
-    id: str
-    code: str
-    name: str
+class FingerRequest(BaseSchema):
+    pass
 
 
-class FingerType(BaseSchema):
-    id: str
-    code: str
-    name: str
-
-
-class FingerReq(BaseSchema):
-    fingerprint_1: List[FingerPrint]
-    fingerprint_2: List[FingerPrint]
-
-
-class FingerPrintRes(BaseSchema):
-    fingerprint_1: List[FingerPrint]
-    fingerprint_2: List[FingerPrint]
+class FingerPrintResponse(BaseSchema):
+    fingerprint_1: List[FingerPrintResponse]
+    fingerprint_2: List[FingerPrintResponse]

@@ -3,16 +3,16 @@ from pydantic import Field
 from app.api.base.schema import BaseSchema, CreatedUpdatedBaseModel
 
 
-class UserInfoRes(BaseSchema):
+class UserInfoResponse(BaseSchema):
     user_id: str = Field(..., description='Id người dùng')
     username: str = Field(..., description='Tên đăng nhập')
     full_name_vn: str = Field(..., description='Họ và tên người dùng')
     avatar_url: str = Field(..., description='Link avatar')
 
 
-class AuthRes(BaseSchema):
+class AuthResponse(BaseSchema):
     token: str = Field(..., description='Token dùng cho các API khác')
-    user_info: UserInfoRes = Field(..., description='Thông tin người dùng')
+    user_info: UserInfoResponse = Field(..., description='Thông tin người dùng')
 
 
 EXAMPLE_RES_FAIL_LOGIN = {
@@ -63,12 +63,12 @@ EXAMPLE_RES_SUCCESS_DETAIL_USER = {
 ########################################################################################################################
 # update user
 ########################################################################################################################
-class UserUpdateReq(BaseSchema):
+class UserUpdateRequest(BaseSchema):
     full_name_vn: str = Field(..., description='Họ và tên người dùng')
     avatar_url: str = Field(..., description='Link avatar')
 
 
-class UserUpdateRes(CreatedUpdatedBaseModel):
+class UserUpdateResponse(CreatedUpdatedBaseModel):
     user_id: str = Field(..., description='Id người dùng')
     full_name_vn: str = Field(..., description='Họ và tên người dùng')
 

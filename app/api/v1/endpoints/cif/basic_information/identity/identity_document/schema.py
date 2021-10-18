@@ -5,10 +5,11 @@ from pydantic import Field
 
 from app.api.base.schema import BaseSchema
 from app.api.v1.schemas.cif import (
-    FingerPrint, IdentityDocumentType, PlaceOfIssue
+    FingerPrintResponse, IdentityDocumentTypeResponse, PlaceOfIssueResponse
 )
 from app.api.v1.schemas.utils import (
-    District, Gender, Nationality, Province, Ward
+    DistrictResponse, GenderResponse, NationalityResponse, ProvinceResponse,
+    WardResponse
 )
 
 
@@ -24,13 +25,13 @@ class PassportInformationRes(BaseSchema):
     identity_image_url: str = Field(...)
     face_compare_image_url: str = Field(...)
     similar_percent: int = Field(...)
-    fingerprint: List[FingerPrint]
+    fingerprint: List[FingerPrintResponse]
 
 
 # II. Thông tin mặt sau CMND, CCCD
 class BackSideInformation(BaseSchema):
     identity_image_url: str = Field(...)
-    fingerprint: List[FingerPrint]
+    fingerprint: List[FingerPrintResponse]
     updated_at: str = Field(...)
     updated_by: str = Field(...)
 
@@ -39,7 +40,7 @@ class BackSideInformation(BaseSchema):
 class IdentityCardDocumentRes(BaseSchema):
     identity_number: str = Field(...)
     issued_date: str = Field(...)
-    place_of_issue: PlaceOfIssue
+    place_of_issue: PlaceOfIssueResponse
     expired_date: str = Field(...)
 
 
@@ -47,10 +48,10 @@ class IdentityCardDocumentRes(BaseSchema):
 class IdentityBasicInformationRes(BaseSchema):
     id: str = Field(...)
     full_name_vn: str = Field(...)
-    gender: Gender
+    gender: GenderResponse
     date_of_birth: str = Field(...)
-    nationality: Nationality
-    province: Province
+    nationality: NationalityResponse
+    province: ProvinceResponse
     identity_characteristic: str = Field(...)  # CMND
     father_full_name_vn: str = Field(...)  # CMND
     mother_full_name_vn: str = Field(...)  # CMND
@@ -58,9 +59,9 @@ class IdentityBasicInformationRes(BaseSchema):
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ -> Nơi thường trú/ Địa chỉ liên hệ
 class AddressRes(BaseSchema):
-    province: Province
-    district: District
-    ward: Ward
+    province: ProvinceResponse
+    district: DistrictResponse
+    ward: WardResponse
     number_and_street: str = Field(...)
 
 
@@ -81,7 +82,7 @@ class IdentityCardOCRResultRes(BaseSchema):
 class CitizenCardRes(BaseSchema):
     identity_number: str = Field(...)
     issued_date: str = Field(...)
-    place_of_issue: PlaceOfIssue
+    place_of_issue: PlaceOfIssueResponse
     expired_date: str = Field(...)
     mrz_content: str = Field(...)  # CCCD
     qr_code_content: str = Field(...)  # CCCD
@@ -90,10 +91,10 @@ class CitizenCardRes(BaseSchema):
 class CitizenBasicInformationRes(BaseSchema):
     id: str = Field(...)
     full_name_vn: str = Field(...)
-    gender: Gender
+    gender: GenderResponse
     date_of_birth: str = Field(...)
-    nationality: Nationality
-    province: Province
+    nationality: NationalityResponse
+    province: ProvinceResponse
 
 
 class CitizenOCRResultRes(BaseSchema):
@@ -111,10 +112,10 @@ class CitizenCardCreateSuccessRes(BaseSchema):
 # HC
 class PassportBasicInformationRes(BaseSchema):
     full_name_vn: str = Field(...)
-    gender: Gender
+    gender: GenderResponse
     date_of_birth: str = Field(...)
-    nationality: Nationality
-    place_of_birth: Province
+    nationality: NationalityResponse
+    place_of_birth: ProvinceResponse
     identity_card_number: str = Field(...)
     mrz_content: str = Field(...)
 
@@ -122,7 +123,7 @@ class PassportBasicInformationRes(BaseSchema):
 class PassportDocumentRes(BaseSchema):
     identity_number: str = Field(...)
     issued_date: str = Field(...)
-    place_of_issue: PlaceOfIssue
+    place_of_issue: PlaceOfIssueResponse
     expired_date: str = Field(...)
 
 
@@ -137,21 +138,21 @@ class OCRResultRes(BaseSchema):
 ########################################################################################################################
 
 class IdentityCardDetailRes(BaseSchema):
-    identity_document_type: IdentityDocumentType
+    identity_document_type: IdentityDocumentTypeResponse
     frontside_information: FrontSideInformation
     backside_information: BackSideInformation
     ocr_result: IdentityCardOCRResultRes
 
 
 class CitizenCardDetailRes(BaseSchema):
-    identity_document_type: IdentityDocumentType
+    identity_document_type: IdentityDocumentTypeResponse
     frontside_information: FrontSideInformation
     backside_information: BackSideInformation
     ocr_result: CitizenOCRResultRes
 
 
 class PassportDetailRes(BaseSchema):
-    identity_document_type: IdentityDocumentType
+    identity_document_type: IdentityDocumentTypeResponse
     passport_information: PassportInformationRes
     ocr_result: OCRResultRes
 

@@ -3,13 +3,13 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.repository 
     repos_fingerprint, repos_get_data_finger
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
-    FingerReq
+    FingerRequest
 )
 
 
 class CtrFingerPrint(BaseController):
-    async def ctr_save_fingerprint(self, finger_req: FingerReq):
-        data = self.call_repos(await repos_fingerprint(finger_req))
+    async def ctr_save_fingerprint(self, finger_request: FingerRequest):
+        data = self.call_repos(await repos_fingerprint(finger_request))
         return self.response(data=data)
 
     async def ctr_get_fingerprint(self, cif_id: str):

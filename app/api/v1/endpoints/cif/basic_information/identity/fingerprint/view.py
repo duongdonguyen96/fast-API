@@ -7,9 +7,8 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.controller 
     CtrFingerPrint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
-    FingerPrintRes, FingerReq
+    FingerPrintResponse, FingerRequest
 )
-from app.api.v1.endpoints.user.schema import UserInfoRes  # noqa
 from app.utils.swagger import swagger_response
 
 router = APIRouter()
@@ -21,13 +20,13 @@ router = APIRouter()
     description="Create",
     status_code=status.HTTP_201_CREATED,
     responses=swagger_response(
-        response_model=ResponseData[FingerReq],
+        response_model=ResponseData[FingerRequest],
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_create_identity_document(finger_req: FingerReq):
-    data = await CtrFingerPrint().ctr_save_fingerprint(finger_req)
-    return ResponseData[FingerReq](**data)
+async def view_create_identity_document(finger_request: FingerRequest):
+    data = await CtrFingerPrint().ctr_save_fingerprint(finger_request)
+    return ResponseData[FingerRequest](**data)
 
 
 @router.get(
@@ -35,7 +34,7 @@ async def view_create_identity_document(finger_req: FingerReq):
     name="1. GTĐD - C. Vân tay",
     description="Detail",
     responses=swagger_response(
-        response_model=ResponseData[FingerPrintRes],
+        response_model=ResponseData[FingerPrintResponse],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -44,4 +43,4 @@ async def view_retrieve_fingerprint(
         current_user=Depends(get_current_user_from_header())
 ):
     fingerprint_info = await CtrFingerPrint().ctr_get_fingerprint(cif_id)
-    return ResponseData[FingerPrintRes](**fingerprint_info)
+    return ResponseData[FingerPrintResponse](**fingerprint_info)

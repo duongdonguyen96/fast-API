@@ -1,9 +1,10 @@
 from app.api.base.repository import ReposReturn
+from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
 
 
 async def repos_get_cif_info(cif_id: str) -> ReposReturn:
-    if cif_id == '123':
+    if cif_id == CIF_ID_TEST:
         return ReposReturn(data={
             "self_selected_cif_flag": True,
             "cif_number": "123456789",
