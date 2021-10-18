@@ -4,7 +4,7 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.user.repository import (
     repos_get_list_user, repos_get_user_info, repos_login
 )
-from app.api.v1.endpoints.user.schema import UserUpdateReq
+from app.api.v1.endpoints.user.schema import UserUpdateRequest
 from app.utils.functions import now
 
 
@@ -26,7 +26,7 @@ class CtrUser(BaseController):
 
         return self.response(data=info_user_data)
 
-    async def ctr_update_user_info(self, user_id: str, user_update_req: UserUpdateReq):
+    async def ctr_update_user_info(self, user_id: str, user_update_req: UserUpdateRequest):
         return self.response(data={
             'user_id': user_id,
             'full_name_vn': user_update_req.full_name_vn,
