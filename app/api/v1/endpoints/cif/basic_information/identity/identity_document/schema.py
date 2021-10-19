@@ -147,9 +147,9 @@ class PassportOCRResultResponse(BaseSchema):
 
 
 ########################################################################################################################
-# response detail giấy tờ định danh
+# Response Chi tiết GTĐD
 ########################################################################################################################
-
+# Response Chi tiết CMND
 class IdentityCardDetailResponse(BaseSchema):
     identity_document_type: DropdownResponse = Field(..., description="Loại giấy tờ định danh")
     frontside_information: FrontSideInformationResponse = Field(..., description="Thông tin mặt trước")
@@ -157,6 +157,7 @@ class IdentityCardDetailResponse(BaseSchema):
     ocr_result: IdentityCardOCRResultResponse = Field(..., description="Phân tích OCR")
 
 
+# Response Chi tiết CCCD
 class CitizenCardDetailResponse(BaseSchema):
     identity_document_type: DropdownResponse = Field(..., description="Loại giấy tờ định danh")
     frontside_information: FrontSideInformationResponse = Field(..., description="Thông tin mặt trước")
@@ -164,6 +165,7 @@ class CitizenCardDetailResponse(BaseSchema):
     ocr_result: CitizenOCRResultResponse = Field(..., description="Phân tích OCR")
 
 
+# Response Chi tiết HC
 class PassportDetailResponse(BaseSchema):
     identity_document_type: DropdownResponse = Field(..., description="Loại giấy tờ định danh")
     passport_information: PassportInformationResponse = Field(..., description="Thông tin hộ chiếu")
@@ -171,7 +173,7 @@ class PassportDetailResponse(BaseSchema):
 
 
 ########################################################################################################################
-# request body save giấy tờ định danh
+# Request Body save giấy tờ định danh
 ########################################################################################################################
 # II. Thông tin mặt sau CMND, CCCD
 class BackSideInformationRequest(BaseSchema):
@@ -179,10 +181,12 @@ class BackSideInformationRequest(BaseSchema):
     fingerprint: List[FingerPrintRequest] = Field(..., description="Vân tay")
 
 
+# III. Phân tích OCR -> 1. Giấy tờ định danh
 class IdentityCardDocumentRequest(IdentityCardDocumentResponse):
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
 
 
+# III. Phân tích OCR -> 2. Thông tin cơ bản
 class IdentityBasicInformationRequest(IdentityBasicInformationResponse):
     gender: DropdownRequest = Field(..., description="Giới tính")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
@@ -191,27 +195,32 @@ class IdentityBasicInformationRequest(IdentityBasicInformationResponse):
     religion: DropdownRequest = Field(None, description="Tôn giáo")
 
 
+# III. Phân tích OCR -> 2. Thông tin địa chỉ -> Chi tiết từng địa chỉ
 class AddressRequest(AddressResponse):
     province: DropdownRequest = Field(..., description="Tỉnh/Thành phố")
     district: DropdownRequest = Field(..., description="Quận/Huyện")
     ward: DropdownRequest = Field(..., description="Phường/Xã")
 
 
+# III. Phân tích OCR -> 2. Thông tin địa chỉ
 class AddressInformationRequest(BaseSchema):
     resident_address: AddressRequest = Field(..., description="Nơi thường trú")
     contact_address: AddressRequest = Field(..., description="Địa chỉ liên hệ")
 
 
+# III. Phân tích OCR
 class IdentityCardOCRResultRequest(BaseSchema):
     identity_document: IdentityCardDocumentRequest = Field(..., description="Giấy tờ định danh")
     basic_information: IdentityBasicInformationRequest = Field(..., description="Thông tin cơ bản")
     address_information: AddressInformationRequest = Field(..., description="Thông tin địa chỉ")
 
 
+# Loại giấy tờ định danh
 class IdentityDocumentTypeRequest(BaseSchema):
     code: str = Field(..., description="Mã code")
 
 
+# CMND
 class IdentityCardDetailRequest(BaseSchema):
     identity_document_type: IdentityDocumentTypeRequest = Field(..., description="Mã loại giấy tờ định danh")
     frontside_information: FrontSideInformationResponse = Field(..., description="Thông tin mặt trước")
@@ -219,11 +228,12 @@ class IdentityCardDetailRequest(BaseSchema):
     ocr_result: IdentityCardOCRResultRequest = Field(..., description="Phân tích OCR")
 
 
+# CMND
 class IdentityCardSaveRequest(IdentityCardDetailRequest):
     cif_id: str = Field(None, description="ID định danh CIF")
 
 
-# CCCD
+# III. Phân tích OCR -> 2. Thông tin cơ bản
 class CitizenBasicInformationRequest(CitizenBasicInformationResponse):
     gender: DropdownRequest = Field(..., description="Giới tính")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
@@ -232,16 +242,19 @@ class CitizenBasicInformationRequest(CitizenBasicInformationResponse):
     religion: DropdownRequest = Field(..., description="Tôn giáo")
 
 
+# III. Phân tích OCR -> 1. Giấy tờ định danh
 class CitizenCardRequest(CitizenCardResponse):
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
 
 
+# III. Phân tích OCR
 class CitizenCardOCRResultRequest(BaseSchema):
     identity_document: CitizenCardRequest = Field(..., description="Giấy tờ định danh")
     basic_information: CitizenBasicInformationRequest = Field(..., description="Thông tin cơ bản")
     address_information: AddressInformationRequest = Field(..., description="Thông tin địa chỉ")
 
 
+# CCCD
 class CitizenCardDetailRequest(BaseSchema):
     identity_document_type: IdentityDocumentTypeRequest = Field(..., description="Mã loại giấy tờ định danh")
     frontside_information: FrontSideInformationResponse = Field(..., description="Thông tin mặt trước")
@@ -249,32 +262,37 @@ class CitizenCardDetailRequest(BaseSchema):
     ocr_result: CitizenCardOCRResultRequest = Field(..., description="Phân tích OCR")
 
 
+# CCCD
 class CitizenCardSaveRequest(CitizenCardDetailRequest):
     cif_id: str = Field(None, description="ID định danh CIF")
 
 
-# HC
+# III. Phân tích OCR -> 1. Giấy tờ định danh
 class PassportDocumentRequest(PassportDocumentResponse):
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
     passport_type: DropdownRequest = Field(..., description="Loại")
     passport_code: DropdownRequest = Field(..., description="Mã số")
 
 
+# III. Phân tích OCR -> 2. Thông tin cơ bản
 class PassportBasicInformationRequest(PassportBasicInformationResponse):
     gender: DropdownRequest = Field(..., description="Giới tính")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
     place_of_birth: DropdownRequest = Field(..., description="Nơi sinh")
 
 
+# III. Phân tích OCR
 class PassportOCRResultRequest(BaseSchema):
     identity_document: PassportDocumentRequest = Field(..., description="Giấy tờ định danh")
     basic_information: PassportBasicInformationRequest = Field(..., description="Thông tin cơ bản")
 
 
+# HC
 class PassportInformationRequest(BaseSchema):
     fingerprint: List[FingerPrintRequest] = Field(..., description="Vân tay")
 
 
+# HC
 class PassportSaveRequest(BaseSchema):
     cif_id: str = Field(None, description="ID định danh CIF")
     identity_document_type: IdentityDocumentTypeRequest = Field(..., description="Mã loại giấy tờ định danh")
@@ -550,12 +568,12 @@ EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT = {
                 "code": "HC"
             },
             "passport_information": {
-                "identity_image_url": "http://example.com/example.jpg",
-                "face_compare_image_url": "http://example.com/example.jpg",
+                "identity_image_url": "https://example.com/example.jpg",
+                "face_compare_image_url": "https://example.com/example.jpg",
                 "similar_percent": 94,
                 "fingerprint": [
                     {
-                        "image_url": "http://example.com/example.jpg",
+                        "image_url": "https://example.com/example.jpg",
                         "hand_side": {
                             "id": "1"
                         },
@@ -564,7 +582,7 @@ EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT = {
                         }
                     },
                     {
-                        "image_url": "http://example.com/example.jpg",
+                        "image_url": "https://example.com/example.jpg",
                         "hand_side": {
                             "id": "1"
                         },
@@ -576,7 +594,7 @@ EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT = {
                     },
                     {
                         "id": "3",
-                        "image_url": "http://example.com/example.jpg",
+                        "image_url": "https://example.com/example.jpg",
                         "hand_side": {
                             "id": "1",
                             "code": "TAYPHAI",
@@ -590,7 +608,7 @@ EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT = {
                     },
                     {
                         "id": "4",
-                        "image_url": "http://example.com/example.jpg",
+                        "image_url": "https://example.com/example.jpg",
                         "hand_side": {
                             "id": "1",
                             "code": "TAYPHAI",
