@@ -1,8 +1,29 @@
+from datetime import datetime
 from typing import List
 
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+
+
+class SignatureRequest(BaseSchema):
+    identity_image_transaction_1: str = Field(..., description='Đường dẫn hình ảnh định danh chữ ký khách hàng')
+    identity_image_transaction_2: str = Field(..., description='Đường dẫn hình ảnh định danh chữ ký khách hàng')
+
+
+class CompareSignature(BaseSchema):
+    compare_image_url: str = Field(..., description='Đường dẫn hình ảnh đối chiếu')
+
+
+class SignaturesRequest(BaseSchema):
+    customer_signatures: List[SignatureRequest] = Field(..., description='Hình ảnh chữ ký')
+    compare_signature: CompareSignature = Field(..., description='Hình ảnh đối chiếu')
+
+
+class SignatureSaveSuccessResponse(BaseSchema):
+    cif_id: str = Field(..., description='Id CIF ảo')
+    created_at: datetime = Field(..., description='Ngày và giờ')
+    created_by: str = Field(..., description='Người tạo')
 
 
 class SignaturesResponse(BaseSchema):

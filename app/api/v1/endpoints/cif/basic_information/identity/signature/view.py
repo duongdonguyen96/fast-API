@@ -8,9 +8,8 @@ from app.api.v1.endpoints.cif.basic_information.identity.signature.controller im
     CtrSignature
 )
 from app.api.v1.endpoints.cif.basic_information.identity.signature.schema import (
-    SignaturesSuccessResponse
+    SignatureSaveSuccessResponse, SignaturesRequest, SignaturesSuccessResponse
 )
-from app.api.v1.endpoints.user.schema import UserInfoResponse
 
 router = APIRouter()
 
@@ -18,15 +17,19 @@ router = APIRouter()
 @router.post(
     path="/",
     name="1. GTĐD - D. Chữ ký",
-    description="Create",
+    description="Tạo dữ liệu tab `CHỮ KÝ` của khách hàng",
     responses=swagger_response(
-        response_model=ResponseData[UserInfoResponse],
+        response_model=ResponseData[SignatureSaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     ),
 )
-async def view_create_identity_document(current_user=Depends(get_current_user_from_header())):
-    data = {}
-    return ResponseData[UserInfoResponse](**data)
+async def view_create_signature(
+        signature: SignaturesRequest,
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header())
+):
+    signature_data_request = await CtrSignature(current_user).ctr_save_signature(cif_id, signature)
+    return ResponseData[SignatureSaveSuccessResponse](**signature_data_request)
 
 
 @router.get(
@@ -38,7 +41,7 @@ async def view_create_identity_document(current_user=Depends(get_current_user_fr
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_retrieve_user(
+async def view_retrieve_signature(
         cif_id: str = Path(...),
         current_user=Depends(get_current_user_from_header())
 ):
