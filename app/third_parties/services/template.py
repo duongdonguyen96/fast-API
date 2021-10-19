@@ -5,7 +5,7 @@ import aiohttp
 from starlette import status
 
 from app.settings.service import SERVICE
-from app.utils.status.message import SERVICE_ERROR
+from app.utils.error_messages import SERVICE_ERROR
 
 
 class ServiceTemplate:

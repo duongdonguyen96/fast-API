@@ -1,5 +1,5 @@
 from app.api.base.repository import ReposReturn
-from app.utils.status.message import (
+from app.utils.error_messages import (
     ERROR_INVALID_TOKEN, USER_ID_NOT_EXIST, USERNAME_OR_PASSWORD_INVALID
 )
 

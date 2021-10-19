@@ -3,10 +3,10 @@ from app.utils.constant.cif import (
     CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
     IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
 )
-from app.utils.functions import now
-from app.utils.status.message import (
+from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST
 )
+from app.utils.functions import now
 
 IDENTITY_CARD_INFO = {
     "identity_document_type": {

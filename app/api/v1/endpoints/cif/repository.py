@@ -1,6 +1,6 @@
 from app.api.base.repository import ReposReturn
 from app.utils.constant.cif import CIF_ID_TEST
-from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
 
 async def repos_get_cif_info(cif_id: str) -> ReposReturn:

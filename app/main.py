@@ -15,7 +15,7 @@ from app.api.base.except_custom import ExceptionHandle
 from app.api.v1.endpoints import router as v1_router
 from app.settings.config import APPLICATION
 from app.settings.middleware import middleware_setting
-from app.utils.status.message import VALIDATE_ERROR
+from app.utils.error_messages import VALIDATE_ERROR
 
 app = FastAPI(
     title=APPLICATION["project_name"],

@@ -3,8 +3,8 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema impo
     TwoFingerPrintRequest
 )
 from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
-from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
 
 
 async def repos_save_fingerprint(cif_id: str, finger_request: TwoFingerPrintRequest, created_by: str):

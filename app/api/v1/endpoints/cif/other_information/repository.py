@@ -3,8 +3,8 @@ from app.api.v1.endpoints.cif.other_information.schema import (
     OtherInformationUpdateRequest
 )
 from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
-from app.utils.status.message import ERROR_CIF_ID_NOT_EXIST
 
 
 async def repos_other_info(cif_id: str) -> ReposReturn:

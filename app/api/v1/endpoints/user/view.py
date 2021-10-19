@@ -3,6 +3,7 @@ from fastapi.security import HTTPBasicCredentials
 from starlette import status
 
 from app.api.base.schema import PagingResponse, ResponseData
+from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import (
     basic_auth, get_current_user_from_header
 )
@@ -14,7 +15,6 @@ from app.api.v1.endpoints.user.schema import (
     EXAMPLE_RES_SUCCESS_UPDATE_USER, AuthResponse, UserInfoResponse,
     UserUpdateRequest, UserUpdateResponse
 )
-from app.utils.swagger import swagger_response
 
 router = APIRouter()
 

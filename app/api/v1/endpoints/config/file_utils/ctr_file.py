@@ -11,7 +11,7 @@ from app.api.v1.endpoints.config.file_utils.repos_file_utils import (
 from app.api.v1.endpoints.config.file_utils.validators import (
     file_validator, files_validator
 )
-from app.utils.status.message import BAD_REQUEST
+from app.utils.error_messages import BAD_REQUEST
 
 
 class CtrFileUtils(BaseController):

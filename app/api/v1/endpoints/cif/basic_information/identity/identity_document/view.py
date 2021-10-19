@@ -1,19 +1,20 @@
 from typing import Union
 
-from fastapi import APIRouter, Depends, Path, Query, Body
+from fastapi import APIRouter, Body, Depends, Path, Query
 from starlette import status
 
 from app.api.base.schema import ResponseData
+from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.controller import (
     CtrIdentityDocument
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema import (
-    CitizenCardDetailResponse, CitizenCardSaveRequest, IdentityCardDetailResponse,
-    IdentityCardSaveRequest, IdentityDocumentSaveSuccessResponse, PassportDetailResponse,
-    PassportSaveRequest, EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT
+    EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT, CitizenCardDetailResponse,
+    CitizenCardSaveRequest, IdentityCardDetailResponse,
+    IdentityCardSaveRequest, IdentityDocumentSaveSuccessResponse,
+    PassportDetailResponse, PassportSaveRequest
 )
-from app.utils.swagger import swagger_response
 
 router = APIRouter()
 

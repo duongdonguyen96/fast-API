@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Path
 from starlette import status
 
 from app.api.base.schema import ResponseData
+from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.controller import (
     CtrFingerPrint
@@ -10,7 +11,6 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema impo
     FingerPrintSaveSuccessResponse, TwoFingerPrintRequest,
     TwoFingerPrintResponse
 )
-from app.utils.swagger import swagger_response
 
 router = APIRouter()
 

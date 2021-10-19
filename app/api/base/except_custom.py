@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 from fastapi import status
 
-from app.utils.status.message import MESSAGE_STATUS
+from app.utils.error_messages import MESSAGE_STATUS
 
 
 class ExceptionHandle(Exception):
