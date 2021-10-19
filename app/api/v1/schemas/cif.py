@@ -1,7 +1,7 @@
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownResponse
+from app.api.v1.schemas.utils import DropdownResponse, DropdownRequest
 
 
 # Đối tượng khách hàng
