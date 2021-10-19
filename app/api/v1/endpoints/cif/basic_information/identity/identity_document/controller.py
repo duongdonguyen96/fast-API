@@ -2,6 +2,7 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import (
     repos_get_detail_identity_document, repos_save_identity_document
 )
+from app.utils.constant.cif import CIF_ID_NEW_TEST
 
 
 class CtrIdentityDocument(BaseController):
@@ -17,7 +18,7 @@ class CtrIdentityDocument(BaseController):
     async def save_identity_document(self, identity_document_req):
         # trong body có truyền cif_id khác None thì lưu lại, truyền bằng None thì sẽ là tạo mới
         if identity_document_req.cif_id is None:
-            identity_document_req.cif_id = "NEW123"
+            identity_document_req.cif_id = CIF_ID_NEW_TEST
 
         info_save_document = self.call_repos(
             await repos_save_identity_document(
