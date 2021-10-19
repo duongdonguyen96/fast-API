@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
@@ -7,6 +9,18 @@ class DropdownResponse(BaseSchema):
     id: str = Field(..., description='`Chuỗi định danh`')
     code: str = Field(..., description='`Mã`')
     name: str = Field(..., description='`Tên`')
+
+
+class OptionalDropdownResponse(BaseSchema):
+    id: Optional[str] = Field(..., description='`Chuỗi định danh`')
+    code: Optional[str] = Field(..., description='`Mã`')
+    name: Optional[str] = Field(..., description='`Tên`')
+
+
+class NoRequiredDropdownResponse(BaseSchema):
+    id: str = Field(None, description='`Chuỗi định danh`')
+    code: str = Field(None, description='`Mã`')
+    name: str = Field(None, description='`Tên`')
 
 
 class DropdownRequest(BaseSchema):
