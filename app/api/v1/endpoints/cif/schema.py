@@ -1,10 +1,7 @@
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import (
-    CustomerClassificationResponse, CustomerEconomicProfessionResponse,
-    KYCLevelResponse
-)
+from app.api.v1.schemas.utils import DropdownResponse
 
 
 class CifInformationResponse(BaseSchema):
@@ -12,6 +9,6 @@ class CifInformationResponse(BaseSchema):
                                                           '`False`: thông thường. '
                                                           '`True`: tự chọn')
     cif_number: str = Field(..., description='Số CIF yêu cầu')
-    customer_classification: CustomerClassificationResponse = Field(..., description='Đối tượng khách hàng')
-    customer_economic_profession: CustomerEconomicProfessionResponse = Field(..., description='Mã ngành KT')
-    kyc_level: KYCLevelResponse = Field(..., description='Cấp độ KYC')
+    customer_classification: DropdownResponse = Field(..., description='Đối tượng khách hàng')
+    customer_economic_profession: DropdownResponse = Field(..., description='Mã ngành KT')
+    kyc_level: DropdownResponse = Field(..., description='Cấp độ KYC')

@@ -1,22 +1,7 @@
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownResponse, DropdownRequest
-
-
-# Đối tượng khách hàng
-class CustomerClassificationResponse(DropdownResponse):
-    pass
-
-
-# Mã ngành KT
-class CustomerEconomicProfessionResponse(DropdownResponse):
-    pass
-
-
-# Cấp độ KYC
-class KYCLevelResponse(DropdownResponse):
-    pass
+from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
 class FingerPrintResponse(BaseSchema):
