@@ -1,5 +1,5 @@
 CIF_ID_TEST = '123'  # cif_id dùng tạm để test
-
+CIF_ID_NEW_TEST = 'NEW123'  # cif_id dùng tạm để test khi tạo
 
 IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD = 'CMND'
 IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD = 'CCCD'
