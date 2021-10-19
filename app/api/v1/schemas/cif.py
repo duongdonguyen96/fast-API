@@ -37,7 +37,6 @@ class FingerTypeResponse(DropdownResponse):
 
 
 class FingerPrintResponse(BaseSchema):
-    id: str = Field(...)
-    image_url: str = Field(...)
-    hand_side: HandSideResponse
-    finger_type: FingerTypeResponse
+    image_url: str = Field(..., description='Ảnh bàn tay')
+    hand_side: DropdownResponse = Field(..., description='Loại bàn tay')
+    finger_type: DropdownResponse = Field(..., description='Loại ngón tay')
