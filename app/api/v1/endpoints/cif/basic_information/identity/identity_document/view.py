@@ -1,6 +1,6 @@
 from typing import Union
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, Body
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -9,9 +9,9 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.contr
     CtrIdentityDocument
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema import (
-    CitizenCardDetailRes, CitizenCardSaveReq, IdentityCardDetailRes,
-    IdentityCardSaveReq, IdentityDocumentSaveSuccessRes, PassportDetailRes,
-    PassportSaveReq
+    CitizenCardDetailResponse, CitizenCardSaveRequest, IdentityCardDetailResponse,
+    IdentityCardSaveRequest, IdentityDocumentSaveSuccessResponse, PassportDetailResponse,
+    PassportSaveRequest, EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT
 )
 from app.utils.swagger import swagger_response
 
@@ -24,9 +24,9 @@ router = APIRouter()
     description="Chi tiết",
     responses=swagger_response(
         response_model=Union[
-            ResponseData[IdentityCardDetailRes],
-            ResponseData[CitizenCardDetailRes],
-            ResponseData[PassportDetailRes]
+            ResponseData[IdentityCardDetailResponse],
+            ResponseData[CitizenCardDetailResponse],
+            ResponseData[PassportDetailResponse]
         ],
         success_status_code=status.HTTP_200_OK
     )
@@ -43,7 +43,7 @@ async def view_detail_identity_card(
         identity_document_type_code=identity_document_type_code
     )
 
-    return ResponseData[Union[IdentityCardDetailRes, CitizenCardDetailRes, PassportDetailRes]](
+    return ResponseData[Union[IdentityCardDetailResponse, CitizenCardDetailResponse, PassportDetailResponse]](
         **identity_document_info
     )
 
@@ -57,14 +57,17 @@ router_special = APIRouter()
     name="1. GTĐD - A. GTĐD",
     description="Lưu",
     responses=swagger_response(
-        response_model=ResponseData[IdentityDocumentSaveSuccessRes],
+        response_model=ResponseData[IdentityDocumentSaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     ),
     tags=['[CIF] I. TTCN']
 )
 async def view_create(
-        identity_document_req: Union[IdentityCardSaveReq, CitizenCardSaveReq, PassportSaveReq],
+        identity_document_req: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest] = Body(
+            ...,
+            examples=EXAMPLE_REQUEST_SAVE_IDENTITY_DOCUMENT,
+        ),
         current_user=Depends(get_current_user_from_header())
 ):
     identity_save_info = await CtrIdentityDocument(current_user).save_identity_document(identity_document_req)
-    return ResponseData[IdentityDocumentSaveSuccessRes](**identity_save_info)
+    return ResponseData[IdentityDocumentSaveSuccessResponse](**identity_save_info)
