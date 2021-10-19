@@ -4,7 +4,7 @@ from typing import List
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import FingerPrintResponse
+from app.api.v1.schemas.cif import FingerPrintResponse, AddressResponse
 from app.api.v1.schemas.utils import DropdownResponse
 
 ########################################################################################################################
@@ -29,12 +29,7 @@ class BackSideIdentityCitizenCardResponse(BaseSchema):
     updated_by: str = Field(..., description="Người cập nhật")
 
 
-# III. Phân tích OCR -> 3. Thông tin địa chỉ -> Nơi thường trú/ Địa chỉ liên hệ (CMND)
-class AddressResponse(BaseSchema):
-    province: DropdownResponse = Field(..., description="Tỉnh/Thành phố")
-    district: DropdownResponse = Field(..., description="Quận/Huyện")
-    ward: DropdownResponse = Field(..., description="Phường/Xã")
-    number_and_street: str = Field(..., description="Số nhà, tên đường")
+
 
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ CMND, CCCD
