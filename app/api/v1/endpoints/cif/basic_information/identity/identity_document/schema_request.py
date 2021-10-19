@@ -1,7 +1,7 @@
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import AddressRequest
+from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_response import AddressResponse
 from app.api.v1.schemas.utils import DropdownRequest
 
 ########################################################################################################################
@@ -20,6 +20,13 @@ class FrontSideIdentityCitizenCardRequest(BaseSchema):
 # II. Thông tin mặt sau CMND, CCCD
 class BackSideIdentityCitizenCardRequest(BaseSchema):
     identity_image_url: str = Field(..., description="URL hình ảnh mặt sau CMND/CCCD")
+
+
+# III. Phân tích OCR -> 2. Thông tin địa chỉ -> Chi tiết từng địa chỉ
+class AddressRequest(AddressResponse):
+    province: DropdownRequest = Field(..., description="Tỉnh/Thành phố")
+    district: DropdownRequest = Field(..., description="Quận/Huyện")
+    ward: DropdownRequest = Field(..., description="Phường/Xã")
 
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ CMND, CCCD
