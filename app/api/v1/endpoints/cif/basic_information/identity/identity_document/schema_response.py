@@ -4,7 +4,7 @@ from typing import List
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import FingerPrintResponse, AddressResponse
+from app.api.v1.schemas.cif import AddressResponse, FingerPrintResponse
 from app.api.v1.schemas.utils import DropdownResponse
 
 ########################################################################################################################
@@ -27,9 +27,6 @@ class BackSideIdentityCitizenCardResponse(BaseSchema):
     fingerprint: List[FingerPrintResponse] = Field(..., description="Vân tay")
     updated_at: str = Field(..., description="Thời gian cập nhật")
     updated_by: str = Field(..., description="Người cập nhật")
-
-
-
 
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ CMND, CCCD

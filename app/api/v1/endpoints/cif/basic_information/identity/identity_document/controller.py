@@ -7,7 +7,6 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repos
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
 )
-from app.utils.constant.cif import CIF_ID_NEW_TEST
 
 
 class CtrIdentityDocument(BaseController):
