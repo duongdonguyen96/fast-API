@@ -6,6 +6,7 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 async def repos_get_list_face(cif_id: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
     return ReposReturn(data=[
         {
             "date": "15/12/2021",

@@ -12,23 +12,8 @@ from app.api.v1.endpoints.cif.basic_information.identity.face.controller import 
 from app.api.v1.endpoints.cif.basic_information.identity.face.schema import (
     FacesResponse
 )
-from app.api.v1.endpoints.user.schema import UserInfoResponse
 
 router = APIRouter()
-
-
-@router.post(
-    path="/",
-    name="1. GTĐD - B. Khuôn mặt",
-    description="Create",
-    responses=swagger_response(
-        response_model=ResponseData[UserInfoResponse],
-        success_status_code=status.HTTP_200_OK
-    ),
-)
-async def view_create_identity_document(current_user=Depends(get_current_user_from_header())):
-    data = {}
-    return ResponseData[UserInfoResponse](**data)
 
 
 @router.get(

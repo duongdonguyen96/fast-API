@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
@@ -12,4 +14,4 @@ class Face(BaseSchema):
 
 class FacesResponse(BaseSchema):
     date: str = Field(..., description='Ngày tạo ảnh khuôn mặt')
-    faces: list[Face] = Field(..., description='Danh sách ảnh khuôn mặt')
+    faces: List[Face] = Field(..., description='Danh sách ảnh khuôn mặt')
