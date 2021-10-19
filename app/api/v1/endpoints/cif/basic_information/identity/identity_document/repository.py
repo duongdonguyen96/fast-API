@@ -1,4 +1,9 @@
+from typing import Union
+
 from app.api.base.repository import ReposReturn
+from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
+    CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
+)
 from app.utils.constant.cif import (
     CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
     IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
@@ -422,28 +427,31 @@ PASSPORT_INFO = {
 }
 
 
-async def repos_get_detail_identity_document(cif_id: str, identity_document_type_code: str) -> ReposReturn:
+async def repos_get_detail_identity_document(cif_id: str, identity_document_type_id: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
-    if identity_document_type_code not in IDENTITY_DOCUMENT_TYPE:
-        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type_code')
+    if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
+        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type_id')
 
-    if identity_document_type_code == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
+    if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
         return ReposReturn(data=IDENTITY_CARD_INFO)
-    elif identity_document_type_code == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
+    elif identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
         return ReposReturn(data=CITIZEN_CARD_INFO)
     else:
         return ReposReturn(data=PASSPORT_INFO)
 
 
-async def repos_save_identity_document(identity_card_document_req, created_by: str):
-    identity_document_type_code = identity_card_document_req.identity_document_type.code
-    if identity_document_type_code not in IDENTITY_DOCUMENT_TYPE:
-        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> code')
+async def repos_save_identity_document(
+        identity_document_req: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest],
+        created_by: str
+):
+    identity_document_type_id = identity_document_req.identity_document_type.id
+    if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
+        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> id')
 
     return ReposReturn(data={
-        "cif_id": identity_card_document_req.cif_id,
+        "cif_id": identity_document_req.cif_id,
         "created_at": now(),
         "created_by": created_by
     })
