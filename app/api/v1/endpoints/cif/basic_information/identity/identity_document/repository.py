@@ -23,7 +23,6 @@ IDENTITY_CARD_INFO = {
         "identity_image_url": "https://example.com/example.jpg",
         "fingerprint": [
             {
-                "id": "1",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -37,7 +36,6 @@ IDENTITY_CARD_INFO = {
                 }
             },
             {
-                "id": "2",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -51,7 +49,6 @@ IDENTITY_CARD_INFO = {
                 }
             },
             {
-                "id": "3",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -65,7 +62,6 @@ IDENTITY_CARD_INFO = {
                 }
             },
             {
-                "id": "4",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -181,7 +177,6 @@ CITIZEN_CARD_INFO = {
         "identity_image_url": "https://example.com/example.jpg",
         "fingerprint": [
             {
-                "id": "1",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -328,7 +323,6 @@ PASSPORT_INFO = {
         "similar_percent": 94,
         "fingerprint": [
             {
-                "id": "1",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -342,7 +336,6 @@ PASSPORT_INFO = {
                 }
             },
             {
-                "id": "2",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -356,7 +349,6 @@ PASSPORT_INFO = {
                 }
             },
             {
-                "id": "3",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -370,7 +362,6 @@ PASSPORT_INFO = {
                 }
             },
             {
-                "id": "4",
                 "image_url": "https://example.com/example.jpg",
                 "hand_side": {
                     "id": "1",
@@ -436,7 +427,7 @@ async def repos_get_detail_identity_document(cif_id: str, identity_document_type
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
     if identity_document_type_code not in IDENTITY_DOCUMENT_TYPE:
-        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type_id')
+        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type_code')
 
     if identity_document_type_code == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
         return ReposReturn(data=IDENTITY_CARD_INFO)

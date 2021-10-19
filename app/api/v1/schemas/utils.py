@@ -11,27 +11,3 @@ class DropdownResponse(BaseSchema):
 
 class DropdownRequest(BaseSchema):
     id: str = Field(..., description='`Chuỗi định danh`')
-
-
-class GenderResponse(DropdownResponse):
-    pass
-
-
-class GenderRequest(DropdownRequest):
-    pass
-
-
-class NationalityResponse(DropdownResponse):
-    pass
-
-
-class ProvinceResponse(DropdownResponse):
-    pass
-
-
-class DistrictResponse(DropdownResponse):
-    pass
-
-
-class WardResponse(DropdownResponse):
-    pass
