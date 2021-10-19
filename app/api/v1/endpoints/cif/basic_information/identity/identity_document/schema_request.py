@@ -1,10 +1,8 @@
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_response import AddressResponse
 from app.api.v1.schemas.cif import AddressRequest
 from app.api.v1.schemas.utils import DropdownRequest
-
 
 ########################################################################################################################
 # request detail giấy tờ định danh
