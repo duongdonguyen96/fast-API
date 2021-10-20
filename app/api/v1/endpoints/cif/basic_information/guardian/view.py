@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -8,8 +8,9 @@ from app.api.v1.endpoints.cif.basic_information.guardian.controller import (
     CtrGuardian
 )
 from app.api.v1.endpoints.cif.basic_information.guardian.schema import (
-    DetailGuardianResponse
+    DetailGuardianResponse, SaveGuardianRequest
 )
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
 
@@ -27,12 +28,38 @@ async def view_detail(
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    ctr_identity_document = CtrGuardian(current_user)
+    ctr_guardian = CtrGuardian(current_user)
 
-    identity_document_info = await ctr_identity_document.detail(
+    detail_guardian_info = await ctr_guardian.detail(
         cif_id=cif_id
     )
 
     return ResponseData[DetailGuardianResponse](
-        **identity_document_info
+        **detail_guardian_info
+    )
+
+
+@router.post(
+    path="/",
+    name="5. Thông tin người giám hộ",
+    description="Lưu",
+    responses=swagger_response(
+        response_model=ResponseData[SaveGuardianRequest],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_save(
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        guardian_save_request: SaveGuardianRequest = Body(...),
+        current_user=Depends(get_current_user_from_header())
+):
+    ctr_guardian = CtrGuardian(current_user)
+
+    save_guardian_info = await ctr_guardian.save(
+        cif_id=cif_id,
+        guardian_save_request=guardian_save_request
+    )
+
+    return ResponseData[SaveSuccessResponse](
+        **save_guardian_info
     )
