@@ -4,7 +4,7 @@ from typing import List
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import AddressRequest, AddressResponse
+from app.api.v1.schemas.cif import AddressResponse
 from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
@@ -57,31 +57,7 @@ class DetailGuardianResponse(BaseSchema):
 ########################################################################################################################
 # Request Body
 ########################################################################################################################
-# Thông tin người giám hộ -> Danh sách người giám hộ -> I. Thông tin cơ bản
-class BasicInformationRequest(BasicInformationResponse):
-    customer_relationship: DropdownRequest = Field(..., description="Mối quan hệ với khách hàng")
-    gender: DropdownRequest = Field(..., description="Giới tính")
-    nationality: DropdownRequest = Field(..., description="Quốc tịch")
-
-
-# Thông tin người giám hộ -> Danh sách người giám hộ -> II. Giấy tờ định danh
-class IdentityDocumentRequest(IdentityDocumentResponse):
-    place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
-
-
-# Thông tin người giám hộ -> Danh sách người giám hộ -> III. Thông tin địa chỉ
-class AddressInformationRequest(BaseSchema):
-    resident_address: AddressRequest = Field(..., description="Cờ có người giám hộ không")
-    contact_address: AddressRequest = Field(..., description="Cờ có người giám hộ không")
-
-
-# Thông tin người giám hộ -> Danh sách người giám hộ
-class GuardianRequest(GuardianResponse):
-    basic_information: BasicInformationRequest = Field(..., description="I. Thông tin cơ bản")
-    identity_document: IdentityDocumentRequest = Field(..., description="II. Giấy tờ định danh")
-    address_information: AddressInformationRequest = Field(..., description="III. Thông tin địa chỉ")
-
-
 # Thông tin người giám hộ
-class SaveGuardianRequest(DetailGuardianResponse):
-    guardians: List[GuardianRequest] = Field(..., description="Danh sách người giám hộ")
+class SaveGuardianRequest(BaseSchema):
+    cif_number: str = Field(..., description="Số CIF")
+    customer_relationship: DropdownRequest = Field(..., description="Mối quan hệ với khách hàng")
