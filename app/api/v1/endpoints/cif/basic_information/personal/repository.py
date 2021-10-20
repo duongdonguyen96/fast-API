@@ -1,9 +1,24 @@
 from app.api.base.repository import ReposReturn
+from app.api.v1.endpoints.cif.basic_information.personal.schema import (
+    PersonalRequest
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.functions import now
 
 
-async def repos_get_personal_data(cif_id: str):
+async def repos_save_personal(cif_id: str, personal: PersonalRequest, created_by: str, ) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data={
+        "cif_id": cif_id,
+        "created_at": now(),
+        "created_by": created_by
+    })
+
+
+async def repos_get_personal_data(cif_id: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
