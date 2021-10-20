@@ -34,7 +34,7 @@ async def view_create_personal(
 
 @router.get(
     path="/",
-    name="1 TTCN",
+    name="2. Thông tin cá nhân",
     description="Lấy dữ liệu tab `THÔNG TIN CÁ NHÂN` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[PersonalSuccessResponse],
