@@ -29,10 +29,6 @@ class PersonalRequest(BaseSchema):
     marital_status: DropdownRequest = Field(None, description='Tình trạng hôn nhân khách hàng')
 
 
-class PersonalSuccessRequest(BaseSchema):
-    basic_information: PersonalRequest = Field(..., description='Thông tin cơ bản khách hàng')
-
-
 class PersonalSaveSuccessResponse(BaseSchema):
     cif_id: str = Field(..., description='Id CIF ảo')
     created_at: datetime = Field(..., description='Ngày và giờ')
@@ -60,7 +56,3 @@ class PersonalResponse(BaseSchema):
     email: str = Field(..., description='Email khách hàng')
     contact_method: ContactMethodResponse = Field(..., description='Hình thức liên hệ khách hàng')
     marital_status: DropdownResponse = Field(..., description='Tình trạng hôn nhân khách hàng')
-
-
-class PersonalSuccessResponse(BaseSchema):
-    basic_information: PersonalResponse = Field(..., description='Thông tin cơ bản khách hàng')

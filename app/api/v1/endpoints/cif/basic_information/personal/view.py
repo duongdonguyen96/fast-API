@@ -8,7 +8,7 @@ from app.api.v1.endpoints.cif.basic_information.personal.controller import (
     CtrPersonal
 )
 from app.api.v1.endpoints.cif.basic_information.personal.schema import (
-    PersonalRequest, PersonalSaveSuccessResponse, PersonalSuccessResponse
+    PersonalRequest, PersonalResponse, PersonalSaveSuccessResponse
 )
 
 router = APIRouter()
@@ -37,13 +37,13 @@ async def view_create_personal(
     name="2. Thông tin cá nhân",
     description="Lấy dữ liệu tab `THÔNG TIN CÁ NHÂN` của khách hàng",
     responses=swagger_response(
-        response_model=ResponseData[PersonalSuccessResponse],
+        response_model=ResponseData[PersonalResponse],
         success_status_code=status.HTTP_200_OK
     ),
 )
 async def view_retrieve_personal(
-        cif_id: str = Path(...),
+        cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
     personal_data = await CtrPersonal(current_user).ctr_personal(cif_id)
-    return ResponseData[PersonalSuccessResponse](**personal_data)
+    return ResponseData[PersonalResponse](**personal_data)
