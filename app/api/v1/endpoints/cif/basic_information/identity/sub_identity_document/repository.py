@@ -17,7 +17,7 @@ SUB_IDENTITY_INFO = [
             "sub_identity_number": "361963424",
             "symbol": "LĐ",
             "full_name_vn": "Nguyễn Văn A",
-            "date_of_birth": "12/08/1990",
+            "date_of_birth": "1990-08-12",
             "province": {
                 "id": "2",
                 "code": "HN",
@@ -28,8 +28,8 @@ SUB_IDENTITY_INFO = [
                 "code": "HCDS",
                 "name": "Cục hành chính về trật tự xã hội"
             },
-            "expired_date": "07/02/2021",
-            "issued_date": "07/02/2021"
+            "expired_date": "2021-02-07",
+            "issued_date": "2021-02-07"
         }
     }
 ]

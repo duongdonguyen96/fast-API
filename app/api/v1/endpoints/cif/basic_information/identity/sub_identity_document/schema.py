@@ -1,7 +1,7 @@
 from pydantic import Field
-from datetime import datetime
+
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownResponse, DropdownRequest
+from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
 ########################################################################################################################
@@ -26,13 +26,6 @@ class SubIdentityDetailResponse(BaseSchema):
     sub_identity_document_type: DropdownResponse = Field(..., description="Loại GTĐD phụ")
     sub_identity_document_image_url: str = Field(..., description="I. Thông tin giấy tờ")
     ocr_result: SubIdentityOCRResultResponse = Field(..., description="II. Phân tích OCR")
-
-
-# Response Lưu GTĐD phụ thành công
-class SubIdentityDocumentSaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(None, description="ID định danh CIF")
-    created_at: datetime = Field(..., description="Thời gian tạo")
-    created_by: str = Field(..., description="Người tạo")
 
 
 ########################################################################################################################

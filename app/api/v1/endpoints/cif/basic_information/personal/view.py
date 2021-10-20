@@ -8,8 +8,9 @@ from app.api.v1.endpoints.cif.basic_information.personal.controller import (
     CtrPersonal
 )
 from app.api.v1.endpoints.cif.basic_information.personal.schema import (
-    PersonalRequest, PersonalResponse, PersonalSaveSuccessResponse
+    PersonalRequest, PersonalResponse
 )
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
 
@@ -19,7 +20,7 @@ router = APIRouter()
     name="2. Thông tin cá nhân",
     description="Tạo dữ liệu tab `THÔNG TIN CÁ NHÂN` của khách hàng",
     responses=swagger_response(
-        response_model=ResponseData[PersonalSaveSuccessResponse],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -29,7 +30,7 @@ async def view_create_personal(
         current_user=Depends(get_current_user_from_header())
 ):
     personal_data_request = await CtrPersonal(current_user).ctr_save_personal(cif_id, personal)
-    return ResponseData[PersonalSaveSuccessResponse](**personal_data_request)
+    return ResponseData[SaveSuccessResponse](**personal_data_request)
 
 
 @router.get(

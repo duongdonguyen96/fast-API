@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List
 
 from pydantic import Field
@@ -18,12 +17,6 @@ class CompareSignature(BaseSchema):
 class SignaturesRequest(BaseSchema):
     customer_signatures: List[SignatureRequest] = Field(..., description='Hình ảnh chữ ký')
     compare_signature: CompareSignature = Field(..., description='Hình ảnh đối chiếu')
-
-
-class SignatureSaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(..., description='Id CIF ảo')
-    created_at: datetime = Field(..., description='Ngày và giờ')
-    created_by: str = Field(..., description='Người tạo')
 
 
 class SignaturesResponse(BaseSchema):

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import Field
 
@@ -15,7 +15,7 @@ class PersonalRequest(BaseSchema):
     full_name_vn: str = Field(..., description='Tên tiếng việt của khách hàng')
     gender: DropdownRequest = Field(..., description='Giới tính khách hàng')
     honorific: DropdownRequest = Field(..., description='Danh xưng khách hàng')
-    date_of_birth: str = Field(..., description='Ngày sinh khách hàng')
+    date_of_birth: date = Field(..., description='Ngày sinh khách hàng')
     under_15_year_old_flag: bool = Field(False, description='Trạng thái dưới 15 tuổi')
     place_of_birth: DropdownRequest = Field(..., description='Nơi sinh khách hàng')
     country_of_birth: DropdownRequest = Field(..., description='Quốc gia sinh khách hàng')
@@ -44,7 +44,7 @@ class PersonalResponse(BaseSchema):
     full_name_vn: str = Field(..., description='Tên tiếng việt khách hàng')
     gender: DropdownResponse = Field(..., description='Giới tính khách hàng')
     honorific: DropdownResponse = Field(..., description='Danh xưng khách hàng')
-    date_of_birth: str = Field(..., description='Ngày sinh khách hàng')
+    date_of_birth: date = Field(..., description='Ngày sinh khách hàng')
     under_15_year_old_flag: bool = Field(..., description='Trạng thái dưới 15 tuổi')
     place_of_birth: DropdownResponse = Field(..., description='Nơi sinh khách hàng')
     country_of_birth: DropdownResponse = Field(..., description='Quốc gia sinh khách hàng')
