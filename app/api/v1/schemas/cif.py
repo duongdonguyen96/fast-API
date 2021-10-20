@@ -12,9 +12,9 @@ class AddressResponse(BaseSchema):
 
 
 class AddressRequest(BaseSchema):
-    province: DropdownResponse = Field(..., description="Tỉnh/Thành phố")
-    district: DropdownResponse = Field(..., description="Quận/Huyện")
-    ward: DropdownResponse = Field(..., description="Phường/Xã")
+    province: DropdownRequest = Field(..., description="Tỉnh/Thành phố")
+    district: DropdownRequest = Field(..., description="Quận/Huyện")
+    ward: DropdownRequest = Field(..., description="Phường/Xã")
     number_and_street: str = Field(..., description="Số nhà, tên đường")
 
 

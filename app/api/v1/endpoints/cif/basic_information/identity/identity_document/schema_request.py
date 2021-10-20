@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
@@ -34,16 +36,16 @@ class OCRAddressIdentityCitizenCardRequest(BaseSchema):  # noqa
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CMND)
 class OCRDocumentIdentityCardRequest(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
-    issued_date: str = Field(..., description="Ngày cấp")
+    issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
-    expired_date: str = Field(..., description="Có giá trị đến")
+    expired_date: date = Field(..., description="Có giá trị đến")
 
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CMND)
 class OCRBasicInfoIdentityCardRequest(BaseSchema):
     full_name_vn: str = Field(..., description="Họ và tên")
     gender: DropdownRequest = Field(..., description="Giới tính")
-    date_of_birth: str = Field(..., description="Ngày sinh")
+    date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
     province: DropdownRequest = Field(..., description="Quê quán")
     ethnic: DropdownRequest = Field(None, description="Dân tộc")  # CMND
@@ -76,8 +78,8 @@ class IdentityCardSaveRequest(BaseSchema):
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CCCD)
 class OCRDocumentCitizenCardRequest(BaseSchema):  # noqa
     identity_number: str = Field(..., description="Số GTĐD")
-    issued_date: str = Field(..., description="Ngày cấp")
-    expired_date: str = Field(..., description="Có giá trị đến")
+    issued_date: date = Field(..., description="Ngày cấp")
+    expired_date: date = Field(..., description="Có giá trị đến")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
     mrz_content: str = Field(None, description="MRZ")  # CCCD
     qr_code_content: str = Field(None, description="Nội dung QR Code")  # CCCD
@@ -87,7 +89,7 @@ class OCRDocumentCitizenCardRequest(BaseSchema):  # noqa
 class OCRBasicInfoCitizenCardRequest(BaseSchema):
     full_name_vn: str = Field(..., description="Họ và tên")
     gender: DropdownRequest = Field(..., description="Giới tính")
-    date_of_birth: str = Field(..., description="Ngày sinh")
+    date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
     province: DropdownRequest = Field(..., description="Quê quán")
     identity_characteristic: str = Field(..., description="Đặc điểm nhận dạng")
@@ -122,9 +124,9 @@ class InformationPassportRequest(BaseSchema):
 # II. Phân tích OCR -> 1. Giấy tờ định danh (Hộ Chiếu)
 class OCRDocumentPassportRequest(BaseSchema):  # noqa
     identity_number: str = Field(..., description="Số GTĐD")
-    issued_date: str = Field(..., description="Ngày cấp")
+    issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
-    expired_date: str = Field(..., description="Có giá trị đến")
+    expired_date: date = Field(..., description="Có giá trị đến")
     passport_type: DropdownRequest = Field(..., description="Loại")
     passport_code: DropdownRequest = Field(..., description="Mã số")
 
@@ -133,7 +135,7 @@ class OCRDocumentPassportRequest(BaseSchema):  # noqa
 class BasicInfoPassportRequest(BaseSchema):
     full_name_vn: str = Field(..., description="Họ và tên")
     gender: DropdownRequest = Field(..., description="Giới tính")
-    date_of_birth: str = Field(..., description="Ngày sinh")
+    date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
     place_of_birth: DropdownRequest = Field(..., description="Nơi sinh")
     identity_card_number: str = Field(..., description="Số CMND")

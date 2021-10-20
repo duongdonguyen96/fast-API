@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import List
 
 from pydantic import Field
@@ -24,7 +25,7 @@ class FrontSideIdentityCitizenCardResponse(BaseSchema):
 class BackSideIdentityCitizenCardResponse(BaseSchema):
     identity_image_url: str = Field(..., description="URL hình ảnh mặt sau CMND/CCCD")
     fingerprint: List[FingerPrintResponse] = Field(..., description="Vân tay")
-    updated_at: str = Field(..., description="Thời gian cập nhật")
+    updated_at: datetime = Field(..., description="Thời gian cập nhật")
     updated_by: str = Field(..., description="Người cập nhật")
 
 
@@ -40,16 +41,16 @@ class OCRAddressIdentityCitizenCardResponse(BaseSchema):  # noqa
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CMND)
 class OCRDocumentIdentityCardResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
-    issued_date: str = Field(..., description="Ngày cấp")
+    issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
-    expired_date: str = Field(..., description="Có giá trị đến")
+    expired_date: date = Field(..., description="Có giá trị đến")
 
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CMND)
 class OCRBasicInfoIdentityCardResponse(BaseSchema):
     full_name_vn: str = Field(..., description="Họ và tên")
     gender: DropdownResponse = Field(..., description="Giới tính")
-    date_of_birth: str = Field(..., description="Ngày sinh")
+    date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     province: DropdownResponse = Field(..., description="Quê quán")
     ethnic: DropdownResponse = Field(None, description="Dân tộc")  # CMND
@@ -81,8 +82,8 @@ class IdentityCardDetailResponse(BaseSchema):
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CCCD)
 class OCRDocumentCitizenCardResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
-    issued_date: str = Field(..., description="Ngày cấp")
-    expired_date: str = Field(..., description="Có giá trị đến")
+    issued_date: date = Field(..., description="Ngày cấp")
+    expired_date: date = Field(..., description="Có giá trị đến")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     mrz_content: str = Field(None, description="MRZ")  # CCCD
     qr_code_content: str = Field(None, description="Nội dung QR Code")  # CCCD
@@ -92,7 +93,7 @@ class OCRDocumentCitizenCardResponse(BaseSchema):
 class OCRBasicInfoCitizenCardResponse(BaseSchema):
     full_name_vn: str = Field(..., description="Họ và tên")
     gender: DropdownResponse = Field(..., description="Giới tính")
-    date_of_birth: str = Field(..., description="Ngày sinh")
+    date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     province: DropdownResponse = Field(..., description="Quê quán")
     identity_characteristic: str = Field(..., description="Đặc điểm nhận dạng")
@@ -128,9 +129,9 @@ class InformationPassportResponse(BaseSchema):
 # II. Phân tích OCR -> 1. Giấy tờ định danh (Hộ Chiếu)
 class OCRDocumentPassportResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
-    issued_date: str = Field(..., description="Ngày cấp")
+    issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
-    expired_date: str = Field(..., description="Có giá trị đến")
+    expired_date: date = Field(..., description="Có giá trị đến")
     passport_type: DropdownResponse = Field(..., description="Loại")
     passport_code: DropdownResponse = Field(..., description="Mã số")
 
@@ -139,7 +140,7 @@ class OCRDocumentPassportResponse(BaseSchema):
 class BasicInfoPassportResponse(BaseSchema):
     full_name_vn: str = Field(..., description="Họ và tên")
     gender: DropdownResponse = Field(..., description="Giới tính")
-    date_of_birth: str = Field(..., description="Ngày sinh")
+    date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     place_of_birth: DropdownResponse = Field(..., description="Nơi sinh")
     identity_card_number: str = Field(..., description="Số CMND")

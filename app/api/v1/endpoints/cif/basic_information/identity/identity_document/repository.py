@@ -92,7 +92,7 @@ IDENTITY_CARD_INFO = {
                 "code": "CT",
                 "name": "Cần Thơ"
             },
-            "expired_date": ""
+            "expired_date": "2021-02-18"
         },
         "basic_information": {
             "id": "1",
