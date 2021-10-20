@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
@@ -31,12 +29,6 @@ class PersonalRequest(BaseSchema):
 
 class PersonalSuccessRequest(BaseSchema):
     basic_information: PersonalRequest = Field(..., description='Thông tin cơ bản khách hàng')
-
-
-class PersonalSaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(..., description='Id CIF ảo')
-    created_at: datetime = Field(..., description='Ngày và giờ')
-    created_by: str = Field(..., description='Người tạo')
 
 
 class ContactMethodResponse(BaseSchema):

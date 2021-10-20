@@ -30,6 +30,6 @@ class OpionalDropdownRequest(BaseSchema):
 # Response save
 ########################################################################################################################
 class SaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(None, description="ID định danh CIF")
-    created_at: datetime = Field(..., description="Thời gian tạo")
-    created_by: str = Field(..., description="Người tạo")
+    cif_id: str = Field(..., description='Id CIF ảo')
+    created_at: datetime = Field(..., description='Thời gian tạo')
+    created_by: str = Field(..., description='Người tạo')

@@ -14,8 +14,9 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schem
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_response import (
     CitizenCardDetailResponse, IdentityCardDetailResponse,
-    IdentityDocumentSaveSuccessResponse, PassportDetailResponse
+    PassportDetailResponse
 )
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
 
@@ -59,7 +60,7 @@ router_special = APIRouter()
     name="1. GTĐD - A. GTĐD",
     description="Lưu",
     responses=swagger_response(
-        response_model=ResponseData[IdentityDocumentSaveSuccessResponse],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     ),
     tags=['[CIF] I. TTCN']
@@ -71,4 +72,4 @@ async def view_create(
         current_user=Depends(get_current_user_from_header())
 ):
     identity_save_info = await CtrIdentityDocument(current_user).save_identity_document(identity_document_req)
-    return ResponseData[IdentityDocumentSaveSuccessResponse](**identity_save_info)
+    return ResponseData[SaveSuccessResponse](**identity_save_info)

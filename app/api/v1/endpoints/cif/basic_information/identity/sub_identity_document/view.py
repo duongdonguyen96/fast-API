@@ -6,9 +6,13 @@ from starlette import status
 from app.api.base.schema import ResponseData
 from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
-from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.controller import CtrSubIdentityDocument
-from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import SubIdentityDetailResponse, \
-    SubIdentityDocumentSaveSuccessResponse, SubIdentityDocumentRequest
+from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.controller import (
+    CtrSubIdentityDocument
+)
+from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import (
+    SubIdentityDetailResponse, SubIdentityDocumentRequest
+)
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
 
@@ -18,7 +22,7 @@ router = APIRouter()
     name="1. GTĐD - E. GTĐD phụ",
     description="Lưu lại I. TTCN - Giấy tờ định danh - E. Giấy tờ định danh phụ",
     responses=swagger_response(
-        response_model=ResponseData[SubIdentityDocumentSaveSuccessResponse],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -31,7 +35,7 @@ async def view_create_sub_identity_card(
         sub_identity_document_requests=sub_identity_document_requests,
         cif_id=cif_id
     )
-    return ResponseData[SubIdentityDocumentSaveSuccessResponse](**sub_identity_save_info)
+    return ResponseData[SaveSuccessResponse](**sub_identity_save_info)
 
 
 @router.get(

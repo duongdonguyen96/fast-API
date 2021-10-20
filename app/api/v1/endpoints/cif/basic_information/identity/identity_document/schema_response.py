@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List
 
 from pydantic import Field
@@ -165,8 +164,3 @@ class PassportDetailResponse(BaseSchema):
 ########################################################################################################################
 # response save giấy tờ định danh
 ########################################################################################################################
-
-class IdentityDocumentSaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(None, description="ID định danh CIF")
-    created_at: datetime = Field(..., description="Thời gian tạo")
-    created_by: str = Field(..., description="Người tạo")
