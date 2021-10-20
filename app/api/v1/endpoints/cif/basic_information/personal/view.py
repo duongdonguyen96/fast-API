@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.get(
     path="/",
-    name="1 TTCN",
+    name="2. Thông tin cá nhân",
     description="Tạo dữ liệu tab `THÔNG TIN CÁ NHÂN` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[PersonalSuccessResponse],
