@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.get(
     path="/",
-    name="I. TTCN - Thông tin người giám hộ",
+    name="5. Thông tin người giám hộ",
     description="Chi tiết",
     responses=swagger_response(
         response_model=ResponseData[DetailGuardianResponse],
