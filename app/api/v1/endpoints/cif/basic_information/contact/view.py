@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -25,14 +25,10 @@ router = APIRouter()
 )
 async def view_detail(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        domestic_flag: bool = Query(...),
         current_user=Depends(get_current_user_from_header())
 ):
     ctr_contact_information = CtrContactInformation(current_user)
 
-    contact_information_detail = await ctr_contact_information.detail_contact_information(
-        cif_id=cif_id,
-        domestic_flag=domestic_flag
-    )
+    contact_information_detail = await ctr_contact_information.detail_contact_information(cif_id=cif_id)
 
     return ResponseData[ContactInformationDetailResponse](**contact_information_detail)
