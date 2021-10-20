@@ -97,9 +97,9 @@ EXAMPLE_RES_SUCCESS_UPDATE_USER = {
         "summary": "Thành công 1",
         "value": {
             "data": {
-                "created_at": "2021/10/16 10:46:08",
+                "created_at": "16 10:46:08-10-2021",
                 "created_by": "system",
-                "updated_at": "2021/10/16 10:46:08",
+                "updated_at": "16 10:46:08-10-2021",
                 "updated_by": "system",
                 "user_id": "9651cdfd9a9a4eb691f9a3a125ac46b0",
                 "full_name_vn": "abc"
@@ -111,9 +111,9 @@ EXAMPLE_RES_SUCCESS_UPDATE_USER = {
         "summary": "Thành công 2",
         "value": {
             "data": {
-                "created_at": "2021/10/16 10:46:50",
+                "created_at": "16 10:46:50-10-2021",
                 "created_by": "system",
-                "updated_at": "2021/10/16 10:46:50",
+                "updated_at": "16 10:46:50-10-2021",
                 "updated_by": "system",
                 "user_id": "9651cdfd9a9a4eb691f9a3a125ac46b0",
                 "full_name_vn": "xyz"

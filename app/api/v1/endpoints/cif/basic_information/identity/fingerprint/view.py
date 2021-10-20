@@ -8,9 +8,9 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.controller 
     CtrFingerPrint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
-    FingerPrintSaveSuccessResponse, TwoFingerPrintRequest,
-    TwoFingerPrintResponse
+    TwoFingerPrintRequest, TwoFingerPrintResponse
 )
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ router = APIRouter()
     description="Lưu dữ liệu `MẪU VÂN TAY` của khách hàng",
     status_code=status.HTTP_200_OK,
     responses=swagger_response(
-        response_model=ResponseData[FingerPrintSaveSuccessResponse],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -31,7 +31,7 @@ async def view_create_fingerprint(
         current_user=Depends(get_current_user_from_header())
 ):
     data = await CtrFingerPrint(current_user).ctr_save_fingerprint(cif_id, finger_request)
-    return ResponseData[FingerPrintSaveSuccessResponse](**data)
+    return ResponseData[SaveSuccessResponse](**data)
 
 
 @router.get(

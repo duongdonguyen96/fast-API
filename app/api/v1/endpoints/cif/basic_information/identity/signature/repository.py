@@ -25,13 +25,13 @@ async def repos_get_signature_data(cif_id: str) -> ReposReturn:
     return ReposReturn(data={
         "customer_signatures": [
             {
-                "date": "12/06/2021",
+                "date": "2021-06-12",
                 "identity_image_transaction_1": "http://example.com/abc.png",
                 "identity_image_transaction_2": "http://example.com/abc.png",
                 "checked_flag": True
             },
             {
-                "date": "30/05/2021",
+                "date": "2021-05-30",
                 "identity_image_transaction_1": "http://example.com/abc.png",
                 "identity_image_transaction_2": "http://example.com/abc.png",
                 "checked_flag": False
