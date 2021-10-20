@@ -100,4 +100,5 @@ class ContactInformationSaveRequest(BaseSchema):
     resident_address: ResidentAddressContactInformationRequest = Field(..., description="I. Địa chỉ thường trú")
     # Địa chỉ liên lạc sẽ giống với thông tin của địa chỉ trong nước
     contact_address: ContactAddressRequest = Field(..., description="II. Địa chỉ liên lạc")
-    career_information: CareerInformationContactInformationRequest = Field(..., description="")
+    career_information: CareerInformationContactInformationRequest = Field(...,
+                                                                           description="III. Thông tin nghề nghiệp")
