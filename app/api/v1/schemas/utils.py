@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import Field
@@ -19,3 +20,16 @@ class OptionalDropdownResponse(BaseSchema):
 
 class DropdownRequest(BaseSchema):
     id: str = Field(..., description='`Chuỗi định danh`')
+
+
+class OpionalDropdownRequest(BaseSchema):
+    id: Optional[str] = Field(..., description='`Chuỗi định danh`')
+
+
+########################################################################################################################
+# Response save
+########################################################################################################################
+class SaveSuccessResponse(BaseSchema):
+    cif_id: str = Field(None, description="ID định danh CIF")
+    created_at: datetime = Field(..., description="Thời gian tạo")
+    created_by: str = Field(..., description="Người tạo")
