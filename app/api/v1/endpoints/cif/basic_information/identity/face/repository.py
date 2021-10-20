@@ -9,35 +9,35 @@ async def repos_get_list_face(cif_id: str) -> ReposReturn:
 
     return ReposReturn(data=[
         {
-            "date": "15/12/2021",
+            "date": "2021-12-15",
             "faces": [
                 {
                     "identity_image_id": "1",
                     "image_url": "https://example.com/abc.png",
-                    "created_at": "15/12/2021 06:07:08",
+                    "created_at": "2021 06:07:08-12-15",
                     "similar_percent": 94
                 },
                 {
                     "identity_image_id": "2",
                     "image_url": "https://example.com/abc.png",
-                    "created_at": "15/12/2021 06:07:08",
+                    "created_at": "2021 06:07:08-12-15",
                     "similar_percent": 94
                 }
             ]
         },
         {
-            "date": "15/12/2021",
+            "date": "2021-12-15",
             "faces": [
                 {
                     "identity_image_id": "3",
                     "image_url": "https://example.com/abc.png",
-                    "created_at": "15/12/2021 06:07:08",
+                    "created_at": "2021 06:07:08-12-15",
                     "similar_percent": 94
                 },
                 {
                     "identity_image_id": "4",
                     "image_url": "https://example.com/abc.png",
-                    "created_at": "15/12/2021 06:07:08",
+                    "created_at": "2021 06:07:08-12-15",
                     "similar_percent": 94
                 }
             ]

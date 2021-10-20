@@ -17,7 +17,7 @@ APPLICATION = {
     "allowed_hosts": list(os.getenv("ALLOWED_HOSTS", ["*"])),
 }
 
-DATETIME_INPUT_OUTPUT_FORMAT = '%Y/%m/%d %H:%M:%S'
+DATETIME_INPUT_OUTPUT_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 DATE_INPUT_OUTPUT_FORMAT = '%Y-%m-%d'
 

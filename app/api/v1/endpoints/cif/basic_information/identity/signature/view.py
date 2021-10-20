@@ -8,8 +8,9 @@ from app.api.v1.endpoints.cif.basic_information.identity.signature.controller im
     CtrSignature
 )
 from app.api.v1.endpoints.cif.basic_information.identity.signature.schema import (
-    SignatureSaveSuccessResponse, SignaturesRequest, SignaturesSuccessResponse
+    SignaturesRequest, SignaturesSuccessResponse
 )
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
 
@@ -19,7 +20,7 @@ router = APIRouter()
     name="1. GTĐD - D. Chữ ký",
     description="Tạo dữ liệu tab `CHỮ KÝ` của khách hàng",
     responses=swagger_response(
-        response_model=ResponseData[SignatureSaveSuccessResponse],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     ),
 )
@@ -29,7 +30,7 @@ async def view_create_signature(
         current_user=Depends(get_current_user_from_header())
 ):
     signature_data_request = await CtrSignature(current_user).ctr_save_signature(cif_id, signature)
-    return ResponseData[SignatureSaveSuccessResponse](**signature_data_request)
+    return ResponseData[SaveSuccessResponse](**signature_data_request)
 
 
 @router.get(
