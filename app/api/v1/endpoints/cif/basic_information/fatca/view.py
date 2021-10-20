@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get(
     path="/",
     name="4. Thông tin FATCA",
-    description="Lấy dữ liệu tab `CHỮ KÝ` của khách hàng",
+    description="Lấy dữ liệu tab `THÔNG TIN FATCA` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[FatcaResponse],
         success_status_code=status.HTTP_200_OK
