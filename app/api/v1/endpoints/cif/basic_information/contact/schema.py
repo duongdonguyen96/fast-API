@@ -3,9 +3,7 @@ from typing import Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import (
-    DropdownResponse, NoRequiredDropdownResponse, OptionalDropdownResponse
-)
+from app.api.v1.schemas.utils import DropdownResponse, OptionalDropdownResponse
 
 
 # Địa chỉ trong nước giống địa chỉ (AddressResponse) chỉ thêm field Quốc gia nhưng vì None nên phải tạo lại
@@ -39,13 +37,13 @@ class CareerInformationContactInformationResponse(BaseSchema):
     average_income_amount: DropdownResponse = Field(..., description="Thu nhập BQ 3 tháng gần nhất")
     company_name: str = Field(None, description="Tên cơ quan công tác")
     company_phone: str = Field(None, description="Số điện thoại cơ quan")
-    company_position: NoRequiredDropdownResponse = Field(None, description="Chức vụ")
+    company_position: DropdownResponse = Field(None, description="Chức vụ")
     company_address: str = Field(None, description="Địa chỉ cơ quan")
 
 
 # Quốc gia ở địa chỉ liên lạc không bắt buộc nhập ở màn hình 01_03_03
 class ContactAddressResponse(DomesticAddressResponse):
-    country: NoRequiredDropdownResponse = Field(None, description="Quốc gia")
+    country: DropdownResponse = Field(None, description="Quốc gia")
 
 
 class ContactInformationDetailResponse(BaseSchema):

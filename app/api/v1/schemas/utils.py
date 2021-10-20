@@ -17,11 +17,5 @@ class OptionalDropdownResponse(BaseSchema):
     name: Optional[str] = Field(..., description='`Tên`')
 
 
-class NoRequiredDropdownResponse(BaseSchema):
-    id: str = Field(None, description='`Chuỗi định danh`')
-    code: str = Field(None, description='`Mã`')
-    name: str = Field(None, description='`Tên`')
-
-
 class DropdownRequest(BaseSchema):
     id: str = Field(..., description='`Chuỗi định danh`')
