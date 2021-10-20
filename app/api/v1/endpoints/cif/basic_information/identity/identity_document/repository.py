@@ -86,7 +86,7 @@ IDENTITY_CARD_INFO = {
     "ocr_result": {
         "identity_document": {
             "identity_number": "361963424",
-            "issued_date": "18/02/2021",
+            "issued_date": "2021-02-18",
             "place_of_issue": {
                 "id": "1",
                 "code": "CT",
@@ -102,7 +102,7 @@ IDENTITY_CARD_INFO = {
                 "code": "NU",
                 "name": "Nữ"
             },
-            "date_of_birth": "12/08/1990",
+            "date_of_birth": "1990-08-12",
             "nationality": {
                 "id": "1",
                 "code": "VN",
@@ -144,7 +144,7 @@ IDENTITY_CARD_INFO = {
                     "code": "TL",
                     "name": "Tân Long"
                 },
-                "number_and_street": "54/12/25 Đường Long Thới"
+                "number_and_street": "25 Đường Long Thới-12-54"
             },
             "contact_address": {
                 "province": {
@@ -162,7 +162,7 @@ IDENTITY_CARD_INFO = {
                     "code": "TL",
                     "name": "Tân Long"
                 },
-                "number_and_street": "54/12/25 Đường Long Thới"
+                "number_and_street": "25 Đường Long Thới-12-54"
             }
         }
     }
@@ -243,13 +243,13 @@ CITIZEN_CARD_INFO = {
     "ocr_result": {
         "identity_document": {
             "identity_number": "361963424",
-            "issued_date": "18/02/2021",
+            "issued_date": "2021-02-18",
             "place_of_issue": {
                 "id": "2",
                 "code": "HCDS",
                 "name": "Cục hành chính về trật tự xã hội"
             },
-            "expired_date": "07/02/2021",
+            "expired_date": "2021-02-07",
             "mrz_content": "IDVNM~079195236~8~079197258639~<< "
                            "122909199~X~Nu~23092031~X~VNM<<<<<<<<<<<~4Tran~<<~Minh~<~Huyen~<<<….",
             "qr_code_content": "079087007923||Nguyễn Thái Anh |27061987|Nam|236/11 Lê Thị Hồng, Phường 17, Gò Vấp, "
@@ -263,7 +263,7 @@ CITIZEN_CARD_INFO = {
                 "code": "NAM",
                 "name": "Nam"
             },
-            "date_of_birth": "07/02/1994",
+            "date_of_birth": "1994-02-07",
             "nationality": {
                 "id": "1",
                 "code": "VN",
@@ -293,7 +293,7 @@ CITIZEN_CARD_INFO = {
                     "code": "TL",
                     "name": "Tân Long"
                 },
-                "number_and_street": "54/12/25 Đường Long Thới"
+                "number_and_street": "25 Đường Long Thới-12-54"
             },
             "contact_address": {
                 "province": {
@@ -311,7 +311,7 @@ CITIZEN_CARD_INFO = {
                     "code": "TL",
                     "name": "Tân Long"
                 },
-                "number_and_street": "54/12/25 Đường Long Thới"
+                "number_and_street": "25 Đường Long Thới-12-54"
             }
         }
     }
@@ -384,13 +384,13 @@ PASSPORT_INFO = {
     "ocr_result": {
         "identity_document": {
             "identity_number": "361963424",
-            "issued_date": "18/02/2021",
+            "issued_date": "2021-02-18",
             "place_of_issue": {
                 "id": "1",
                 "code": "CT",
                 "name": "Cần Thơ"
             },
-            "expired_date": "18/02/2021",
+            "expired_date": "2021-02-18",
             "passport_type": {
                 "id": "1",
                 "code": "P",
@@ -409,7 +409,7 @@ PASSPORT_INFO = {
                 "code": "NU",
                 "name": "Nữ"
             },
-            "date_of_birth": "12/08/1990",
+            "date_of_birth": "1990-08-12",
             "nationality": {
                 "id": "1",
                 "code": "VN",

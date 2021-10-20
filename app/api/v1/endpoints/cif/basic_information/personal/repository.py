@@ -35,7 +35,7 @@ async def repos_get_personal_data(cif_id: str) -> ReposReturn:
                 "name": "Chị",
                 "code": "Code"
             },
-            "date_of_birth": "20/03/1995",
+            "date_of_birth": "1995-03-20",
             "under_15_year_old_flag": False,
             "place_of_birth": {
                 "id": "1",
