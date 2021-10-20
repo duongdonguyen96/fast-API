@@ -67,9 +67,9 @@ async def repos_get_fatca_data(cif_id: str):
                         "size": "1MB",
                         "folder": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
-                        "created_at": "29/12/2020 06:07:08",
+                        "created_at": "2020-12-29 06:07:08",
                         "updated_by": "Trần Bình Liên",
-                        "updated_at": "29/12/2020 06:07:08",
+                        "updated_at": "2020-12-30 06:07:08",
                         "note": "Tài liệu quan trọng"
                     },
                     {
@@ -82,9 +82,9 @@ async def repos_get_fatca_data(cif_id: str):
                         "size": "1MB",
                         "folder": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
-                        "created_at": "29/12/2020 06:07:08",
+                        "created_at": "2020-12-28 06:07:08",
                         "updated_by": "Trần Bình Liên",
-                        "updated_at": "29/12/2020 06:07:08",
+                        "updated_at": "2020-12-29 06:07:08",
                         "note": "Tài liệu quan trọng"
                     }
                 ]
@@ -106,9 +106,9 @@ async def repos_get_fatca_data(cif_id: str):
                         "size": "1MB",
                         "folder": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
-                        "created_at": "29/12/2020 06:07:08",
+                        "created_at": "2020-12-27 06:07:08",
                         "updated_by": "Trần Bình Liên",
-                        "updated_at": "29/12/2020 06:07:08",
+                        "updated_at": "2020-12-28 06:07:08",
                         "note": "import document"
                     },
                     {
@@ -121,9 +121,9 @@ async def repos_get_fatca_data(cif_id: str):
                         "size": "1MB",
                         "folder": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
-                        "created_at": "29/12/2020 06:07:08",
+                        "created_at": "2020-12-26 06:07:08",
                         "updated_by": "Trần Bình Liên",
-                        "updated_at": "29/12/2020 06:07:08",
+                        "updated_at": "2020-12-27 06:07:08",
                         "note": "import document"
                     }
                 ]

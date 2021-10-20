@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.get(
     path="/",
-    name="1. TTCN - Thông tin FATCA",
+    name="4. Thông tin FATCA",
     description="Lấy dữ liệu tab `CHỮ KÝ` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[FatcaResponse],
@@ -24,7 +24,7 @@ router = APIRouter()
     )
 )
 async def view_retrieve_fatca(
-        cif_id: str = Path(...),
+        cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
     fatca_data = await CtrFatca(current_user).ctr_get_fatca(cif_id)

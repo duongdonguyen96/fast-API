@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from pydantic import Field
@@ -20,9 +21,9 @@ class DocumentsResponse(BaseSchema):
     size: str = Field(..., description='Kích thước biểu mẫu')
     folder: str = Field(..., description='Thư mục biểu mẫu')
     created_by: str = Field(..., description='Người tạo biểu mẫu')
-    created_at: str = Field(..., description='Thời gian tạo biểu mẫu')
+    created_at: datetime = Field(..., description='Thời gian tạo biểu mẫu')
     updated_by: str = Field(..., description='Người cập nhật biểu mẫu')
-    updated_at: str = Field(..., description='Thời gian cập nhật biểu mẫu')
+    updated_at: datetime = Field(..., description='Thời gian cập nhật biểu mẫu')
     note: str = Field(..., description='Mô tả biểu mẫu')
 
 
