@@ -9,7 +9,6 @@ async def repos_get_personal_data(cif_id: str):
 
     return ReposReturn(data={
         "basic_information": {
-            "customer_id": "1",
             "full_name_vn": "TRẦN MINH HUYỀN",
             "gender": {
                 "id": "1",

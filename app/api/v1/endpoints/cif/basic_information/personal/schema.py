@@ -4,13 +4,12 @@ from app.api.base.schema import BaseSchema
 from app.api.v1.schemas.utils import DropdownResponse
 
 
-class ContactMethod(BaseSchema):
-    email_flag: bool = Field(..., description='Email. `True`: có thể liên hệ. `False`: chưa thể liên hệ ')
-    mobile_number_flag: bool = Field(..., description='Di động. `True`: có thể liên hệ. `False`: chưa thể liên hệ')
+class ContactMethodResponse(BaseSchema):
+    email_flag: bool = Field(..., description='Email. `True`: Chọn. `False`: Không chọn')
+    mobile_number_flag: bool = Field(..., description='Di động. `True`: Chọn. `False`: Không chọn')
 
 
 class PersonalResponse(BaseSchema):
-    customer_id: int = Field(..., description='`ID` khách hàng')
     full_name_vn: str = Field(..., description='Tên tiếng việt khách hàng')
     gender: DropdownResponse = Field(..., description='Giới tính khách hàng')
     honorific: DropdownResponse = Field(..., description='Danh xưng khách hàng')
@@ -24,7 +23,7 @@ class PersonalResponse(BaseSchema):
     mobile_number: str = Field(..., description='Điện thoại di động khách hàng')
     telephone_number: str = Field(..., description='Điện thoại bàn khách hàng')
     email: str = Field(..., description='Email khách hàng')
-    contact_method: ContactMethod = Field(..., description='Hình thức liên hệ khách hàng')
+    contact_method: ContactMethodResponse = Field(..., description='Hình thức liên hệ khách hàng')
     marital_status: DropdownResponse = Field(..., description='Tình trạng hôn nhân khách hàng')
 
 
