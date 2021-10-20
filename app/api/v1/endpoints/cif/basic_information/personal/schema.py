@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import Field
 
@@ -27,12 +27,6 @@ class PersonalRequest(BaseSchema):
     email: str = Field(None, description='Email khách hàng')
     contact_method: ContactMethodRequest = Field(..., description='Hình thức liên hệ khách hàng')
     marital_status: DropdownRequest = Field(None, description='Tình trạng hôn nhân khách hàng')
-
-
-class PersonalSaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(..., description='Id CIF ảo')
-    created_at: datetime = Field(..., description='Ngày và giờ')
-    created_by: str = Field(..., description='Người tạo')
 
 
 class ContactMethodResponse(BaseSchema):
