@@ -17,7 +17,7 @@ GUARDIAN_INFO_DETAIL = {
                     "name": "Mẹ"
                 },
                 "full_name_vn": "Nguyễn Anh Đào",
-                "date_of_birth": "12/08/1990",
+                "date_of_birth": "1990/08/12",
                 "gender": {
                     "id": "1",
                     "code": "NU",
@@ -34,8 +34,8 @@ GUARDIAN_INFO_DETAIL = {
             },
             "identity_document": {
                 "identity_number": "079190254791",
-                "issued_date": "12/08/1990",
-                "expired_date": "12/08/1990",
+                "issued_date": "1990/12/08",
+                "expired_date": "1990/12/08",
                 "place_of_issue": {
                     "id": "1",
                     "code": "CAHCM",

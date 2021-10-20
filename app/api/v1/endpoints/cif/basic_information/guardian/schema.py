@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 
 from pydantic import Field
@@ -11,7 +12,7 @@ class BasicInformationResponse(BaseSchema):
     cif_number: str = Field(..., description="Số CIF")
     customer_relationship: DropdownResponse = Field(..., description="Mối quan hệ với khách hàng")
     full_name_vn: str = Field(..., description="Họ và tên")
-    date_of_birth: str = Field(..., description="Ngày sinh")
+    date_of_birth: date = Field(..., description="Ngày sinh")
     gender: DropdownResponse = Field(..., description="Giới tính")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     telephone_number: str = Field(..., description="Số ĐT bàn")
@@ -21,8 +22,8 @@ class BasicInformationResponse(BaseSchema):
 
 class IdentityDocumentResponse(BaseSchema):
     identity_number: str = Field(..., description="Số CMND/CCCD/Hộ chiếu")
-    issued_date: str = Field(..., description="Ngày cấp")
-    expired_date: str = Field(..., description="Ngày hết hạn")
+    issued_date: date = Field(..., description="Ngày cấp")
+    expired_date: date = Field(..., description="Ngày hết hạn")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
 
 
