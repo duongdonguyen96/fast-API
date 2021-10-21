@@ -1,13 +1,13 @@
 from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.basic_information.personal.schema import (
-    PersonalRequest
+from app.api.v1.endpoints.cif.basic_information.fatca.schema import (
+    FatcaRequest
 )
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
 
-async def repos_save_fatca(cif_id: str, personal: PersonalRequest, created_by: str) -> ReposReturn:
+async def repos_save_fatca(cif_id: str, fatca: FatcaRequest, created_by: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
