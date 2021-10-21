@@ -35,7 +35,8 @@ CUSTOMER_RELATIONSHIP_INFO_DETAIL = {
                     "name": "Việt Nam"
                 },
                 "telephone_number": "",
-                "mobile_number": "0867589623"
+                "mobile_number": "0867589623",
+                "email": "example@example.com"
             },
             "identity_document": {
                 "identity_number": "079190254791",

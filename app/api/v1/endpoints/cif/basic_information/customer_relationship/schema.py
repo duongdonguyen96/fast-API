@@ -21,6 +21,7 @@ class BasicInformationResponse(BaseSchema):
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     telephone_number: str = Field(..., description="Số ĐT bàn")
     mobile_number: str = Field(..., description="Số ĐTDĐ")
+    email: str = Field(..., description="Email")
 
 
 # Thông tin mối quan hệ khách hàng -> Danh sách mối quan hệ khách hàng -> II. Giấy tờ định danh
