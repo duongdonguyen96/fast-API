@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
 
@@ -44,13 +46,13 @@ async def view_detail(
     name="5. Thông tin người giám hộ",
     description="Lưu",
     responses=swagger_response(
-        response_model=ResponseData[SaveGuardianRequest],
+        response_model=ResponseData[List[SaveGuardianRequest]],
         success_status_code=status.HTTP_200_OK
     )
 )
 async def view_save(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        guardian_save_request: SaveGuardianRequest = Body(...),
+        guardian_save_request: List[SaveGuardianRequest] = Body(...),
         current_user=Depends(get_current_user_from_header())
 ):
     ctr_guardian = CtrGuardian(current_user)
