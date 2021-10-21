@@ -64,7 +64,7 @@ async def repos_get_fatca_data(cif_id: str) -> ReposReturn:
                 "active_flag": False
             }
         ],
-        "documents_information": [
+        "document_information": [
             {
                 "language_type": {
                     "id": "1",
