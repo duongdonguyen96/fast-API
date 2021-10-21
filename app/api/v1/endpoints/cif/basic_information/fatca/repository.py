@@ -64,7 +64,7 @@ async def repos_get_fatca_data(cif_id: str) -> ReposReturn:
                 "active_flag": False
             }
         ],
-        "documents_list": [
+        "documents_information": [
             {
                 "language_type": {
                     "id": "1",
@@ -80,7 +80,7 @@ async def repos_get_fatca_data(cif_id: str) -> ReposReturn:
                         "version": "1.0",
                         "content_type": "Word",
                         "size": "1MB",
-                        "folder": "Khởi tạo CIF",
+                        "folder_name": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
                         "created_at": "2020-12-29 06:07:08",
                         "updated_by": "Trần Bình Liên",
@@ -95,7 +95,7 @@ async def repos_get_fatca_data(cif_id: str) -> ReposReturn:
                         "version": "1.0",
                         "content_type": "Word",
                         "size": "1MB",
-                        "folder": "Khởi tạo CIF",
+                        "folder_name": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
                         "created_at": "2020-12-28 06:07:08",
                         "updated_by": "Trần Bình Liên",
@@ -119,7 +119,7 @@ async def repos_get_fatca_data(cif_id: str) -> ReposReturn:
                         "version": "1.0",
                         "content_type": "Word",
                         "size": "1MB",
-                        "folder": "Khởi tạo CIF",
+                        "folder_name": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
                         "created_at": "2020-12-27 06:07:08",
                         "updated_by": "Trần Bình Liên",
@@ -134,7 +134,7 @@ async def repos_get_fatca_data(cif_id: str) -> ReposReturn:
                         "version": "1.0",
                         "content_type": "Word",
                         "size": "1MB",
-                        "folder": "Khởi tạo CIF",
+                        "folder_name": "Khởi tạo CIF",
                         "created_by": "Nguyễn Phúc",
                         "created_at": "2020-12-26 06:07:08",
                         "updated_by": "Trần Bình Liên",

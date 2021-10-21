@@ -17,12 +17,11 @@ class CategoryDropdownRequest(DropdownRequest):
 
 class DocumentsRequest(BaseSchema):
     id: str = Field(..., description='Mã biểu mẫu')
-    name: str = Field(..., description='Tên biểu mẫu')
     url: str = Field(..., description='Đường dẫn biểu mẫu')
     version: str = Field(..., description='Phiên bản biểu mẫu')
     content_type: str = Field(..., description='Loại biểu mẫu')
     size: str = Field(..., description='Kích thước biểu mẫu')
-    folder: str = Field(..., description='Thư mục biểu mẫu')
+    folder_name: str = Field(..., description='Thư mục biểu mẫu')
     note: str = Field(..., description='Mô tả biểu mẫu')
 
 
@@ -33,7 +32,7 @@ class DocumentsListRequest(BaseSchema):
 
 class FatcaRequest(BaseSchema):
     fatca_information: List[CategoryDropdownRequest] = Field(..., description='Danh mục `FATCA`')
-    documents_list: List[DocumentsListRequest] = Field(..., description='Danh sách biểu mẫu `FATCA`')
+    documents_information: List[DocumentsListRequest] = Field(..., description='Danh sách biểu mẫu `FATCA`')
 
 
 ########################################################################################################################
@@ -52,7 +51,7 @@ class DocumentsResponse(BaseSchema):
     version: str = Field(..., description='Phiên bản biểu mẫu')
     content_type: str = Field(..., description='Loại biểu mẫu')
     size: str = Field(..., description='Kích thước biểu mẫu')
-    folder: str = Field(..., description='Thư mục biểu mẫu')
+    folder_name: str = Field(..., description='Thư mục biểu mẫu')
     created_by: str = Field(..., description='Người tạo biểu mẫu')
     created_at: datetime = Field(..., description='Thời gian tạo biểu mẫu')
     updated_by: str = Field(..., description='Người cập nhật biểu mẫu')
@@ -67,4 +66,4 @@ class DocumentsListResponse(BaseSchema):
 
 class FatcaResponse(BaseSchema):
     fatca_information: List[CategoryDropdownResponse] = Field(..., description='Danh mục `FATCA`')
-    documents_list: List[DocumentsListResponse] = Field(..., description='Danh sách biểu mẫu `FATCA`')
+    documents_information: List[DocumentsListResponse] = Field(..., description='Danh sách biểu mẫu `FATCA`')
