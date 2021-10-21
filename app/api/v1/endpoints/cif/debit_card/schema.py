@@ -95,7 +95,7 @@ class IssueDebitRequest(BaseSchema):
     branch_of_card: DropdownRequest = Field(..., description="Thương hiệu thẻ")
     issuance_fee: DropdownRequest = Field(..., description="Phí phat hành thẻ")
     annual_fee: DropdownRequest = Field(..., description="Phí thường niên")
-    debit_card_types_id: str = Field(..., description="id loại thẻ phát hành")
+    debit_card_type_id: str = Field(..., description="id loại thẻ phát hành")
 
 
 class CardDeliveryAddressRequest(BaseSchema):
