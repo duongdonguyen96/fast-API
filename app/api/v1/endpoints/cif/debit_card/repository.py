@@ -6,10 +6,10 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 async def repos_debit_card(cif_id: str) -> ReposReturn:
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data={
-            "issue debit cart": {
+            "issue_debit_card": {
                 "register_flag": True,
                 "physical_card_type": True,
-                "card_issuance_type": {
+                "physical_issuance_type": {
                     "id": "1",
                     "code": "NORMAL",
                     "name": "Thông thường"
@@ -93,7 +93,6 @@ async def repos_debit_card(cif_id: str) -> ReposReturn:
                     },
                     "number_and_street": "123/456/abc",
                 },
-
                 "note": "địa chỉ cơ quan"
             },
             "information_sub_debit_card": {
@@ -139,7 +138,7 @@ async def repos_debit_card(cif_id: str) -> ReposReturn:
                                 },
                                 "number_and_street": "123/456/abc",
                             },
-                            "note": "địa chỉ cơ quan"
+                            "note": "string"
                         },
                         "sub_card_number": {
                             "number_part_1": "1234",

@@ -64,7 +64,7 @@ class SubDebitCardResponse(BaseSchema):
     physical_card_type: bool = Field(..., description="TÍnh vật lý, `True`: thẻ vật lý, `False`: thẻ phi vật lý")
     card_issuance_type: DropdownResponse = Field(..., description="Hình thức phát hành")
     payment_online_flag: bool = Field(..., description="Mở chức năng thanh toán online, `True`: có, `False`: không")
-    card_delivery_address: CardDeliveryAddressResponse
+    card_delivery_address: CardDeliveryAddressResponse = Field(..., description="Địa chỉ giao nhận thẻ")
     sub_card_number: MainAndSubCardNumberResponse = Field(..., description="Số thẻ phụ")
     card_image_url: str = Field(..., description="Url hình ảnh thẻ ")
 
@@ -75,7 +75,7 @@ class InformationSubDebitCardResponse(BaseSchema):
 
 
 class DebitCardResponse(BaseSchema):
-    issua_debit_card: IssueDebitCardResponse = Field(..., description="Phát hành thẻ ghi nợ ")
+    issue_debit_card: IssueDebitCardResponse = Field(..., description="Phát hành thẻ ghi nợ ")
     information_debit_card: InformationDebitCardResponse = Field(..., description="Thông tin thẻ ")
     card_delivery_address: CardDeliveryAddressResponse = Field(..., description="Địa chỉ nhân thẻ ")
-    information_sub_debit_card: InformationSubDebitCardResponse
+    information_sub_debit_card: InformationSubDebitCardResponse = Field(..., description="Thông tin thẻ phụ")

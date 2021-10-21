@@ -8,7 +8,9 @@ from app.api.v1.endpoints.cif.debit_card.controller import CtrDebitCard
 from app.api.v1.endpoints.cif.debit_card.schema import DebitCardResponse
 
 router = APIRouter()
-router.get(
+
+
+@router.get(
     path="/",
     name="Detail",
     description="Lấy dữ liệu tab `V. THẺ GHI NỢ` của khách hàng",
@@ -17,8 +19,6 @@ router.get(
         success_status_code=status.HTTP_200_OK
     )
 )
-
-
 async def view_debit_card(
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
