@@ -8,10 +8,29 @@ from app.api.v1.endpoints.cif.basic_information.fatca.controller import (
     CtrFatca
 )
 from app.api.v1.endpoints.cif.basic_information.fatca.schema import (
-    FatcaResponse
+    FatcaRequest, FatcaResponse
 )
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
+
+
+@router.post(
+    path="/",
+    name="4. Thông tin FATCA",
+    description="Tạo dữ liệu tab `THÔNG TIN FATCA` của khách hàng",
+    responses=swagger_response(
+        response_model=ResponseData[SaveSuccessResponse],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_save(
+        fatca: FatcaRequest,
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header())
+):
+    fatca_data = await CtrFatca(current_user).ctr_save_fatca(cif_id, fatca)
+    return ResponseData[SaveSuccessResponse](**fatca_data)
 
 
 @router.get(
