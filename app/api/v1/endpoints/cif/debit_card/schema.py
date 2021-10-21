@@ -3,11 +3,11 @@ from typing import List
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import AddressResponse
-from app.api.v1.schemas.utils import DropdownResponse
+from app.api.v1.schemas.cif import AddressRequest, AddressResponse
+from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
-class CardTypeResponse(BaseSchema):
+class CardTypeResponseRequest(BaseSchema):
     id: str = Field(..., description="id")
     code: str = Field(..., description="code")
     name: str = Field(..., description="Tên loại thẻ")
@@ -16,13 +16,13 @@ class CardTypeResponse(BaseSchema):
     active_flag: bool = Field(..., description="cờ hoạt động")
 
 
-class NameOnCardResponse(BaseSchema):
+class NameOnCardResponseRequest(BaseSchema):
     last_name_on_card: str = Field(..., description="Họ")
     middle_name_on_card: str = Field(..., description="tên lót")
     first_name_on_card: str = Field(..., description="tên")
 
 
-class MainAndSubCardNumberResponse(BaseSchema):
+class MainAndSubCardNumberResponseRequest(BaseSchema):
     number_part_1: str = Field(..., description="4 số đầu trên thẻ")
     number_part_2: str = Field(..., description="4 số thứ 2 trên thẻ")
     number_part_3: str = Field(..., description="4 số thứ 3 trên thẻ")
@@ -30,7 +30,7 @@ class MainAndSubCardNumberResponse(BaseSchema):
 
 
 class IssueDebitCardResponse(BaseSchema):
-    register_flag: bool = Field(..., description="Đăng ló thẻ ghi nợ, `True`: đăng kí, `False`: không đăng kí ")
+    register_flag: bool = Field(..., description="Đăng kí thẻ ghi nợ, `True`: đăng kí, `False`: không đăng kí ")
     physical_card_type: bool = Field(..., description="TÍnh vật lý, `True`: thẻ vật lý, `False`: thẻ phi vật lý")
     physical_issuance_type: DropdownResponse = Field(..., description="Hình thức phát hành")
     customer_type: DropdownResponse = Field(..., description="Nhóm khách hàng")
@@ -38,12 +38,12 @@ class IssueDebitCardResponse(BaseSchema):
     branch_of_card: DropdownResponse = Field(..., description="Thương hiệu thẻ")
     issuance_fee: DropdownResponse = Field(..., description="Phí phat hành thẻ")
     annual_fee: DropdownResponse = Field(..., description="Phí thường niên")
-    debit_card_types: List[CardTypeResponse] = Field(..., description="Danh sách loại thẻ phát hành")
+    debit_card_types: List[CardTypeResponseRequest] = Field(..., description="Danh sách loại thẻ phát hành")
 
 
-class InformationDebitCardResponse(BaseSchema):
-    name_on_card: NameOnCardResponse = Field(..., description="Tên trên thẻ")
-    main_card_number: MainAndSubCardNumberResponse = Field(..., description="Số thẻ chính")
+class InformationDebitCardResponseRequest(BaseSchema):
+    name_on_card: NameOnCardResponseRequest = Field(..., description="Tên trên thẻ")
+    main_card_number: MainAndSubCardNumberResponseRequest = Field(..., description="Số thẻ chính")
     card_image_url: str = Field(..., description="Url hình ảnh thẻ")
 
 
@@ -60,12 +60,12 @@ class SubDebitCardResponse(BaseSchema):
     id: str = Field(..., description="Id thẻ phụ")
     name: str = Field(..., description="Tên thẻ phụ")
     cif_number: str = Field(..., description="Số cif")
-    name_on_card: NameOnCardResponse = Field(..., description="Tên trên thẻ")
+    name_on_card: NameOnCardResponseRequest = Field(..., description="Tên trên thẻ")
     physical_card_type: bool = Field(..., description="TÍnh vật lý, `True`: thẻ vật lý, `False`: thẻ phi vật lý")
     card_issuance_type: DropdownResponse = Field(..., description="Hình thức phát hành")
     payment_online_flag: bool = Field(..., description="Mở chức năng thanh toán online, `True`: có, `False`: không")
     card_delivery_address: CardDeliveryAddressResponse = Field(..., description="Địa chỉ giao nhận thẻ")
-    sub_card_number: MainAndSubCardNumberResponse = Field(..., description="Số thẻ phụ")
+    sub_card_number: MainAndSubCardNumberResponseRequest = Field(..., description="Số thẻ phụ")
     card_image_url: str = Field(..., description="Url hình ảnh thẻ ")
 
 
@@ -76,6 +76,51 @@ class InformationSubDebitCardResponse(BaseSchema):
 
 class DebitCardResponse(BaseSchema):
     issue_debit_card: IssueDebitCardResponse = Field(..., description="Phát hành thẻ ghi nợ ")
-    information_debit_card: InformationDebitCardResponse = Field(..., description="Thông tin thẻ ")
+    information_debit_card: InformationDebitCardResponseRequest = Field(..., description="Thông tin thẻ ")
     card_delivery_address: CardDeliveryAddressResponse = Field(..., description="Địa chỉ nhân thẻ ")
     information_sub_debit_card: InformationSubDebitCardResponse = Field(..., description="Thông tin thẻ phụ")
+
+
+# ######################### request schema ###################################
+class IssueDebitRequest(BaseSchema):
+    register_flag: bool = Field(..., description="Đăng kí thẻ ghi nợ, `True`: đăng kí, `False`: không đăng kí ")
+    physical_card_type: bool = Field(..., description="TÍnh vật lý, `True`: thẻ vật lý, `False`: thẻ phi vật lý")
+    physical_issuance_type: DropdownRequest = Field(..., description="Hình thức phát hành")
+    customer_type: DropdownRequest = Field(..., description="Nhóm khách hàng")
+    payment_online_flag: bool = Field(..., description="Mở chức năng thanh toán online, `True`: có, `False`: không")
+    branch_of_card: DropdownRequest = Field(..., description="Thương hiệu thẻ")
+    issuance_fee: DropdownRequest = Field(..., description="Phí phat hành thẻ")
+    annual_fee: DropdownRequest = Field(..., description="Phí thường niên")
+    debit_card_types: List[CardTypeResponseRequest] = Field(..., description="Danh sách loại thẻ phát hành")
+
+
+class CardDeliveryAddressRequest(BaseSchema):
+    scb_delivery_address_flag: bool = Field(..., description="Địa chỉ nhận tại SCB. "
+                                                             "`True`: tại SCB, "
+                                                             "`Fasle`:địa chỉ khác")
+    scb_branch: DropdownRequest = Field(..., description=" chi nhánh scb nhận thẻ")
+    delivery_address: AddressRequest = Field(..., descripion="Địa chỉ nhân thẻ")
+    note: str = Field(..., description="ghi chú")
+
+
+class SubDebitCardRequest(BaseSchema):
+    name: str = Field(..., description="Tên thẻ phụ")
+    cif_number: str = Field(..., description="Số cif")
+    name_on_card: NameOnCardResponseRequest = Field(..., description="Tên trên thẻ")
+    physical_card_type: bool = Field(..., description="TÍnh vật lý, `True`: thẻ vật lý, `False`: thẻ phi vật lý")
+    card_issuance_type: DropdownRequest = Field(..., description="Hình thức phát hành")
+    payment_online_flag: bool = Field(..., description="Mở chức năng thanh toán online, `True`: có, `False`: không")
+    card_delivery_address: CardDeliveryAddressRequest = Field(..., description="Địa chỉ giao nhận thẻ")
+    sub_card_number: MainAndSubCardNumberResponseRequest = Field(..., description="Số thẻ phụ")
+    card_image_url: str = Field(..., description="Url hình ảnh thẻ ")
+
+
+class InformationSubDebitCardRequest(BaseSchema):
+    sub_debit_cards: List[SubDebitCardRequest] = Field(..., description="Danh sách thẻ phụ ")
+
+
+class DebitCardRequest(BaseSchema):
+    issue_debit_card: IssueDebitRequest = Field(..., description="Phát hành thẻ ghi nợ ")
+    information_debit_card: InformationDebitCardResponseRequest = Field(..., description="Thông tin thẻ ")
+    card_delivery_address: CardDeliveryAddressRequest = Field(..., description="Địa chỉ nhân thẻ ")
+    information_sub_debit_card: InformationSubDebitCardRequest = Field(..., description="Thông tin thẻ phụ")
