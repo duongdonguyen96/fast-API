@@ -1,4 +1,9 @@
+from typing import List
+
 from app.api.base.repository import ReposReturn
+from app.api.v1.endpoints.cif.basic_information.customer_relationship.schema import (
+    SaveCustomerRelationshipRequest
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
@@ -92,7 +97,11 @@ async def repos_detail_customer_relationship(cif_id: str):
     return ReposReturn(data=CUSTOMER_RELATIONSHIP_INFO_DETAIL)
 
 
-async def repos_save_customer_relationship(cif_id: str, created_by):
+async def repos_save_customer_relationship(
+        cif_id: str,
+        customer_relationship_save_request: List[SaveCustomerRelationshipRequest],
+        created_by
+):
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 

@@ -1,6 +1,11 @@
+from typing import List
+
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.customer_relationship.repository import (
     repos_detail_customer_relationship, repos_save_customer_relationship
+)
+from app.api.v1.endpoints.cif.basic_information.customer_relationship.schema import (
+    SaveCustomerRelationshipRequest
 )
 
 
@@ -9,9 +14,10 @@ class CtrCustomerRelationship(BaseController):
         detail_customer_relationship_info = self.call_repos(await repos_detail_customer_relationship(cif_id=cif_id))
         return self.response(data=detail_customer_relationship_info)
 
-    async def save(self, cif_id, customer_relationship_save_request):
+    async def save(self, cif_id, customer_relationship_save_request: List[SaveCustomerRelationshipRequest]):
         save_customer_relationship_info = self.call_repos(await repos_save_customer_relationship(
             cif_id=cif_id,
+            customer_relationship_save_request=customer_relationship_save_request,
             created_by=self.current_user.full_name_vn
         ))
         return self.response(data=save_customer_relationship_info)
