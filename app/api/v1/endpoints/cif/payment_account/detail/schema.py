@@ -29,7 +29,7 @@ class PaymentAccountResponse(BaseSchema):
     account_structure_type_level_1: OptionalDropdownResponse = Field(None, description="Kiểu kiến trúc cấp 1")
     account_structure_type_level_2: OptionalDropdownResponse = Field(None, description="Kiểu kiến trúc cấp 2")
     account_structure_type_level_3: OptionalDropdownResponse = Field(None, description="Kiểu kiến trúc cấp 3")
-    casa_account: CasaAccount = Field(..., description="Số tài khoản")
+    casa_account: CasaAccount = Field(None, description="Số tài khoản")
     account_salary_organization_account: str = Field(None, description="Tài khoản của tổ chức chi lương")
     account_salary_organization_name: Optional[str] = Field(None, description="Chủ tài khoản chi lương")
 
