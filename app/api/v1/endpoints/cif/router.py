@@ -10,6 +10,8 @@ from app.api.v1.endpoints.cif.form import view as views_form
 from app.api.v1.endpoints.cif.other_information import view as views_other_info
 from app.api.v1.endpoints.cif.payment_account import \
     router as routers_payment_account
+from app.api.v1.endpoints.cif.profile_history import \
+    view as routers_profile_history
 
 router_module = APIRouter()
 
@@ -42,3 +44,7 @@ router_module.include_router(router=views_debit_card.router, prefix="/{cif_id}/d
 # step VI. Biểu mẫu
 router_module.include_router(router=views_form.router, prefix="/{cif_id}/form",
                              tags=['[CIF] VI. Biểu mẫu'])
+
+# Lịch sử hồ sơ
+router_module.include_router(router=routers_profile_history.router, prefix="/{cif_id}/profile-history",
+                             tags=['[CIF] Lịch sử hồ sơ'])
