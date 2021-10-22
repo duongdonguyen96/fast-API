@@ -42,5 +42,7 @@ class SavePaymentAccountRequest(BaseSchema):
     account_structure_type_level_1: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 1")
     account_structure_type_level_2: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 2")
     account_structure_type_level_3: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 3")
-    casa_account_number: str = Field(None, description="Số tài khoản")
+    casa_account_number: str = Field(None, description="""Số tài khoản
+                                                \n`self_selected_account_flag`=`True` => Bắt buộc truyền lên
+                                                \n`self_selected_account_flag`=`True` => Không bắt buộc truyền lên""")
     account_salary_organization_account: str = Field(None, description="Tài khoản của tổ chức chi lương")
