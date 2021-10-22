@@ -12,12 +12,6 @@ from app.api.v1.schemas.utils import (
 ########################################################################################################################
 # Response
 ########################################################################################################################
-# Chi tiết tài khoản thanh toán -> Tài khoản của tổ chức chi lương
-class CasaAccountResponse(BaseSchema):
-    id: Optional[str] = Field(..., description="ID tài khoản của tổ chức chi lương")
-    account_number: Optional[str] = Field(..., description="Số tài khoản của tổ chức chi lương")
-
-
 # Chi tiết tài khoản thanh toán
 class PaymentAccountResponse(BaseSchema):
     self_selected_account_flag: bool = Field(..., description="""Cờ tự chọn số tài khoản
@@ -29,8 +23,8 @@ class PaymentAccountResponse(BaseSchema):
     account_structure_type_level_1: OptionalDropdownResponse = Field(..., description="Kiểu kiến trúc cấp 1")
     account_structure_type_level_2: OptionalDropdownResponse = Field(..., description="Kiểu kiến trúc cấp 2")
     account_structure_type_level_3: OptionalDropdownResponse = Field(..., description="Kiểu kiến trúc cấp 3")
-    casa_account: CasaAccountResponse = Field(..., description="Số tài khoản")
-    account_salary_organization_account: str = Field(..., description="Tài khoản của tổ chức chi lương")
+    casa_account_number: Optional[str] = Field(..., description="Số tài khoản")
+    account_salary_organization_account: Optional[str] = Field(..., description="Tài khoản của tổ chức chi lương")
     account_salary_organization_name: Optional[str] = Field(..., description="Chủ tài khoản chi lương")
 
 
@@ -38,10 +32,6 @@ class PaymentAccountResponse(BaseSchema):
 # Request Body
 ########################################################################################################################
 # Chi tiết tài khoản thanh toán
-class CasaAccountRequest(BaseSchema):
-    account_number: Optional[str] = Field(None, description="Số tài khoản của tổ chức chi lương")
-
-
 class SavePaymentAccountRequest(BaseSchema):
     self_selected_account_flag: bool = Field(..., description="""Cờ tự chọn số tài khoản
                                                               \nSố tài khoản thường => `False`
@@ -52,5 +42,5 @@ class SavePaymentAccountRequest(BaseSchema):
     account_structure_type_level_1: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 1")
     account_structure_type_level_2: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 2")
     account_structure_type_level_3: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 3")
-    casa_account: CasaAccountRequest = Field(None, description="Số tài khoản")
+    casa_account_number: str = Field(None, description="Số tài khoản")
     account_salary_organization_account: str = Field(None, description="Tài khoản của tổ chức chi lương")

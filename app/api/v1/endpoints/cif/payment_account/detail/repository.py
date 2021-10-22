@@ -38,10 +38,7 @@ REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
         "code": "LEVEL3",
         "name": "6868"
     },
-    "casa_account": {
-        "id": "1",
-        "account_number": "XXXXXXXX6868"
-    },
+    "casa_account_number": "XXXXXXXX6868",
     "account_salary_organization_account": "13245678912",
     "account_salary_organization_name": "Công ty ABC"
 }
@@ -78,10 +75,7 @@ NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
         "code": None,
         "name": None
     },
-    "casa_account": {
-        "id": None,
-        "account_number": None
-    },
+    "casa_account_number": None,
     "account_salary_organization_account": "13245678912",
     "account_salary_organization_name": None
 }
@@ -91,7 +85,7 @@ async def repos_detail_payment_account(cif_id: str):
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
-    return ReposReturn(data=REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL)
+    return ReposReturn(data=NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL)
 
 
 async def repos_save_payment_account(
@@ -101,7 +95,7 @@ async def repos_save_payment_account(
 ):
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
-
+    print(payment_account_save_request.casa_account_number)
     return ReposReturn(data={
         "cif_id": cif_id,
         "created_at": now(),
