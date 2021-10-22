@@ -17,7 +17,7 @@ router = APIRouter()
 
 @router.get(
     path="/",
-    name="1. Chi tiết tài khoản thanh toán",
+    name="A. Chi tiết tài khoản thanh toán",
     description="Chi tiết",
     responses=swagger_response(
         response_model=ResponseData[PaymentAccountResponse],
@@ -41,7 +41,7 @@ async def view_detail(
 
 @router.post(
     path="/",
-    name="1. Chi tiết tài khoản thanh toán",
+    name="A. Chi tiết tài khoản thanh toán",
     description="Lưu",
     responses=swagger_response(
         response_model=ResponseData[SavePaymentAccountRequest],
