@@ -8,10 +8,29 @@ from app.api.v1.endpoints.cif.payment_account.co_owner.controller import (
     CtrCoOwner
 )
 from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
-    AccountHolderSuccessResponse
+    AccountHolderRequest, AccountHolderSuccessResponse
 )
+from app.api.v1.schemas.utils import SaveSuccessResponse
 
 router = APIRouter()
+
+
+@router.post(
+    path="/",
+    name="B. Thông tin đồng sở hữu",
+    description="Tạo dữ liệu tab `THÔNG TIN ĐỒNG SỞ HỮU` của khách hàng",
+    responses=swagger_response(
+        response_model=ResponseData[SaveSuccessResponse],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_create_personal(
+        co_owner: AccountHolderRequest,
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header())
+):
+    co_owner_data = await CtrCoOwner(current_user).ctr_save_co_owner(cif_id, co_owner)
+    return ResponseData[SaveSuccessResponse](**co_owner_data)
 
 
 @router.get(
