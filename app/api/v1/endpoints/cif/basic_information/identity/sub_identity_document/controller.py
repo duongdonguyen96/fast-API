@@ -1,9 +1,12 @@
 from typing import List
 
 from app.api.base.controller import BaseController
-from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.repository import \
+from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.repository import (
     repos_get_detail_sub_identity_document, repos_save_sub_identity_document
-from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import SubIdentityDocumentRequest
+)
+from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import (
+    SubIdentityDocumentRequest
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
