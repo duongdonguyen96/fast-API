@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Query
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -25,6 +25,7 @@ router = APIRouter()
 )
 async def view_detail_relationship(
         cif_id: str = Path(..., description='Id CIF ảo'),
+        cif_number: str = Query(..., description='Số CIF khách hàng cần lấy thông tin'),
         current_user=Depends(get_current_user_from_header())
 ):
     """
@@ -34,7 +35,7 @@ async def view_detail_relationship(
     ctr_basic_information = CtrBasicInformation(current_user)
 
     detail_basic_information = await ctr_basic_information.detail_relationship(
-        cif_id=cif_id
+        cif_id=cif_id, cif_number_need_to_find=cif_number
     )
 
     return ResponseData[DetailRelationshipResponse](

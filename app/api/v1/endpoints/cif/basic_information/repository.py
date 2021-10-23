@@ -79,7 +79,7 @@ DETAIL_RELATIONSHIP_DATA = {
 }
 
 
-async def repos_detail_relationship(cif_id: str):
+async def repos_detail_relationship(cif_id: str, cif_number_need_to_find: str):
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
