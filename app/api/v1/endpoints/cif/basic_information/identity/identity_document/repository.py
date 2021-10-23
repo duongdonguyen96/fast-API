@@ -425,7 +425,7 @@ PASSPORT_INFO = {
         }
     }
 }
-LOGS_INFO = [
+IDENTITY_LOGS_INFO = [
     {
         "reference_flag": True,
         "created_date": "2021-02-18",
@@ -496,7 +496,7 @@ async def repos_get_list_log(cif_id: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
-    return ReposReturn(data=LOGS_INFO)
+    return ReposReturn(data=IDENTITY_LOGS_INFO)
 
 
 async def repos_save(
