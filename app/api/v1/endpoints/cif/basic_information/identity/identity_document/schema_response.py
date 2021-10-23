@@ -173,4 +173,4 @@ class LogResponse(BaseSchema):
     reference_flag: bool = Field(..., description="Cờ giấy tờ định danh dùng để so sánh với hình gốc")
     created_date: date = Field(..., description="Ngày ghi log")
     identity_document_type: DropdownResponse = Field(..., description="Loại giấy tờ định danh")
-    identity_images: List[IdentityImage] = Field(..., description="Loại giấy tờ định danh")
+    identity_images: List[IdentityImage] = Field(..., description="Danh sách hình ảnh")
