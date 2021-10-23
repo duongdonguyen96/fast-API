@@ -1,4 +1,5 @@
 from datetime import date
+from typing import List
 
 from pydantic import Field
 
@@ -28,6 +29,19 @@ class SubIdentityDetailResponse(BaseSchema):
     sub_identity_document_type: DropdownResponse = Field(..., description="Loại GTĐD phụ")
     sub_identity_document_image_url: str = Field(..., description="I. Thông tin giấy tờ")
     ocr_result: SubIdentityOCRResultResponse = Field(..., description="II. Phân tích OCR")
+
+
+# Hình ảnh trong lịch sử
+class IdentityImage(BaseSchema):
+    image_url: str = Field(..., description="URL hình ảnh định danh")
+
+
+# Lịch sử thay đổi giấy tờ định danh phụ
+class LogResponse(BaseSchema):
+    reference_flag: bool = Field(..., description="Cờ giấy tờ định danh phụ dùng để so sánh với hình gốc")
+    created_date: date = Field(..., description="Ngày ghi log")
+    identity_document_type: DropdownResponse = Field(..., description="Loại giấy tờ định danh phụ")
+    identity_images: List[IdentityImage] = Field(..., description="Danh sách hình ảnh")
 
 
 ########################################################################################################################
