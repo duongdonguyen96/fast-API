@@ -81,7 +81,7 @@ router_special = APIRouter()
 
 @router_special.post(
     path="/basic-information/identity/identity-document/",
-    name="1. GTĐD - A. GTĐD",
+    name="1. GTĐD - A. GTĐD - Lưu",
     description="Lưu",
     responses=swagger_response(
         response_model=ResponseData[SaveSuccessResponse],
