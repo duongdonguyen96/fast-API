@@ -54,7 +54,5 @@ router_step.include_router(
 )
 
 router_step.include_router(
-    router=views_step_common.router,
-    prefix="/common",
-    tags=["[CIF] Thông tin cơ bản - API dùng chung"]
+    router=views_step_common.router
 )

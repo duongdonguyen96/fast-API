@@ -15,8 +15,8 @@ router = APIRouter()
 
 
 @router.get(
-    path="/",
-    name="GTĐD - Thông tin khách hàng khác",
+    path="/detail-customer/",
+    name="4. & 5. Thông tin khách hàng khác",
     description="Chi tiết người giám hộ hoặc người có quan hệ với khách hàng qua mã CIF",
     responses=swagger_response(
         response_model=ResponseData[DetailRelationshipResponse],
