@@ -425,9 +425,59 @@ PASSPORT_INFO = {
         }
     }
 }
+LOGS_INFO = [
+    {
+        "reference_flag": True,
+        "created_date": "2021-02-18",
+        "identity_document_type": {
+            "id": "1",
+            "code": "CMND",
+            "name": "Chứng minh nhân dân"
+        },
+        "identity_images": [
+            {
+                "image_url": "https://example.com/example.jpg"
+            },
+            {
+                "image_url": "https://example.com/example.jpg"
+            }
+        ]
+    },
+    {
+        "reference_flag": False,
+        "created_date": "2021-02-18",
+        "identity_document_type": {
+            "id": "2",
+            "code": "CCCD",
+            "name": "Căn cước công dân"
+        },
+        "identity_images": [
+            {
+                "image_url": "https://example.com/example.jpg"
+            },
+            {
+                "image_url": "https://example.com/example.jpg"
+            }
+        ]
+    },
+    {
+        "reference_flag": False,
+        "created_date": "2021-02-18",
+        "identity_document_type": {
+            "id": "3",
+            "code": "HC",
+            "name": "Hộ chiếu"
+        },
+        "identity_images": [
+            {
+                "image_url": "https://example.com/example.jpg"
+            }
+        ]
+    }
+]
 
 
-async def repos_get_detail_identity_document(cif_id: str, identity_document_type_id: str) -> ReposReturn:
+async def repos_get_detail(cif_id: str, identity_document_type_id: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
@@ -442,7 +492,14 @@ async def repos_get_detail_identity_document(cif_id: str, identity_document_type
         return ReposReturn(data=PASSPORT_INFO)
 
 
-async def repos_save_identity_document(
+async def repos_get_list_log(cif_id: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data=LOGS_INFO)
+
+
+async def repos_save(
         identity_document_req: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest],
         created_by: str
 ):
