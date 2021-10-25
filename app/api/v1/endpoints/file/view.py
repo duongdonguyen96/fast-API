@@ -1,10 +1,11 @@
 from typing import List
 
-from fastapi import APIRouter, File, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from starlette import status
 
 from app.api.base.schema import ResponseData
 from app.api.base.swagger import swagger_response
+from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.file.controller import CtrFile
 from app.api.v1.endpoints.file.schema import (
     FileServiceDownloadFileResponse, FileServiceResponse
@@ -22,7 +23,10 @@ router = APIRouter()
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_file_upload(file: UploadFile = File(...)):
+async def view_file_upload(
+        file: UploadFile = File(..., description='File cần upload'),
+        current_user=Depends(get_current_user_from_header()),  # noqa
+):
     file_response = await CtrFile().upload_file(file)
     return ResponseData[FileServiceResponse](**file_response)
 
@@ -38,7 +42,11 @@ async def view_file_upload(file: UploadFile = File(...)):
     )
 )
 async def view_file_multi_upload(
-        file: List[UploadFile] = File(...)
+        file: List[UploadFile] = File(
+            ...,
+            description='Muốn upload nhiều file thì gửi nhiều key value với key là `file`, value là `file cần upload`'
+        ),
+        current_user=Depends(get_current_user_from_header()),  # noqa
 ):
     res = await CtrFile().upload_multi_file(file)
     return ResponseData[List[FileServiceResponse]](**res)
@@ -53,7 +61,10 @@ async def view_file_multi_upload(
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_download_file(uuid: str = Query(...)):
+async def view_download_file(
+        uuid: str = Query(..., description='Chuỗi định danh của file cần tải'),
+        current_user=Depends(get_current_user_from_header()),  # noqa
+):
     res = await CtrFile().download_file(uuid)
     return ResponseData[FileServiceDownloadFileResponse](**res)
 
@@ -67,6 +78,12 @@ async def view_download_file(uuid: str = Query(...)):
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_download_multi_file(uuid: List[str] = Query([])):
+async def view_download_multi_file(
+        uuid: List[str] = Query(
+            ...,
+            description='Muốn tải nhiều file thì gửi nhiều query parameter `uuid`'
+        ),
+        current_user=Depends(get_current_user_from_header()),  # noqa
+):
     res = await CtrFile().download_multi_file(uuid)
     return ResponseData[List[FileServiceDownloadFileResponse]](**res)
