@@ -7,6 +7,7 @@ from starlette import status
 from app.api.base.except_custom import ExceptionHandle
 from app.api.base.repository import ReposReturn
 from app.api.base.schema import Error
+from app.api.base.validator import ValidatorReturn
 from app.third_parties.mongo.base import mongo_db
 from app.third_parties.oracle.base import oracle_session
 
@@ -28,6 +29,16 @@ class BaseController:
     @staticmethod
     async def get_mongo_session() -> AsyncIOMotorDatabase:
         return mongo_db
+
+    def call_validator(self, result_call_validator: ValidatorReturn):
+        if result_call_validator.is_error:
+            self.response_exception(
+                msg=result_call_validator.msg,
+                loc=result_call_validator.loc,
+                detail=result_call_validator.detail
+            )
+
+        return result_call_validator.data
 
     def call_repos(self, result_call_repos: ReposReturn):
         if result_call_repos.is_error:
