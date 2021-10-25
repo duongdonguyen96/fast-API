@@ -3,9 +3,8 @@ import os
 SERVICE = {
     "file": {
         "url": os.getenv("SERVICE_FILE_URL"),
-        "datetime-format": "%d/%m/%Y %H:%M:%S",
         "server-auth": os.getenv("SERVICE_FILE_SERVICE_AUTH"),
-        "authorization": "bearer 1"
+        "authorization": "bearer 3"
     },
     "file-upload": {
         "file_limit": int(os.getenv("FILE_LIMIT", 10)),
