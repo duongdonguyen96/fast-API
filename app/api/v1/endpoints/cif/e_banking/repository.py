@@ -1,6 +1,19 @@
 from app.api.base.repository import ReposReturn
+from app.api.v1.endpoints.cif.e_banking.schema import EBankingRequest
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.functions import now
+
+
+async def repos_save_e_banking_data(cif_id: str, e_banking: EBankingRequest, created_by: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data={
+        "cif_id": cif_id,
+        "created_at": now(),
+        "created_by": created_by
+    })
 
 
 async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
@@ -252,5 +265,4 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                 "updated_at": "2021-03-06 09:25:00"
             }
         }
-    }
-    )
+    })
