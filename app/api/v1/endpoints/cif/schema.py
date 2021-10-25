@@ -23,7 +23,8 @@ class ProfileHistoryOfDayResponse(BaseSchema):
     full_name: str = Field(..., description="Tên đầy đủ của người dùng ")
     user_avatar_url: str = Field(..., description="Url ảnh đại diện của người dùng")
     id: str = Field(..., description="Id log")
-    created_at: datetime = Field(..., description="Thời gian tạo")
+    created_at: datetime = Field(..., description='Tạo mới vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
+                                 example='2021-15-12 06:07:08')
     content: str = Field(..., description="Nội dung log ")
 
 

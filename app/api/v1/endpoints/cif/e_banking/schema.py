@@ -84,7 +84,8 @@ class OptionalEBankingAccountResponse(BaseSchema):
     active_account_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     note: str = Field(..., description='Mô tả')
     updated_by: str = Field(..., description='Người cập nhật')
-    updated_at: datetime = Field(..., description='Ngày giờ cập nhật')
+    updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
+                                 example='2021-15-12 06:07:08')
 
 
 class AccountInformation(BaseSchema):
