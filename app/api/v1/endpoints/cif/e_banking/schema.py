@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -68,8 +68,8 @@ class MethodAuthenticationResponse(DropdownResponse):
 
 
 class NumberResponse(BaseSchema):
-    id: str = Field(None, description='Mã tài khoản')
-    name: str = Field(None, description='Tài khoản')
+    id: Optional[str] = Field(..., description='Mã tài khoản')
+    name: Optional[str] = Field(..., description='Tài khoản')
 
 
 class PaymentFeeResponse(BaseSchema):
