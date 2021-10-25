@@ -8,7 +8,7 @@ from app.api.v1.schemas.utils import DropdownResponse
 
 
 class ContactTypeResponse(DropdownResponse):
-    checked_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
 class NotificationCasaRelationshipResponse(BaseSchema):
@@ -19,7 +19,7 @@ class NotificationCasaRelationshipResponse(BaseSchema):
 
 
 class EBankingNotificationResponse(DropdownResponse):
-    checked_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
 class RegisterBalanceCasa(BaseSchema):
@@ -32,7 +32,7 @@ class RegisterBalanceCasa(BaseSchema):
 
 
 class BalancePaymentAccountResponse(BaseSchema):
-    register_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     customer_contact_types: List[ContactTypeResponse] = Field(..., description='Hình thức nhận thông báo')
     register_balance_casas: List[RegisterBalanceCasa] = Field(..., description='Thông tin tài khoảnh nhận thông báo')
 
@@ -41,7 +41,7 @@ class TdAccount(BaseSchema):
     id: str = Field(..., description='Mã định danh')
     number: str = Field(..., description='Số tài khoản')
     name: str = Field(..., description='Tên khách hàng')
-    checked_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
 class TdAccountResponse(BaseSchema):
@@ -52,7 +52,7 @@ class TdAccountResponse(BaseSchema):
 
 
 class BalanceSavingAccountResponse(BaseSchema):
-    register_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     customer_contact_types: List[ContactTypeResponse] = Field(..., description='Hình thức nhận thông báo')
     mobile_number: str = Field(..., description='Số điện thoại')
     range: TdAccountResponse = Field(..., description='Phạm vi áp dụng')
@@ -60,11 +60,11 @@ class BalanceSavingAccountResponse(BaseSchema):
 
 
 class ResetPasswordMethodResponse(DropdownResponse):
-    checked_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
 class MethodAuthenticationResponse(DropdownResponse):
-    checked_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
 class NumberResponse(BaseSchema):
@@ -75,22 +75,22 @@ class NumberResponse(BaseSchema):
 class PaymentFeeResponse(BaseSchema):
     id: str = Field(..., description='Mã thanh toán')
     name: str = Field(..., description='Tên thanh toán')
-    checked_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     number: NumberResponse = Field(..., description='Tài khoản thanh toán')
 
 
 class OptionalEBankingAccountResponse(BaseSchema):
-    reset_password_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
-    active_account_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    reset_password_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
+    active_account_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     note: str = Field(..., description='Mô tả')
     updated_by: str = Field(..., description='Người cập nhật')
     updated_at: datetime = Field(..., description='Ngày giờ cập nhật')
 
 
 class AccountInformation(BaseSchema):
-    register_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
-    checked_flag: bool = Field(False, description='Trạng thái. `False`: Không. `True`: Có')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     e_banking_reset_password_methods: List[ResetPasswordMethodResponse] = Field(...,
                                                                                 description='Hình thức nhận '
                                                                                             'mật khẩu kích hoạt')
