@@ -252,5 +252,24 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                 "updated_at": "2021-03-06 09:25:00"
             }
         }
-    }
-    )
+    })
+
+
+async def repos_get_list_balance_payment_account(cif_id: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data=[
+        {
+            "id": "123",
+            "name": "231231321",
+            "product": "S-Free",
+            "checked_flag": True
+        },
+        {
+            "id": "2",
+            "name": "213213123123",
+            "product": "Lộc phát",
+            "checked_flag": False
+        }
+    ])

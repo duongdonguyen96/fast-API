@@ -109,3 +109,13 @@ class EBankingResponse(BaseSchema):
     change_of_balance_payment_account: BalancePaymentAccountResponse = Field(..., description='Tài khoản thanh toán')
     change_of_balance_saving_account: BalanceSavingAccountResponse = Field(..., description='Tài khoản tiết kiệm')
     e_banking_information: AccountInformationResponse = Field(..., description='Thông tin E-Banking')
+
+
+################################################################
+# Danh sách tài khoản thanh toán
+################################################################
+class ListBalancePaymentAccountResponse(BaseSchema):
+    id: str = Field(..., description='Mã định danh tài khoản thanh toán')
+    name: str = Field(..., description='Số tài khoản thanh toán')
+    product: str = Field(..., description='Tên sản phẩm tài khoản thanh toán')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
