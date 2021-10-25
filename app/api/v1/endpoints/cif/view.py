@@ -33,7 +33,7 @@ async def view_cif_info(
 
 @router.get(
     path="/{cif_id}/log/",
-    name="Detail",
+    name="Profile history",
     description="Lấy dữ liệu tab `LỊCH SỬ HỒ SƠ` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[List[CifProfileHistoryResponse]],
