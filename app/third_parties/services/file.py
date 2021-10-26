@@ -6,9 +6,7 @@ import aiohttp
 from loguru import logger
 from starlette import status
 
-from app.api.base.repository import ReposReturn
 from app.settings.service import SERVICE
-from app.utils.error_messages import ERROR_CALL_SERVICE
 
 
 class ServiceFile:
@@ -45,60 +43,47 @@ class ServiceFile:
 
             return await response.json()
 
-    async def upload_file(self, file: bytes, name: str) -> ReposReturn:
-        response = await self.__call_upload_file(file=file, name=name)
-        if not response:
-            return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
+    async def upload_file(self, file: bytes, name: str) -> Optional[dict]:
+        return await self.__call_upload_file(file=file, name=name)
 
-        return ReposReturn(data=response)
-
-    async def upload_multi_file(self, files: List[bytes], names: List[str]) -> ReposReturn:
+    async def upload_multi_file(self, files: List[bytes], names: List[str]) -> Optional[List[dict]]:
         coroutines = []
         for index, file in enumerate(files):
             # coroutines.append(self.__call_upload_file(file=file))
             coroutines.append(asyncio.ensure_future(self.__call_upload_file(file=file, name=names[index])))
 
-        responses = await asyncio.gather(*coroutines)
+        return list(await asyncio.gather(*coroutines))
 
-        success_responses = []
-        for response in responses:
-            if not response:
-                return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
-
-            success_responses.append(response)
-
-        return ReposReturn(data=success_responses)
-
-    async def download_file(self, uuid: str) -> ReposReturn:
+    async def download_file(self, uuid: str) -> Optional[dict]:
         api_url = f"{self.url}/api/v1/files/{uuid}/download/"
 
         async with self.session.get(url=api_url, headers=self.headers) as response:
             logger.log("SERVICE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_200_OK:
-                return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
+                return None
 
             file_download_response_body = await response.json()
 
             file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
 
-        return ReposReturn(data=file_download_response_body)
+        return file_download_response_body
 
-    async def download_multi_file(self, uuids: List[str]) -> ReposReturn:
+    async def download_multi_file(self, uuids: List[str]) -> Optional[List[dict]]:
         api_url = f"{self.url}/api/v1/files/download/"
 
         async with self.session.get(url=api_url, headers=self.headers, params={'uuid': uuids}) as response:
             logger.log("SERVICE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_200_OK:
-                return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
+                return None
 
             multi_file_download_response_body = await response.json()
 
         for file_download_response_body in multi_file_download_response_body:
             file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
 
-        return ReposReturn(data=multi_file_download_response_body)
+        return multi_file_download_response_body
 
     @staticmethod
     def replace_with_cdn(file_url: str) -> str:
