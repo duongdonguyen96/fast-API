@@ -335,7 +335,7 @@ class DocumentResponse(BaseSchema):
     id: str = Field(..., description='Mã định danh biểu mẫu')
     name: str = Field(..., description='Tên biểu mẫu')
     url: str = Field(..., description='Đường dẫn biểu mẫu')
-    version: str = Field(..., description='Phiển bản biểu mẫu')
+    version: str = Field(..., description='Phiên bản biểu mẫu')
     created_by: str = Field(..., description='Người tạo')
     created_at: datetime = Field(..., description='Thời gian tạo')
     active_flag: bool = Field(..., description='Trạng thái đăng ký. `False`: Không. `True`: Có')
