@@ -8,7 +8,7 @@ SERVICE = {
     },
     "file-upload": {
         "file_limit": int(os.getenv("FILE_LIMIT", 10)),
-        "file_size_max": int(os.getenv("FILE_SIZE_MAX", 2000000))
+        "file_size_max": int(os.getenv("FILE_SIZE_MAX", 5000000))
     },
     "template": {
         "url": os.getenv("SERVICE_TEMPLATE_URL"),
