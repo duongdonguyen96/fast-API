@@ -114,6 +114,16 @@ class EBankingResponse(BaseSchema):
     e_banking_information: AccountInformationResponse = Field(..., description='Thông tin E-Banking')
 
 
+################################################################
+# Danh sách tài khoản thanh toán
+################################################################
+class ListBalancePaymentAccountResponse(BaseSchema):
+    id: str = Field(..., description='Mã định danh tài khoản thanh toán')
+    name: str = Field(..., description='Số tài khoản thanh toán')
+    product: str = Field(..., description='Tên sản phẩm tài khoản thanh toán')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
+
+
 # Chi tiết cấp lại mật khẩu E-Banking call center -> I. Thông tin cá nhân khách hàng -> 1. Hình thức nhận mật khẩu mới
 class EBankingResetPasswordMethod(DropdownResponse):
     checked_flag: bool = Field(..., description="Cờ xác nhận hình thức nhận mật khẩu")

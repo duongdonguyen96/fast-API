@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, Path
 from starlette import status
 
@@ -6,7 +8,8 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.e_banking.controller import CtrEBanking
 from app.api.v1.endpoints.cif.e_banking.schema import (
-    EBankingResponse, ResetPasswordEBankingResponse
+    EBankingResponse, ListBalancePaymentAccountResponse,
+    ResetPasswordEBankingResponse
 )
 
 router = APIRouter()
@@ -30,8 +33,25 @@ async def view_retrieve_e_banking(
 
 
 @router.get(
+    path="/balance-payment-account",
+    name="Danh sách tài khoản thanh toán",
+    description="Lấy dữ liệu tab `DANH SÁCH TÀI KHOẢN THANH TOÁN`",
+    responses=swagger_response(
+        response_model=ResponseData[List[ListBalancePaymentAccountResponse]],
+        success_status_code=status.HTTP_200_OK
+    ),
+)
+async def view_balance_payment_account(
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header())
+):
+    balance_payment_account_data = await CtrEBanking(current_user).ctr_balance_payment_account(cif_id)
+    return ResponseData[List[ListBalancePaymentAccountResponse]](**balance_payment_account_data)
+
+
+@router.get(
     path="/reset-password/",
-    name="Detail Reset Password",
+    name="Cấp lại mật khẩu E-Banking call center",
     description="Chi tiết IV. E-Banking - Cấp lại mật khẩu E-Banking call center",
     responses=swagger_response(
         response_model=ResponseData[ResetPasswordEBankingResponse],
