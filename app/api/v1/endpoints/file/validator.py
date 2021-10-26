@@ -15,6 +15,7 @@ async def file_validator(file: bytes) -> ValidatorReturn:
     if file_size == 0:
         return ValidatorReturn(is_error=True, msg=ERROR_FILE_IS_NULL, loc='file')
 
+    print(file_size, MAX_FILE_SIZE)
     if file_size > MAX_FILE_SIZE:
         return ValidatorReturn(is_error=True, msg=ERROR_FILE_TOO_LARGE, loc='file')
 
@@ -29,6 +30,8 @@ async def multi_file_validator(files: List[bytes]) -> ValidatorReturn:
         return ValidatorReturn(is_error=True, msg=ERROR_TOO_MANY_FILE, loc='files')
 
     for file in files:
-        await file_validator(file)
+        validator_return = await file_validator(file)
+        if validator_return.is_error:
+            return validator_return
 
     return ValidatorReturn(data=None)
