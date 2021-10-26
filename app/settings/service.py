@@ -13,5 +13,10 @@ SERVICE = {
     "template": {
         "url": os.getenv("SERVICE_TEMPLATE_URL"),
         "server-auth": os.getenv("SERVICE_TEMPLATE_SERVICE_AUTH")
-    }
+    },
+    "card": {
+        "url": os.getenv("SERVICE_CARD_URL"),
+        "authorization": f"bearer {os.getenv('SERVICE_CARD_BEARER_TOKEN')}",
+        "x-transaction-id": "CRM_TEST"
+    },
 }
