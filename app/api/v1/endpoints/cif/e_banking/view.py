@@ -10,7 +10,8 @@ from app.api.v1.dependencies.paging import PaginationParams
 from app.api.v1.endpoints.cif.e_banking.controller import CtrEBanking
 from app.api.v1.endpoints.cif.e_banking.schema import (
     BalanceSavingAccountsResponse, EBankingRequest, EBankingResponse,
-    ListBalancePaymentAccountResponse, ResetPasswordEBankingResponse
+    ListBalancePaymentAccountResponse, ResetPasswordEBankingResponse,
+    ResetPasswordTellerResponse
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
 
@@ -108,3 +109,21 @@ async def view_detail_reset_password(
     e_banking_data = await ctr_e_banking.get_detail_reset_password(cif_id=cif_id)
 
     return ResponseData[ResetPasswordEBankingResponse](**e_banking_data)
+
+
+@router.get(
+    path="/reset-password/teller/",
+    name="Cấp lại mật khẩu E-Banking - Quầy giao dịch",
+    description="E-Banking - Cấp lại mật khẩu E-Banking - Quầy giao dịch",
+    responses=swagger_response(
+        response_model=ResponseData[ResetPasswordTellerResponse],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_detail_reset_password_teller(
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header())
+):
+    e_banking_data = await CtrEBanking(current_user).get_detail_reset_password_teller(cif_id=cif_id)
+
+    return ResponseData[ResetPasswordTellerResponse](**e_banking_data)

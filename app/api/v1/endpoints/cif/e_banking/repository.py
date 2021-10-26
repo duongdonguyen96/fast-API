@@ -456,3 +456,62 @@ async def repos_balance_saving_account_data(cif_id: str) -> ReposReturn:
             "checked_flag": True
         }
     ])
+
+
+async def repos_get_detail_reset_password_teller(cif_id: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data={
+        "personal_customer_information": {
+            "id": "1234567",
+            "cif_number": "1324567",
+            "customer_classification": {
+                "id": "1",
+                "code": "CANHAN",
+                "name": "Cá nhân"
+            },
+            "avatar_url": "example.com/example.jpg",
+            "full_name": "TRAN MINH HUYEN",
+            "gender": {
+                "id": "1",
+                "code": "NU",
+                "name": "Nữ"
+            },
+            "email": "nhuxuanlenguyen153@gmail.com",
+            "mobile_number": "0896524256",
+            "identity_number": "079197005869",
+            "place_of_issue": {
+                "id": "1",
+                "code": "HCM",
+                "name": "TPHCM"
+            },
+            "issued_date": "2019-02-01",
+            "expired_date": "2032-03-02",
+            "address": "144 Nguyễn Thị Minh Khai, Phường Bến Nghé, Quận 1, TPHCM",
+            "e_banking_reset_password_method": [
+                {
+                    "id": "1",
+                    "code": "SMS",
+                    "name": "SMS",
+                    "checked_flag": False
+                },
+                {
+                    "id": "2",
+                    "code": "EMAIL",
+                    "name": "EMAIL",
+                    "checked_flag": True
+                }
+            ],
+            "e_banking_account_name": "huyentranminh"
+        },
+        "document": {
+            "id": "1",
+            "name": "Biểu mẫu đề nghị cấp lại mật khẩu Ebanking",
+            "url": "https://example.com/abc/pdf",
+            "version": "1.0",
+            "created_by": "Nguyễn Phúc",
+            "created_at": "2020-02-01 08:40",
+            "active_flag": True
+        }
+    })

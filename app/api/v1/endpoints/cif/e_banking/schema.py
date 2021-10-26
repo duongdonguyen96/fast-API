@@ -329,3 +329,20 @@ class BalanceSavingAccountsResponse(BaseSchema):
     number: str = Field(..., description='Số tài khoản')
     name: str = Field(..., description='Tên người sở hữu tài khoản')
     checked_flag: bool = Field(..., description='Trạng thái đăng ký. `False`: Không. `True`: Có')
+
+
+class DocumentResponse(BaseSchema):
+    id: str = Field(..., description='Mã định danh biểu mẫu')
+    name: str = Field(..., description='Tên biểu mẫu')
+    url: str = Field(..., description='Đường dẫn biểu mẫu')
+    version: str = Field(..., description='Phiển bản biểu mẫu')
+    created_by: str = Field(..., description='Người tạo')
+    created_at: datetime = Field(..., description='Thời gian tạo')
+    active_flag: bool = Field(..., description='Trạng thái đăng ký. `False`: Không. `True`: Có')
+
+
+class ResetPasswordTellerResponse(BaseSchema):
+    personal_customer_information: PersonalCustomerInformationResponse = Field(
+        ..., description='Thông tin cá nhân khách hàng'
+    )
+    document: DocumentResponse = Field(..., description='Thông tin biểu mẫu')

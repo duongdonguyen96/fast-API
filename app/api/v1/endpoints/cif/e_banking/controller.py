@@ -1,8 +1,8 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.e_banking.repository import (
     repos_balance_saving_account_data, repos_get_detail_reset_password,
-    repos_get_e_banking_data, repos_get_list_balance_payment_account,
-    repos_save_e_banking_data
+    repos_get_detail_reset_password_teller, repos_get_e_banking_data,
+    repos_get_list_balance_payment_account, repos_save_e_banking_data
 )
 from app.api.v1.endpoints.cif.e_banking.schema import EBankingRequest
 
@@ -41,3 +41,8 @@ class CtrEBanking(BaseController):
             data=balance_saving_account_data,
             total_item=len(balance_saving_account_data)
         )
+
+    async def get_detail_reset_password_teller(self, cif_id: str):
+        detail_reset_password_data = self.call_repos(await repos_get_detail_reset_password_teller(cif_id))
+
+        return self.response(data=detail_reset_password_data)
