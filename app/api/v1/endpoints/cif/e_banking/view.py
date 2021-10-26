@@ -8,8 +8,8 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.e_banking.controller import CtrEBanking
 from app.api.v1.endpoints.cif.e_banking.schema import (
-    EBankingRequest, EBankingResponse, ListBalancePaymentAccountResponse,
-    ResetPasswordEBankingResponse
+    BalanceSavingAccountsResponse, EBankingRequest, EBankingResponse,
+    ListBalancePaymentAccountResponse, ResetPasswordEBankingResponse
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
 
@@ -86,3 +86,20 @@ async def view_detail_reset_password(
     e_banking_data = await ctr_e_banking.get_detail_reset_password(cif_id=cif_id)
 
     return ResponseData[ResetPasswordEBankingResponse](**e_banking_data)
+
+
+@router.get(
+    path="/balance-saving-account/",
+    name="Danh sách tài khoản tiết kiệm",
+    description="Lấy dữ liệu `DANH SÁCH TÀI KHOẢN TIẾT KIỆM`",
+    responses=swagger_response(
+        response_model=ResponseData[List[BalanceSavingAccountsResponse]],
+        success_status_code=status.HTTP_200_OK
+    ),
+)
+async def view_balance_saving_account(
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header())
+):
+    balance_saving_account_data = await CtrEBanking(current_user).ctr_balance_saving_account(cif_id)
+    return ResponseData[List[BalanceSavingAccountsResponse]](**balance_saving_account_data)
