@@ -30,14 +30,14 @@ class ServiceCard:
         form_data.add_field("file", value=file, filename=filename)
         form_data.add_field("type", value=str(document_type))
 
-        is_error = False
+        is_success = True
 
         async with self.session.post(url=api_url, data=form_data, headers=self.headers) as response:
             logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
 
             if response.status != status.HTTP_200_OK:
-                is_error = True
+                is_success = False
 
             response_body = await response.json()
 
-        return is_error, response_body
+        return not is_success, response_body
