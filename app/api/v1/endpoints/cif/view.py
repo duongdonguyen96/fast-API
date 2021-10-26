@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.get(
     path="/{cif_id}/",
-    name="Detail",
+    name="CIF",
     description="Lấy dữ liệu tab `THÔNG TIN CIF` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[CifInformationResponse],

@@ -69,7 +69,7 @@ async def view_balance_payment_account(
 
 
 @router.get(
-    path="/reset-password/",
+    path="/reset-password/call-center/",
     name="Cấp lại mật khẩu E-Banking call center",
     description="Chi tiết IV. E-Banking - Cấp lại mật khẩu E-Banking call center",
     responses=swagger_response(
