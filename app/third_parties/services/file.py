@@ -36,7 +36,7 @@ class ServiceFile:
                 data=form_data,
                 headers=self.headers
         ) as response:
-            logger.log("SERVICE", f"{response.status} : {api_url}")
+            logger.log("SERVICE FILE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_201_CREATED:
                 return None
@@ -58,7 +58,7 @@ class ServiceFile:
         api_url = f"{self.url}/api/v1/files/{uuid}/download/"
 
         async with self.session.get(url=api_url, headers=self.headers) as response:
-            logger.log("SERVICE", f"{response.status} : {api_url}")
+            logger.log("SERVICE FILE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_200_OK:
                 return None
@@ -73,7 +73,7 @@ class ServiceFile:
         api_url = f"{self.url}/api/v1/files/download/"
 
         async with self.session.get(url=api_url, headers=self.headers, params={'uuid': uuids}) as response:
-            logger.log("SERVICE", f"{response.status} : {api_url}")
+            logger.log("SERVICE FILE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_200_OK:
                 return None
