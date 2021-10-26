@@ -53,7 +53,7 @@ async def view_retrieve_e_banking(
 
 
 @router.get(
-    path="/balance-payment-account",
+    path="/payment-account/",
     name="Danh sách tài khoản thanh toán",
     description="Lấy dữ liệu tab `DANH SÁCH TÀI KHOẢN THANH TOÁN`",
     responses=swagger_response(
@@ -67,6 +67,27 @@ async def view_balance_payment_account(
 ):
     balance_payment_account_data = await CtrEBanking(current_user).ctr_balance_payment_account(cif_id)
     return ResponseData[List[ListBalancePaymentAccountResponse]](**balance_payment_account_data)
+
+
+@router.get(
+    path="/saving-account/",
+    name="Danh sách tài khoản tiết kiệm",
+    description="Lấy dữ liệu `DANH SÁCH TÀI KHOẢN TIẾT KIỆM`",
+    responses=swagger_response(
+        response_model=PagingResponse[BalanceSavingAccountsResponse],
+        success_status_code=status.HTTP_200_OK
+    ),
+)
+async def view_balance_saving_account(
+        cif_id: str = Path(..., description='Id CIF ảo'),
+        current_user=Depends(get_current_user_from_header()),
+        pagination_params: PaginationParams = Depends()
+):
+    balance_saving_account_data = await CtrEBanking(
+        current_user,
+        pagination_params=pagination_params
+    ).ctr_balance_saving_account(cif_id)
+    return PagingResponse[BalanceSavingAccountsResponse](**balance_saving_account_data)
 
 
 @router.get(
@@ -87,24 +108,3 @@ async def view_detail_reset_password(
     e_banking_data = await ctr_e_banking.get_detail_reset_password(cif_id=cif_id)
 
     return ResponseData[ResetPasswordEBankingResponse](**e_banking_data)
-
-
-@router.get(
-    path="/balance-saving-account/",
-    name="Danh sách tài khoản tiết kiệm",
-    description="Lấy dữ liệu `DANH SÁCH TÀI KHOẢN TIẾT KIỆM`",
-    responses=swagger_response(
-        response_model=PagingResponse[BalanceSavingAccountsResponse],
-        success_status_code=status.HTTP_200_OK
-    ),
-)
-async def view_balance_saving_account(
-        cif_id: str = Path(..., description='Id CIF ảo'),
-        current_user=Depends(get_current_user_from_header()),
-        pagination_params: PaginationParams = Depends()
-):
-    balance_saving_account_data = await CtrEBanking(
-        current_user,
-        pagination_params=pagination_params
-    ).ctr_balance_saving_account(cif_id)
-    return PagingResponse[BalanceSavingAccountsResponse](**balance_saving_account_data)
