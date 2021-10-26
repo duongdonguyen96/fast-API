@@ -322,3 +322,10 @@ class EBankingRequest(BaseSchema):
     change_of_balance_payment_account: BalancePaymentAccountRequest = Field(..., description='Tài khoản thanh toán')
     change_of_balance_saving_account: BalanceSavingAccountRequest = Field(..., description='Tài khoản tiết kiệm')
     e_banking_information: AccountInformationEBankingRequest = Field(..., description='Thông tin E-Banking')
+
+
+class BalanceSavingAccountsResponse(BaseSchema):
+    id: str = Field(..., description='Mã định danh tài khoản')
+    number: str = Field(..., description='Số tài khoản')
+    name: str = Field(..., description='Tên người sở hữu tài khoản')
+    checked_flag: bool = Field(..., description='Trạng thái đăng ký. `False`: Không. `True`: Có')

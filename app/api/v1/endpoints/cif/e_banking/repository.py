@@ -424,3 +424,35 @@ async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
     return ReposReturn(data=DETAIL_RESET_PASSWORD_E_BANKING_DATA)
+
+
+async def repos_balance_saving_account_data(cif_id: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data=[
+        {
+            "id": "1",
+            "number": "001_03042021_00000001",
+            "name": "Trần Văn Quốc Khánh",
+            "checked_flag": False
+        },
+        {
+            "id": "2",
+            "number": "001_03042021_00000001",
+            "name": "Võ văn tùng",
+            "checked_flag": True
+        },
+        {
+            "id": "3",
+            "number": "001_03042021_00000001",
+            "name": "Trần Thị Sen",
+            "checked_flag": True
+        },
+        {
+            "id": "1",
+            "number": "001_03042021_00000001",
+            "name": "Trần Văn Quốc Khánh",
+            "checked_flag": True
+        }
+    ])
