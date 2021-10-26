@@ -251,7 +251,6 @@ class EBankingNotificationRequest(DropdownRequest):
 
 class RegisterBalanceCasaRequest(BaseSchema):
     mobile_number: str = Field(..., description='Số điện thoại')
-    full_name_vn: str = Field(..., description='Tên tiếng việt ')
     primary_mobile_number: DropdownRequest = Field(..., description='Loại SĐT')
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
     e_banking_notifications: List[EBankingNotificationRequest] = Field(..., description='Tùy chọn thông báo')
@@ -265,8 +264,7 @@ class BalancePaymentAccountRequest(BaseSchema):
 
 
 class AccountRequest(BaseSchema):
-    number: str = Field(..., description='Số tài khoản')
-    name: str = Field(..., description='Tên khách hàng')
+    id: str = Field(..., description='Mã định danh tài khoản')
     checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
@@ -292,7 +290,6 @@ class MethodAuthenticationRequest(DropdownRequest):
 
 class NumberRequest(BaseSchema):
     id: Optional[str] = Field(..., description='Mã tài khoản')
-    name: Optional[str] = Field(..., description='Tài khoản')
 
 
 class PaymentFeeRequest(DropdownRequest):
@@ -303,10 +300,9 @@ class PaymentFeeRequest(DropdownRequest):
 class AccountInformationRequest(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
-    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
-    e_banking_reset_password_methods: List[ResetPasswordMethodRequest] = Field(...,
-                                                                               description='Hình thức nhận '
-                                                                                           'mật khẩu kích hoạt')
+    e_banking_reset_password_methods: List[ResetPasswordMethodRequest] = Field(
+        ..., description='Hình thức nhận mật khẩu kích hoạt'
+    )
     method_authentication: List[MethodAuthenticationRequest] = Field(..., description='Hình thức xác thực')
     payment_fee: List[PaymentFeeRequest] = Field(..., description='Thanh toán phí')
 
