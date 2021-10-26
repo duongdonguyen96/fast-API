@@ -1,4 +1,4 @@
-from typing import Dict, Generic, List, TypeVar, Union
+from typing import Any, Generic, List, TypeVar
 from uuid import UUID
 
 import orjson
@@ -46,24 +46,24 @@ class CreatedUpdatedBaseModel(BaseSchema):
 
 
 class Error(BaseSchema):
-    loc: str = None
-    msg: str = None
-    detail: str = None
+    loc: str = Field(..., description='Vị trí lỗi')
+    msg: str = Field(..., description='Mã lỗi')
+    detail: str = Field(..., description='Mô tả chi tiết')
 
 
 class PagingResponse(BaseSchema, GenericModel, Generic[TypeX]):
-    data: List[TypeX]
+    data: List[TypeX] = Field(..., description='Danh sách item')
     errors: List[Error] = []
-    total_item = 0
-    total_page = 0
-    current_page = 0
+    total_item: int = Field(..., description='Tổng số item có trong hệ thống')
+    total_page: int = Field(..., description='Tổng số trang')
+    current_page: int = Field(..., description='Số thứ tự trang hiện tại')
 
 
 class ResponseData(BaseSchema, GenericModel, Generic[TypeX]):
-    data: TypeX = None
+    data: TypeX = Field(..., description='Dữ liệu trả về khi success')
     errors: List[Error] = []
 
 
 class ResponseError(BaseSchema):
-    data: Union[Dict, List] = None
-    errors: List[Error]
+    data: Any = None
+    errors: List[Error] = Field(..., description='Lỗi trả về')
