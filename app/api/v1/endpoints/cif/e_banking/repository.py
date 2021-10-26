@@ -2,6 +2,136 @@ from app.api.base.repository import ReposReturn
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
+DETAIL_RESET_PASSWORD_E_BANKING_DATA = {
+    "personal_customer_information": {
+        "id": "1234567",
+        "cif_number": "1324567",
+        "customer_classification": {
+            "id": "1",
+            "code": "CA_NHAN",
+            "name": "Cá nhân"
+        },
+        "avatar_url": "example.com/example.jpg",
+        "full_name": "TRAN MINH HUYEN",
+        "gender": {
+            "id": "1",
+            "code": "NU",
+            "name": "Nữ"
+        },
+        "email": "nhuxuanlenguyen153@gmail.com",
+        "mobile_number": "0896524256",
+        "identity_number": "079197005869",
+        "place_of_issue": {
+            "id": "1",
+            "code": "HCM",
+            "name": "TPHCM"
+        },
+        "issued_date": "2021-02-18",
+        "expired_date": "2021-02-18",
+        "address": "144 Nguyễn Thị Minh Khai, Phường Bến Nghé, Quận 1, TPHCM",
+        "e_banking_reset_password_method": [
+            {
+                "id": "1",
+                "code": "SMS",
+                "name": "SMS",
+                "checked_flag": False
+            },
+            {
+                "id": "2",
+                "code": "EMAIL",
+                "name": "EMAIL",
+                "checked_flag": True
+            }
+        ],
+        "e_banking_account_name": "huyentranminh"
+    },
+    "question": {
+        "basic_question_1": {
+            "branch_of_card": {
+                "id": "123",
+                "code": "MASTERCARD",
+                "name": "Mastercard",
+                "color": {
+                    "id": "123",
+                    "code": "YELLOW",
+                    "name": "Vàng"
+                }
+            },
+            "sub_card_number": 2,
+            "mobile_number": "0897528556",
+            "branch": {
+                "id": "0897528556",
+                "code": "HO",
+                "name": "Hội Sở"
+            },
+            "method_authentication": {
+                "id": "1",
+                "code": "SMS",
+                "name": "SMS"
+            },
+            "e_banking_account_name": "huyentranminh"
+        },
+        "basic_question_2": {
+            "last_four_digits": "1234",
+            "credit_limit": {
+                "value": "20000000",
+                "currency": {
+                    "id": "1",
+                    "code": "VND",
+                    "name": "Việt Nam Đồng"
+                }
+            },
+            "email": "huyentranminh126@gmail.com",
+            "secret_question_or_personal_relationships": [
+                {
+                    "customer_relationship": {
+                        "id": "1",
+                        "code": "MOTHER",
+                        "name": "Mẹ"
+                    },
+                    "mobile_number": "0867589623"
+                }
+            ],
+            "automatic_debit_status": "",
+            "transaction_method_receiver": {
+                "id": "1",
+                "code": "EMAIL",
+                "name": "Email"
+            }
+        },
+        "advanced_question": {
+            "used_limit_of_credit_card": {
+                "value": "20000000",
+                "currency": {
+                    "id": "1",
+                    "code": "VND",
+                    "name": "Việt Nam Đồng"
+                }
+            },
+            "nearest_3d_secure": {
+                "business_partner": {
+                    "id": "1",
+                    "code": "GRAB",
+                    "name": "Grab"
+                },
+                "value": "125000",
+                "currency": {
+                    "id": "1",
+                    "code": "VND",
+                    "name": "Việt Nam Đồng"
+                }
+            },
+            "one_of_two_nearest_successful_transaction": "",
+            "nearest_successful_login_time": ""
+        }
+    },
+    "document_url": "example.com/example.pdf",
+    "result": {
+        "confirm_current_transaction_flag": True,
+        "note": "Trả lời đầy đủ các câu hỏi"
+    }
+}
+
 
 async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
@@ -41,7 +171,7 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                             "full_name_vn": "Nguyễn văn Tèo",
                             "relationship_type": {
                                 "id": "1",
-                                "code": "BOME",
+                                "code": "BO_ME",
                                 "name": "Bố mẹ"
                             }
                         },
@@ -51,7 +181,7 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                             "full_name_vn": "Trần văn B",
                             "relationship_type": {
                                 "id": "1",
-                                "code": "VOCHONG",
+                                "code": "VO_CHONG",
                                 "name": "Vợ chồng"
                             }
                         }
@@ -194,13 +324,13 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                 "method_authentication": [
                     {
                         "id": "1",
-                        "code": "VANTAY",
+                        "code": "VAN_TAY",
                         "name": "Vân tay",
                         "checked_flag": False
                     },
                     {
                         "id": "2",
-                        "code": "KHUONMAT",
+                        "code": "KHUON_MAT",
                         "name": "Khuôn mặt",
                         "checked_flag": False
                     },
@@ -212,13 +342,13 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                     },
                     {
                         "id": "4",
-                        "code": "SOFTTOKEN",
+                        "code": "SOFT_TOKEN",
                         "name": "SOFT TOKEN",
                         "checked_flag": True
                     },
                     {
                         "id": "5",
-                        "code": "HARDTOKEN",
+                        "code": "HARD_TOKEN",
                         "name": "HARD TOKEN",
                         "checked_flag": True
                     }
@@ -254,3 +384,10 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
         }
     }
     )
+
+
+async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data=DETAIL_RESET_PASSWORD_E_BANKING_DATA)
