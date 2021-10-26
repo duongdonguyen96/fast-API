@@ -1,4 +1,5 @@
-from typing import List
+from dataclasses import dataclass
+from typing import Any, List
 
 from app.api.base.schema import Error
 
@@ -9,17 +10,17 @@ class BaseValidator:
         self.session_oracle = session_oracle
         self.errors: List[Error] = []
 
-    def _handle_list_error(self, errors: list):
-        for temp in errors:
+    def append_errors(self, errors: list):
+        for error in errors:
             self.errors.append(
                 Error(
-                    loc=" -> ".join([str(err) for err in temp["loc"]]) if len(temp["loc"]) != 0 else None,
-                    msg=f"{temp['msg']}",
-                    detail=temp.detail if hasattr(temp, 'detail') else None
+                    loc=" -> ".join([str(err) for err in error["loc"]]) if len(error["loc"]) != 0 else None,
+                    msg=f"{error['msg']}",
+                    detail=error.detail if hasattr(error, 'detail') else None
                 )
             )
 
-    def _handle_error(self, msg: str, loc: str = None, detail: str = ""):  # noqa
+    def append_error(self, msg: str, loc: str = None, detail: str = ""):  # noqa
         """
         Hàm add exception để trả về
         :param msg: code exception
@@ -29,7 +30,17 @@ class BaseValidator:
         """
         self.errors.append(Error(msg=msg, detail=detail, loc=loc))
 
+    @property
     def is_success(self):
         if self.errors:
             return False
         return True
+
+
+@dataclass
+class ValidatorReturn:
+    is_error: bool = False
+    loc: str = None
+    msg: str = None
+    detail: str = None
+    data: Any = None

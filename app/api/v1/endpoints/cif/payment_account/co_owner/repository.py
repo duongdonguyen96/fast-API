@@ -67,7 +67,7 @@ async def repos_get_co_owner_data(cif_id: str) -> ReposReturn:
                     "issued_date": "1990-02-20",
                     "expired_date": "1990-02-20",
                     "place_of_issue": {
-                        "id": 1,
+                        "id": "1",
                         "code": "code",
                         "name": "TP. Hồ Chí Minh"
                     }
@@ -90,7 +90,7 @@ async def repos_get_co_owner_data(cif_id: str) -> ReposReturn:
                            "tài khoản thanh toán chung tại SCB.",
                 "agreement_flag": True,
                 "method_sign": {
-                    "id": 1,
+                    "id": "1",
                     "code": "code",
                     "name": "Phương thức 3"
                 },
@@ -112,12 +112,67 @@ async def repos_get_co_owner_data(cif_id: str) -> ReposReturn:
                            "ngoài nội dung nêu tại Nội dung 1: Chữ ký của tất cả các đồng chủ tài khoản.",
                 "agreement_flag": True,
                 "method_sign": {
-                    "id": 1,
+                    "id": "1",
                     "code": "code",
                     "name": "Phương thức 2"
                 },
                 "signature_list": []
             }
         ]
-    }
-    )
+    })
+
+
+async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str):
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    return ReposReturn(data={
+        "id": "1",
+        "basic_information": {
+            "full_name_vn": "TRẦN NGỌC AN",
+            "cif_number": "0298472",
+            "customer_relationship": {
+                "id": "1",
+                "code": "code",
+                "name": "Chị gái"
+            },
+            "date_of_birth": "1990-02-20",
+            "gender": {
+                "id": "1",
+                "code": "Code",
+                "name": "Nữ"
+            },
+            "nationality": {
+                "id": "1",
+                "code": "Code",
+                "name": "Việt Nam"
+            },
+            "mobile_number": "08675968221",
+            "signature_1": {
+                "id": "1",
+                "code": "code",
+                "name": "mẫu chứ ký 1",
+                "image_url": "https://example.com/abc.png"
+            },
+            "signature_2": {
+                "id": "2",
+                "code": "code",
+                "name": "mẫu chứ ký 2",
+                "image_url": "https://example.com/abc.png"
+            }
+        },
+        "identity_document": {
+            "identity_number": "254136582",
+            "issued_date": "1990-02-20",
+            "expired_date": "1990-02-20",
+            "place_of_issue": {
+                "id": "1",
+                "code": "code",
+                "name": "TP. Hồ Chí Minh"
+            }
+        },
+        "address_information": {
+            "content_address": "48 Phó Cơ Điều, Phường 12, Quận 5, Thành phố Hồ Chí Minh",
+            "resident_address": "6, Q.6, 279 Lê Quang Sung, Phường 6, Quận 6, Thành phố Hồ Chí Minh"
+        }
+    })

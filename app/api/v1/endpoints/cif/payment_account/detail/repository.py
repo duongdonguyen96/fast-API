@@ -95,7 +95,7 @@ async def repos_save_payment_account(
 ):
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
-    print(payment_account_save_request.casa_account_number)
+
     return ReposReturn(data={
         "cif_id": cif_id,
         "created_at": now(),

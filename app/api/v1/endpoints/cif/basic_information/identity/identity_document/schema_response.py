@@ -25,7 +25,8 @@ class FrontSideIdentityCitizenCardResponse(BaseSchema):
 class BackSideIdentityCitizenCardResponse(BaseSchema):
     identity_image_url: str = Field(..., description="URL hình ảnh mặt sau CMND/CCCD")
     fingerprint: List[FingerPrintResponse] = Field(..., description="Vân tay")
-    updated_at: datetime = Field(..., description="Thời gian cập nhật")
+    updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
+                                 example='2021-15-12 06:07:08')
     updated_by: str = Field(..., description="Người cập nhật")
 
 

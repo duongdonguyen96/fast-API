@@ -5,7 +5,7 @@ import aiohttp
 from starlette import status
 
 from app.settings.service import SERVICE
-from app.utils.error_messages import SERVICE_ERROR
+from app.utils.error_messages import ERROR_CALL_SERVICE
 
 
 class ServiceTemplate:
@@ -36,7 +36,7 @@ class ServiceTemplate:
                 ) as res:
                     # handle response
                     if res.status != status.HTTP_200_OK:
-                        return False, SERVICE_ERROR
+                        return False, ERROR_CALL_SERVICE
 
                     data = await res.json()
                     data_parse_url = urlparse(data['file_url'])
@@ -47,7 +47,7 @@ class ServiceTemplate:
                     return True, data
 
         except Exception:  # noqa
-            return False, SERVICE_ERROR
+            return False, ERROR_CALL_SERVICE
 
     async def get_list_metadata(self, los_id: str) -> Tuple[bool, Union[Dict, str]]:
         """
@@ -70,10 +70,10 @@ class ServiceTemplate:
                 ) as res:
                     # handle response
                     if res.status != status.HTTP_200_OK:
-                        return False, SERVICE_ERROR
+                        return False, ERROR_CALL_SERVICE
 
                     data = await res.json()
                     return True, data['template_fields']
 
         except Exception:  # noqa
-            return False, SERVICE_ERROR
+            return False, ERROR_CALL_SERVICE

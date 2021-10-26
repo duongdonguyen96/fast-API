@@ -34,12 +34,12 @@ class BaseGenericSchema(BaseSchema, GenericModel):
 
 
 class CreatedUpdatedBaseModel(BaseSchema):
-    created_at: datetime = Field(..., description='Tạo mới vào lúc, format dạng: `dd/mm/YYYY HH:MM:SS`',
+    created_at: datetime = Field(..., description='Tạo mới vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
                                  example='2021-15-12 06:07:08')
 
     created_by: str = Field(..., description='Tạo mới bởi')
 
-    updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `dd/mm/YYYY HH:MM:SS`',
+    updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
                                  example='2021-15-12 06:07:08')
 
     updated_by: str = Field(..., description='Cập nhật vào lúc')

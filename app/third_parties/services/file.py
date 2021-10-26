@@ -1,6 +1,5 @@
 import asyncio
-from datetime import datetime
-from typing import Any, Dict, List, Tuple, Union
+from typing import List, Optional
 from urllib.parse import urlparse
 
 import aiohttp
@@ -8,183 +7,87 @@ from loguru import logger
 from starlette import status
 
 from app.settings.service import SERVICE
-from app.utils.error_messages import SERVICE_ERROR
 
 
 class ServiceFile:
-    __host = SERVICE["file"]['url']
-    __header = {
+    session: Optional[aiohttp.ClientSession] = None
+
+    url = SERVICE["file"]['url']
+    headers = {
         "server-auth": SERVICE["file"]['server-auth'],
         "AUTHORIZATION": SERVICE["file"]['authorization']
     }
-    __type_date_format = SERVICE["file"]['datetime-format']
 
-    async def upload_file(self, file: bytes) -> Tuple[bool, Union[Dict, str]]:
-        """
-        upload 1 file to server
-        """
+    def start(self):
+        self.session = aiohttp.ClientSession()
 
-        path = "/api/v1/files"
-        method = 'POST'
-        url = f'{self.__host}{path}'
+    async def stop(self):
+        await self.session.close()
+        self.session = None
 
-        try:
-            async with aiohttp.ClientSession() as session:
+    async def __call_upload_file(self, file: bytes, name: str) -> Optional[dict]:
+        api_url = f'{self.url}/api/v1/files/'
 
-                res = await self.__call_upload_file(
-                    session=session,
-                    method=method,
-                    url=url,
-                    headers=self.__header,
-                    file=file
-                )
-                if not res:
-                    return False, SERVICE_ERROR
+        form_data = aiohttp.FormData()
+        form_data.add_field('file', value=file, filename=name)
 
-                # format datetime
-                await self.__format_datetime(res)
-                return True, res
-        except Exception:  # noqa
-            return False, SERVICE_ERROR
+        async with self.session.post(
+                url=api_url,
+                data=form_data,
+                headers=self.headers
+        ) as response:
+            logger.log("SERVICE", f"{response.status} : {api_url}")
 
-    async def upload_files(self, files: List[bytes]) -> Tuple[bool, Union[Any, str]]:
-        """
-        Upload nhiều file cùng lúc lên server
-        """
+            if response.status != status.HTTP_201_CREATED:
+                return None
 
-        path = "/api/v1/files"
-        method = 'POST'
-        url = f'{self.__host}{path}'
+            return await response.json()
 
-        coroutines = list()
-        try:
-            async with aiohttp.ClientSession() as session:
-                for file in files:
-                    coroutines.append(
-                        self.__call_upload_file(
-                            session=session,
-                            method=method,
-                            url=url,
-                            headers=self.__header,
-                            file=file
-                        )
-                    )
-                responses_raw = await asyncio.gather(*coroutines)
+    async def upload_file(self, file: bytes, name: str) -> Optional[dict]:
+        return await self.__call_upload_file(file=file, name=name)
 
-                responses = list()
-                for res in responses_raw:
-                    if not res:
-                        return False, SERVICE_ERROR
-                    # format datetime
-                    await self.__format_datetime(res=res)  # noqa
+    async def upload_multi_file(self, files: List[bytes], names: List[str]) -> Optional[List[dict]]:
+        coroutines = []
+        for index, file in enumerate(files):
+            # coroutines.append(self.__call_upload_file(file=file))
+            coroutines.append(asyncio.ensure_future(self.__call_upload_file(file=file, name=names[index])))
 
-                    responses.append(res)
-                return True, responses
-        except Exception as ex:
-            logger.exception(ex)
-            return False, SERVICE_ERROR
+        return list(await asyncio.gather(*coroutines))
 
-    async def download_multi_file(self, uuids: List[str]) -> Tuple[bool, Any]:
-        """
-        Download nhieu file cung luc
-        """
-        path = "/api/v1/files/download"
-        method = "GET"
-        url = f"{self.__host}{path}"
-        try:
-            async with aiohttp.ClientSession() as session:
-                response_raw = await self.__call_download_files(
-                    session=session,
-                    method=method,
-                    url=url,
-                    headers=self.__header,
-                    uuids=uuids
-                )
-                for res in response_raw:
-                    data_parse_url = urlparse(res['file_url'])
-                    new_data_parse_url = data_parse_url._replace(netloc='', scheme='')
-                    res['file_url'] = f"/cdn{new_data_parse_url.geturl()}"
+    async def download_file(self, uuid: str) -> Optional[dict]:
+        api_url = f"{self.url}/api/v1/files/{uuid}/download/"
 
-                return True, response_raw
-        except Exception as ex:
-            logger.exception(ex)
-            return False, SERVICE_ERROR
+        async with self.session.get(url=api_url, headers=self.headers) as response:
+            logger.log("SERVICE", f"{response.status} : {api_url}")
 
-    async def check_files(self, uuids: List[str]) -> Tuple[bool, Union[List, str]]:  # noqa
-        """
-        Kiểm tra file có tồn tại trên service file
-        """
-        path = "/api/v1/files/exist"
-        method = "GET"
-        url = f'{self.__host}{path}'
-        coroutines = list()
-        try:
-            async with aiohttp.ClientSession() as session:
-                for uuid in uuids:
-                    coroutines.append(
-                        self.__call_check_files(
-                            session=session,
-                            method=method,
-                            url=url,
-                            headers=self.__header,
-                            uuids=[uuid]
-                        )
-                    )
-                response_raw = await asyncio.gather(*coroutines)
-                responses = list()
-                for index, res in enumerate(response_raw):
-                    responses.append((uuids[index], res,))
-                return True, responses
+            if response.status != status.HTTP_200_OK:
+                return None
 
-        except Exception as ex:
-            logger.exception(ex)
-            return False, SERVICE_ERROR
+            file_download_response_body = await response.json()
 
-    async def __format_datetime(self, res):
-        # format datetime
-        res.update({
-            "created_at": datetime.strptime(
-                res["created_at"],
-                self.__type_date_format
-            ),
-            "updated_at": datetime.strptime(
-                res["updated_at"],
-                self.__type_date_format
-            )
-        })
+            file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
+
+        return file_download_response_body
+
+    async def download_multi_file(self, uuids: List[str]) -> Optional[List[dict]]:
+        api_url = f"{self.url}/api/v1/files/download/"
+
+        async with self.session.get(url=api_url, headers=self.headers, params={'uuid': uuids}) as response:
+            logger.log("SERVICE", f"{response.status} : {api_url}")
+
+            if response.status != status.HTTP_200_OK:
+                return None
+
+            multi_file_download_response_body = await response.json()
+
+        for file_download_response_body in multi_file_download_response_body:
+            file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
+
+        return multi_file_download_response_body
 
     @staticmethod
-    async def __call_upload_file(session, method, url,
-                                 headers, file: bytes) -> Union[bool, Dict]:
-        file_data = {
-            "file": file
-        }
-        async with session.request(method=method, url=url, data=file_data, headers=headers) as res:
-            logger.log("SERVICE", f"{res.status} : {url}")
-            if res.status != status.HTTP_201_CREATED:
-                return False
-            return await res.json()
+    def replace_with_cdn(file_url: str) -> str:
+        file_url_parse_result = urlparse(file_url)
 
-    @staticmethod
-    async def __call_download_files(session, method, url, headers, uuids) -> Union[bool, Any]:
-        params = {
-            "uuid": uuids
-        }
-        async with session.request(method=method, url=url, headers=headers, params=params) as res:
-            if res.status != status.HTTP_200_OK:
-                return False
-            return await res.json()
-
-    @staticmethod
-    async def __call_check_files(session, method, url, headers, uuids):
-        params = {
-            "uuid": uuids
-        }
-        async with session.request(method=method, url=url, headers=headers, params=params) as res:
-            if res.status == status.HTTP_200_OK:
-                return True
-            return False
-
-    @staticmethod
-    async def get_required_upload_file():
-        return SERVICE["file-upload"]
+        # Thay thế link tải file từ service bằng CDN config theo dự án
+        return file_url.replace(f'{file_url_parse_result.scheme}://{file_url_parse_result.netloc}', '/cdn')

@@ -92,3 +92,14 @@ class AccountHolderRequest(BaseSchema):
     joint_account_holder_flag: bool = Field(..., description='Có đồng chủ sở hữu. `True`: Có , `False`: Không')
     joint_account_holders: List[AccountRequest] = Field(..., description='Danh sách các đồng sở hữu')
     agreement_authorization: List[AgreementAuthorRequest] = Field(..., description='Danh mục thỏa thuận và ủy quyền')
+
+
+########################################################################################################################
+# dùng chung phần schema với lấy data của đồng sở hữu
+########################################################################################################################
+
+class DetailCoOwnerResponse(BaseSchema):
+    id: str = Field(..., description='Mã định danh của đồng sở hữu')
+    basic_information: BasicInformationResponse = Field(..., description='Thông tin cơ bản của đồng sở hữu')
+    identity_document: IdentityDocumentResponse = Field(..., description='Giấy tờ định danh của đồng sở hữu')
+    address_information: AddressInformationResponse = Field(..., description='Địa chỉ liên hệ của đồng sở hữu')

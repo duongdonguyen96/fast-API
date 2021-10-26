@@ -88,7 +88,8 @@ class OptionalEBankingAccountResponse(BaseSchema):
     active_account_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     note: str = Field(..., description='Mô tả')
     updated_by: str = Field(..., description='Người cập nhật')
-    updated_at: datetime = Field(..., description='Ngày giờ cập nhật')
+    updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
+                                 example='2021-15-12 06:07:08')
 
 
 class AccountInformation(BaseSchema):
@@ -133,7 +134,6 @@ class EBankingNotificationRequest(DropdownRequest):
 
 class RegisterBalanceCasaRequest(BaseSchema):
     mobile_number: str = Field(..., description='Số điện thoại')
-    full_name_vn: str = Field(..., description='Tên tiếng việt ')
     primary_mobile_number: DropdownRequest = Field(..., description='Loại SĐT')
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
     e_banking_notifications: List[EBankingNotificationRequest] = Field(..., description='Tùy chọn thông báo')
@@ -147,8 +147,7 @@ class BalancePaymentAccountRequest(BaseSchema):
 
 
 class AccountRequest(BaseSchema):
-    number: str = Field(..., description='Số tài khoản')
-    name: str = Field(..., description='Tên khách hàng')
+    id: str = Field(..., description='Mã định danh tài khoản')
     checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
@@ -174,7 +173,6 @@ class MethodAuthenticationRequest(DropdownRequest):
 
 class NumberRequest(BaseSchema):
     id: Optional[str] = Field(..., description='Mã tài khoản')
-    name: Optional[str] = Field(..., description='Tài khoản')
 
 
 class PaymentFeeRequest(DropdownRequest):
@@ -185,7 +183,6 @@ class PaymentFeeRequest(DropdownRequest):
 class AccountInformationRequest(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
-    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     e_banking_reset_password_methods: List[ResetPasswordMethodRequest] = Field(...,
                                                                                description='Hình thức nhận '
                                                                                            'mật khẩu kích hoạt')
@@ -208,3 +205,13 @@ class EBankingRequest(BaseSchema):
     change_of_balance_payment_account: BalancePaymentAccountRequest = Field(..., description='Tài khoản thanh toán')
     change_of_balance_saving_account: BalanceSavingAccountRequest = Field(..., description='Tài khoản tiết kiệm')
     e_banking_information: AccountInformationEBankingRequest = Field(..., description='Thông tin E-Banking')
+
+
+################################################################
+# Danh sách tài khoản thanh toán
+################################################################
+class ListBalancePaymentAccountResponse(BaseSchema):
+    id: str = Field(..., description='Mã định danh tài khoản thanh toán')
+    name: str = Field(..., description='Số tài khoản thanh toán')
+    product: str = Field(..., description='Tên sản phẩm tài khoản thanh toán')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')

@@ -142,7 +142,7 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                         "checked_flag": True
                     },
                     {
-                        "id": "1",
+                        "id": "4",
                         "number": "001_03042021_00000001",
                         "name": "Trần Văn Quốc Khánh",
                         "checked_flag": True
@@ -266,3 +266,23 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
             }
         }
     })
+
+
+async def repos_get_list_balance_payment_account(cif_id: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data=[
+        {
+            "id": "123",
+            "name": "231231321",
+            "product": "S-Free",
+            "checked_flag": True
+        },
+        {
+            "id": "2",
+            "name": "213213123123",
+            "product": "Lộc phát",
+            "checked_flag": False
+        }
+    ])
