@@ -52,7 +52,7 @@ async def view_retrieve_co_owner(
 
 @router.get(
     path="/detail-co-owner/",
-    name="Thông tin đồng sở hữu",
+    name="Lấy thông tin đồng sở hữu qua số CIF",
     description="Lấy dữ liệu `THÔNG TIN ĐỒNG SỞ HỮU` thông qua số CIF",
     responses=swagger_response(
         response_model=ResponseData[DetailCoOwnerResponse],
