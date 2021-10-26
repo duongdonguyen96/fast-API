@@ -27,50 +27,53 @@ class ServiceFile:
         await self.session.close()
         self.session = None
 
-    async def __call_upload_file(self, file: bytes) -> Optional[dict]:
-        endpoint = f'{self.url}/api/v1/files/'
+    async def __call_upload_file(self, file: bytes, name: str) -> Optional[dict]:
+        api_url = f'{self.url}/api/v1/files/'
+
+        form_data = aiohttp.FormData()
+        form_data.add_field('file', value=file, filename=name)
 
         async with self.session.post(
-                url=endpoint,
-                data={"file": file},
+                url=api_url,
+                data=form_data,
                 headers=self.headers
         ) as response:
-            logger.log("SERVICE", f"{response.status} : {endpoint}")
+            logger.log("SERVICE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_201_CREATED:
                 return None
 
             return await response.json()
 
-    async def upload_file(self, file: bytes) -> ReposReturn:
-        response = await self.__call_upload_file(file=file)
+    async def upload_file(self, file: bytes, name: str) -> ReposReturn:
+        response = await self.__call_upload_file(file=file, name=name)
         if not response:
             return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
 
         return ReposReturn(data=response)
 
-    async def upload_multi_file(self, files: List[bytes]) -> ReposReturn:
+    async def upload_multi_file(self, files: List[bytes], names: List[str]) -> ReposReturn:
         coroutines = []
-        for file in files:
+        for index, file in enumerate(files):
             # coroutines.append(self.__call_upload_file(file=file))
-            coroutines.append(asyncio.ensure_future(self.__call_upload_file(file=file)))
+            coroutines.append(asyncio.ensure_future(self.__call_upload_file(file=file, name=names[index])))
 
-        responses_raw = await asyncio.gather(*coroutines)
+        responses = await asyncio.gather(*coroutines)
 
-        responses = []
-        for res in responses_raw:
-            if not res:
+        success_responses = []
+        for response in responses:
+            if not response:
                 return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
 
-            responses.append(res)
+            success_responses.append(response)
 
-        return ReposReturn(data=responses)
+        return ReposReturn(data=success_responses)
 
     async def download_file(self, uuid: str) -> ReposReturn:
-        endpoint = f"{self.url}/api/v1/files/{uuid}/download/"
+        api_url = f"{self.url}/api/v1/files/{uuid}/download/"
 
-        async with self.session.get(url=endpoint, headers=self.headers) as response:
-            logger.log("SERVICE", f"{response.status} : {endpoint}")
+        async with self.session.get(url=api_url, headers=self.headers) as response:
+            logger.log("SERVICE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_200_OK:
                 return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
@@ -82,10 +85,10 @@ class ServiceFile:
         return ReposReturn(data=file_download_response_body)
 
     async def download_multi_file(self, uuids: List[str]) -> ReposReturn:
-        endpoint = f"{self.url}/api/v1/files/download/"
+        api_url = f"{self.url}/api/v1/files/download/"
 
-        async with self.session.get(url=endpoint, headers=self.headers, params={'uuid': uuids}) as response:
-            logger.log("SERVICE", f"{response.status} : {endpoint}")
+        async with self.session.get(url=api_url, headers=self.headers, params={'uuid': uuids}) as response:
+            logger.log("SERVICE", f"{response.status} : {api_url}")
 
             if response.status != status.HTTP_200_OK:
                 return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
