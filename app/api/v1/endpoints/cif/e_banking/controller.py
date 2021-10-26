@@ -36,4 +36,8 @@ class CtrEBanking(BaseController):
 
     async def ctr_balance_saving_account(self, cif_id: str):
         balance_saving_account_data = self.call_repos(await repos_balance_saving_account_data(cif_id))
-        return self.response(data=balance_saving_account_data)
+
+        return self.response_paging(
+            data=balance_saving_account_data,
+            total_item=len(balance_saving_account_data)
+        )

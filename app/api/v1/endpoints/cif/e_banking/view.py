@@ -3,9 +3,10 @@ from typing import List
 from fastapi import APIRouter, Depends, Path
 from starlette import status
 
-from app.api.base.schema import ResponseData
+from app.api.base.schema import PagingResponse, ResponseData
 from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
+from app.api.v1.dependencies.paging import PaginationParams
 from app.api.v1.endpoints.cif.e_banking.controller import CtrEBanking
 from app.api.v1.endpoints.cif.e_banking.schema import (
     BalanceSavingAccountsResponse, EBankingRequest, EBankingResponse,
@@ -93,13 +94,17 @@ async def view_detail_reset_password(
     name="Danh sách tài khoản tiết kiệm",
     description="Lấy dữ liệu `DANH SÁCH TÀI KHOẢN TIẾT KIỆM`",
     responses=swagger_response(
-        response_model=ResponseData[List[BalanceSavingAccountsResponse]],
+        response_model=PagingResponse[BalanceSavingAccountsResponse],
         success_status_code=status.HTTP_200_OK
     ),
 )
 async def view_balance_saving_account(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        current_user=Depends(get_current_user_from_header())
+        current_user=Depends(get_current_user_from_header()),
+        pagination_params: PaginationParams = Depends()
 ):
-    balance_saving_account_data = await CtrEBanking(current_user).ctr_balance_saving_account(cif_id)
-    return ResponseData[List[BalanceSavingAccountsResponse]](**balance_saving_account_data)
+    balance_saving_account_data = await CtrEBanking(
+        current_user,
+        pagination_params=pagination_params
+    ).ctr_balance_saving_account(cif_id)
+    return PagingResponse[BalanceSavingAccountsResponse](**balance_saving_account_data)
