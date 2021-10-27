@@ -87,3 +87,93 @@ async def repos_profile_history(cif_id: str) -> ReposReturn:
         )
     else:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+
+async def repos_customer_information(cif_id: str) -> ReposReturn:
+    if cif_id != CIF_ID_TEST:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data={
+        "customer_id": "1",
+        "status": {
+            "id": "1",
+            "code": "code",
+            "name": "MỞ",
+            "active_flag": True
+        },
+        "cif_number": "2541352",
+        "avatar_url": "http://example.com/example.jpg",
+        "customer_classification": {
+            "id": "1",
+            "code": "CANHAN",
+            "name": "Cá nhân"
+        },
+        "full_name": "TRAN MINH HUYEN",
+        "gender": {
+            "id": "1",
+            "code": "NU",
+            "name": "Nữ"
+        },
+        "email": "nhuxuanlenguyen153@gmail.com",
+        "mobile_number": "0896524256",
+        "identity_number": "079197005869",
+        "place_of_issue": {
+            "id": "1",
+            "code": "HCM",
+            "name": "TPHCM"
+        },
+        "issued_date": "2019-02-02",
+        "expired_date": "2032-02-02",
+        "date_of_birth": "2002-02-02",
+        "nationality": {
+            "id": "1",
+            "code": "VN",
+            "name": "VIỆT NAM"
+        },
+        "marital_status": {
+            "id": "1",
+            "code": "DOCTHAN",
+            "name": "Độc thân"
+        },
+        "customer_class": {
+            "id": "1",
+            "code": "DIAMOND",
+            "name": "Diamond"
+        },
+        "credit_rating": {
+            "id": "1",
+            "code": "CODE",
+            "name": "BBB"
+        },
+        "address": "144 Nguyễn Thị Minh Khai, Phường Bến Nghé, Quận 1, TPHCM",
+        "total_number_of_participant": 3,
+        "employees": [
+            {
+                "id": "1",
+                "full_name_vn": "AAAAAA",
+                "avatar_url": "http://example.com/example.jpg",
+                "user_name": "username",
+                "email": "asdfgh@gmail.com",
+                "job_title": "chức danh",
+                "department_id": "Khối VH&CN"
+            },
+            {
+                "id": "2",
+                "full_name_vn": "AAAAAA",
+                "avatar_url": "http://example.com/example.jpg",
+                "user_name": "username",
+                "email": "asdfgh@gmail.com",
+                "job_title": "chức danh",
+                "department_id": "Khối VH&CN"
+            },
+            {
+                "id": "3",
+                "full_name_vn": "AAAAAA",
+                "avatar_url": "http://example.com/example.jpg",
+                "user_name": "username",
+                "email": "asdfgh@gmail.com",
+                "job_title": "chức danh",
+                "department_id": "Khối VH&CN"
+            }
+        ]
+    })
