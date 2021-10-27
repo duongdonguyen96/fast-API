@@ -38,7 +38,7 @@ class CifProfileHistoryResponse(BaseSchema):
 ################################################################
 
 class StatusResponse(DropdownResponse):
-    active_flag: bool
+    active_flag: bool = Field(..., description="Cờ đóng mở. `False`: Đóng. `True`: Mở")
 
 
 class EmployeeResponse(BaseSchema):
