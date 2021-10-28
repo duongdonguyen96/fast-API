@@ -59,9 +59,9 @@ async def view_add_debit_card(
     ),
 )
 async def view_list_debit_card_type(
-        id_branch_of_card: str = Query(..., description="id thương hiệu thẻ"),
-        id_issuance_fee: str = Query(..., description="id phí phát hành"),
-        id_annual_fee: str = Query(..., description="id phí hằng năm"),
+        branch_of_card_id: str = Query(..., description="id thương hiệu thẻ"),
+        issuance_fee_id: str = Query(..., description="id phí phát hành"),
+        annual_fee_id: str = Query(..., description="id phí hằng năm"),
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
@@ -69,8 +69,8 @@ async def view_list_debit_card_type(
         current_user
     ).ctr_list_debit_card_type(
         cif_id,
-        id_branch_of_card,
-        id_issuance_fee,
-        id_annual_fee
+        branch_of_card_id,
+        issuance_fee_id,
+        annual_fee_id
     )
     return ResponseData[List[ListCardTypeResponse]](**list_debit_card_type)

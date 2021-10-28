@@ -173,9 +173,9 @@ async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest) -> 
 
 async def repos_get_list_debit_card(
         cif_id: str,
-        id_branch_of_card: str, # noqa
-        id_issuance_fee: str, # noqa
-        id_annual_fee: str # noqa
+        branch_of_card_id: str, # noqa
+        issuance_fee_id: str, # noqa
+        annual_fee_id: str # noqa
 ) -> ReposReturn:
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data=[

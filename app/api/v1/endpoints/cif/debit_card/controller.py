@@ -15,15 +15,15 @@ class CtrDebitCard(BaseController):
         return self.response(add_debit_card)
 
     async def ctr_list_debit_card_type(self, cif_id: str,
-                                       id_branch_of_card: str,
-                                       id_issuance_fee: str,
-                                       id_annual_fee: str,
+                                       branch_of_card_id: str,
+                                       issuance_fee_id: str,
+                                       annual_fee_id: str,
                                        ):
         info_debit_card_types = self.call_repos(
             await repos_get_list_debit_card(
                 cif_id,
-                id_branch_of_card,
-                id_issuance_fee,
-                id_annual_fee
+                branch_of_card_id,
+                issuance_fee_id,
+                annual_fee_id
             ))
         return self.response(info_debit_card_types)
