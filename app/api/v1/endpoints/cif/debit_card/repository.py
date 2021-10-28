@@ -159,7 +159,7 @@ async def repos_debit_card(cif_id: str) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
 
-async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest)->ReposReturn: # noqa
+async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest) -> ReposReturn:  # noqa
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data={
             'created_at': now(),
@@ -169,3 +169,31 @@ async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest)->Re
         })
     else:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+
+async def repos_get_list_debit_card(
+        cif_id: str,
+        branch_of_card_id: str, # noqa
+        issuance_fee_id: str, # noqa
+        annual_fee_id: str # noqa
+) -> ReposReturn:
+    if cif_id == CIF_ID_TEST:
+        return ReposReturn(data=[
+            {
+                "id": "1",
+                "code": "MDTC1",
+                "name": "VISA",
+                "source_code": "DM407",
+                "promo_code": "P311",
+            },
+            {
+                "id": "2",
+                "code": "VSDB",
+                "name": "MASTER CARD",
+                "source_code": "DM407",
+                "promo_code": "P311",
+            }
+        ]
+        )
+    else:
+        ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")

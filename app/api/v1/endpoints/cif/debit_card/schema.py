@@ -129,3 +129,11 @@ class DebitCardRequest(BaseSchema):
     information_debit_card: InformationDebitCardRequest = Field(..., description="Thông tin thẻ ")
     card_delivery_address: CardDeliveryAddressRequest = Field(..., description="Địa chỉ nhân thẻ ")
     information_sub_debit_card: InformationSubDebitCardRequest = Field(..., description="Thông tin thẻ phụ")
+
+
+class ListCardTypeResponse(BaseSchema):
+    id: str = Field(..., description="id")
+    code: str = Field(..., description="code")
+    name: str = Field(..., description="Tên loại thẻ")
+    source_code: str = Field(..., description="Mã source")
+    promo_code: str = Field(..., description="Mã promo")
