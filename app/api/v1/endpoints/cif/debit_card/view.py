@@ -8,7 +8,7 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.debit_card.controller import CtrDebitCard
 from app.api.v1.endpoints.cif.debit_card.schema import (
-    CardTypeResponse, DebitCardRequest, DebitCardResponse
+    DebitCardRequest, DebitCardResponse, ListCardTypeResponse
 )
 
 router = APIRouter()
@@ -54,7 +54,7 @@ async def view_add_debit_card(
     name="Get list debit card type",
     description="Lấy dữ liệu tab `V THẺ GHI NỢ - DANH SÁCH THÔNG TIN PHÁT HÀNH",
     responses=swagger_response(
-        response_model=ResponseData[List[CardTypeResponse]],
+        response_model=ResponseData[List[ListCardTypeResponse]],
         success_status_code=status.HTTP_200_OK,
     ),
 )
@@ -73,4 +73,4 @@ async def view_list_debit_card_type(
         id_issuance_fee,
         id_annual_fee
     )
-    return ResponseData[List[CardTypeResponse]](**list_debit_card_type)
+    return ResponseData[List[ListCardTypeResponse]](**list_debit_card_type)

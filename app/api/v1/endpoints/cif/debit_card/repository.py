@@ -185,7 +185,6 @@ async def repos_get_list_debit_card(
                 "name": "VISA",
                 "source_code": "DM407",
                 "promo_code": "P311",
-                "active_flag": True
             },
             {
                 "id": "2",
@@ -193,7 +192,6 @@ async def repos_get_list_debit_card(
                 "name": "MASTER CARD",
                 "source_code": "DM407",
                 "promo_code": "P311",
-                "active_flag": False
             }
         ]
         )
