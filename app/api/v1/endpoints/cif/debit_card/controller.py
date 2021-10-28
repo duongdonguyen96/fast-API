@@ -2,9 +2,7 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.debit_card.repository import (
     repos_add_debit_card, repos_debit_card, repos_get_list_debit_card
 )
-from app.api.v1.endpoints.cif.debit_card.schema import (
-    DebitCardRequest, InfoDebitCardRequest
-)
+from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
 
 
 class CtrDebitCard(BaseController):
@@ -16,6 +14,16 @@ class CtrDebitCard(BaseController):
         add_debit_card = self.call_repos(await repos_add_debit_card(cif_id, debt_card_req))
         return self.response(add_debit_card)
 
-    async def ctr_list_debit_card_type(self, cif_id: str, info_debit_card_req: InfoDebitCardRequest):
-        info_debit_card_types = self.call_repos(await repos_get_list_debit_card(cif_id, info_debit_card_req))
+    async def ctr_list_debit_card_type(self, cif_id: str,
+                                       id_branch_of_card: str,
+                                       id_issuance_fee: str,
+                                       id_annual_fee: str,
+                                       ):
+        info_debit_card_types = self.call_repos(
+            await repos_get_list_debit_card(
+                cif_id,
+                id_branch_of_card,
+                id_issuance_fee,
+                id_annual_fee
+            ))
         return self.response(info_debit_card_types)

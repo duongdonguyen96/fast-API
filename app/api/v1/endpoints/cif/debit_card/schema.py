@@ -129,10 +129,3 @@ class DebitCardRequest(BaseSchema):
     information_debit_card: InformationDebitCardRequest = Field(..., description="Thông tin thẻ ")
     card_delivery_address: CardDeliveryAddressRequest = Field(..., description="Địa chỉ nhân thẻ ")
     information_sub_debit_card: InformationSubDebitCardRequest = Field(..., description="Thông tin thẻ phụ")
-
-
-# ############################# danh sách thông số phát hành ###########################
-class InfoDebitCardRequest(BaseSchema):
-    branch_of_card: DropdownRequest = Field(..., description="Thương hiệu thẻ")
-    issuance_fee: DropdownRequest = Field(..., description="Phí phat hành thẻ")
-    annual_fee: DropdownRequest = Field(..., description="Phí thường niên")

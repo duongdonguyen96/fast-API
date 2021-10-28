@@ -1,7 +1,5 @@
 from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.debit_card.schema import (
-    DebitCardRequest, InfoDebitCardRequest
-)
+from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
@@ -173,7 +171,12 @@ async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest) -> 
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
 
-async def repos_get_list_debit_card(cif_id: str, info_debit_card_req: InfoDebitCardRequest) -> ReposReturn:  # noqa
+async def repos_get_list_debit_card(
+        cif_id: str,
+        id_branch_of_card: str, # noqa
+        id_issuance_fee: str, # noqa
+        id_annual_fee: str # noqa
+) -> ReposReturn:
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data=[
             {
