@@ -52,7 +52,7 @@ async def view_add_debit_card(
 @router.get(
     path="/release-parameters/",
     name="Get list debit card type",
-    description="Lấy dữ liệu tab `V THẺ GHI NỢ - DANH SÁCH THÔNG TIN PHÁT HÀNH",
+    description="Lấy dữ liệu tab `V THẺ GHI NỢ - 9. DANH SÁCH THÔNG TIN PHÁT HÀNH`",
     responses=swagger_response(
         response_model=ResponseData[List[ListCardTypeResponse]],
         success_status_code=status.HTTP_200_OK,
