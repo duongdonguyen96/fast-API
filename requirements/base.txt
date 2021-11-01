@@ -13,7 +13,7 @@ uvicorn==0.13.4 #https://www.uvicorn.org/
 orjson==3.5.4 #https://pypi.org/project/orjson/3.5.4/
 
 #orm
-SQLAlchemy==1.4.18 #https://docs.sqlalchemy.org/en/14/
+SQLAlchemy==1.4.26 #https://docs.sqlalchemy.org/en/14/
 
 #engine
 cx-Oracle==8.2.1 #https://pypi.org/project/cx-Oracle/8.2.1/
