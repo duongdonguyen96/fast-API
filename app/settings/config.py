@@ -2,8 +2,11 @@ import logging
 import os
 import pathlib
 import sys
+import time
 
 from loguru import logger
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 from app.settings.logging_config import InterceptHandler
 
@@ -45,3 +48,17 @@ logger.configure(
         },
     ]
 )
+
+if os.getenv("DEBUG", True):
+    @event.listens_for(Engine, "before_cursor_execute")
+    def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        conn.info.setdefault("query_start_time", []).append(time.time())
+        logger.info("Start Query:")
+        logger.debug(f"\n{statement}")
+        logger.debug(parameters)
+
+    @event.listens_for(Engine, "after_cursor_execute")
+    def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        total = time.time() - conn.info['query_start_time'].pop(-1)
+        logger.success("Query Complete!")
+        logger.info(f"Total Time: {total * 1000} ms\n")
