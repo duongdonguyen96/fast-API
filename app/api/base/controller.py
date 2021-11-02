@@ -1,6 +1,6 @@
-from typing import Union
+from typing import Optional, Union
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from loguru import logger
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -8,8 +8,7 @@ from app.api.base.except_custom import ExceptionHandle
 from app.api.base.repository import ReposReturn
 from app.api.base.schema import Error
 from app.api.base.validator import ValidatorReturn
-from app.third_parties.mongo.base import mongo_db
-from app.third_parties.oracle.base import oracle_session
+from app.third_parties.oracle.base import SessionLocal
 
 
 class BaseController:
@@ -17,18 +16,20 @@ class BaseController:
     BaseController use business
     """
 
-    def __init__(self, current_user=None, pagination_params=None):
+    def __init__(self, current_user=None, pagination_params=None, is_init_oracle_session=True):
         self.current_user = current_user
         self.pagination_params = pagination_params
         self.errors = []
 
-    @staticmethod
-    async def get_oracle_session() -> Session:
-        return oracle_session().__next__()
+        self.oracle_session: Optional[Session] = None
+        if is_init_oracle_session:
+            logger.debug("Started session Oracle")
+            self.oracle_session = SessionLocal()
 
-    @staticmethod
-    async def get_mongo_session() -> AsyncIOMotorDatabase:
-        return mongo_db
+    def _close_oracle_session(self):
+        if self.oracle_session:
+            self.oracle_session.close()
+            logger.debug("Closed Oracle session")
 
     def call_validator(self, result_call_validator: ValidatorReturn):
         if result_call_validator.is_error:
@@ -67,10 +68,14 @@ class BaseController:
         raise ExceptionHandle(errors=errors, status_code=error_status_code)
 
     def response_exception(self, msg, loc="", detail="", error_status_code=status.HTTP_400_BAD_REQUEST):
+        self._close_oracle_session()
+
         self.append_error(msg=msg, loc=loc, detail=detail)
         self._raise_exception(error_status_code=error_status_code)
 
     def response(self, data, error_status_code=status.HTTP_400_BAD_REQUEST):
+        self._close_oracle_session()
+
         if self.errors:
             self._raise_exception(error_status_code=error_status_code)
         else:
@@ -87,6 +92,8 @@ class BaseController:
             total_page: int = 1,
             error_status_code=status.HTTP_400_BAD_REQUEST
     ):
+        self._close_oracle_session()
+
         if self.errors:
             self._raise_exception(error_status_code=error_status_code)
         else:
