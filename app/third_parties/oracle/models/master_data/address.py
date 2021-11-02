@@ -2,7 +2,7 @@ from sqlalchemy import VARCHAR, CheckConstraint, Column, ForeignKey, Text, text
 from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
-from app.third_parties.oracle.models.base import Base
+from app.third_parties.oracle.base import Base
 
 
 class AddressCountry(Base):

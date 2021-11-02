@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
-from app.third_parties.oracle.models.base import Base
+from app.third_parties.oracle.base import Base
 
 
 # class CrmCustEmployee(CrmStaffType):

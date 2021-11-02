@@ -1,7 +1,7 @@
 from sqlalchemy import VARCHAR, Column, text
 from sqlalchemy.dialects.oracle import NUMBER
 
-from app.third_parties.oracle.models.base import Base
+from app.third_parties.oracle.base import Base
 
 
 class AccountClass(Base):

@@ -2,7 +2,7 @@ from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, Table, text
 from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
-from app.third_parties.oracle.models.base import Base, metadata
+from app.third_parties.oracle.base import Base, metadata
 
 
 class CasaAccount(Base):

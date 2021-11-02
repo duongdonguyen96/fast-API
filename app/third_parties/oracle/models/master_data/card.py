@@ -1,6 +1,6 @@
 from sqlalchemy import VARCHAR, Column, text
 
-from app.third_parties.oracle.models.base import Base
+from app.third_parties.oracle.base import Base
 
 
 class BrandOfCard(Base):
