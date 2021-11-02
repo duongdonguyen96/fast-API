@@ -17,7 +17,6 @@ SQLAlchemy==1.4.26 #https://docs.sqlalchemy.org/en/14/
 
 #engine
 cx-Oracle==8.2.1 #https://pypi.org/project/cx-Oracle/8.2.1/
-motor==2.4.0 #https://pypi.org/project/motor/2.4.0/
 
 #python-ldap==3.3.1 #https://pypi.org/project/python-ldap/3.3.1/
 
