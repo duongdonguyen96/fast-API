@@ -17,10 +17,12 @@ class CustomerIdentity(Base):
     issued_date = Column(DateTime, nullable=False, comment='Ngày cấp')
     expired_date = Column(DateTime, nullable=False, comment='Ngày hết hạn')
     place_of_issue_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id Nơi cấp')
-    passport_type_id = Column(VARCHAR(36),
-                              comment='(FK) Id Loại hộ chiếu (Trên dòng mã máy quét). Not null nếu Id loại GTDD là Hộ chiếu')
-    passport_code_id = Column(VARCHAR(36),
-                              comment='(FK) Id Mã số hộ chiếu (Trên dòng mã máy quét). Not null nếu Id loại GTDD là Hộ chiếu')
+    passport_type_id = Column(
+        VARCHAR(36), comment='(FK) Id Loại hộ chiếu (Trên dòng mã máy quét). Not null nếu Id loại GTDD là Hộ chiếu'
+    )
+    passport_code_id = Column(
+        VARCHAR(36), comment='(FK) Id Mã số hộ chiếu (Trên dòng mã máy quét). Not null nếu Id loại GTDD là Hộ chiếu'
+    )
     primary_flag = Column(NUMBER(1, 0, False), comment='Cờ sử dụng làm giấy tờ định danh chính')
     mrz_content = Column(VARCHAR(500), comment='Nội dung MRZ. Not null nếu Id loại GTDD là Hộ chiếu')
     qrcode_content = Column(VARCHAR(500), comment='Nội dung QRCode. Not null nếu Id loại GTDD là Hộ chiếu')
@@ -44,8 +46,10 @@ sys_guid()
     hand_side_id = Column(VARCHAR(36),
                           comment='(FK) Id Loại bàn tay (trái phải). NotNull nếu Loại giấy tờ định danh là Vân tay')
     finger_type_id = Column(VARCHAR(36), comment='(FK) Id Loại ngón tay. NotNull nếu Loại giấy tờ định danh là Vân tay')
-    vector_data = Column(LargeBinary,
-                         comment='dữ liệu ảnh vector vân tay/khuôn mặt. NotNull nếu Loại giấy tờ định danh là Vân tay/khuôn mặt')
+    vector_data = Column(
+        LargeBinary,
+        comment='dữ liệu ảnh vector vân tay/khuôn mặt. NotNull nếu Loại giấy tờ định danh là Vân tay/khuôn mặt'
+    )
     active_flag = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "),
                          comment='Cờ kích hoạt (Có/không tương ứng tick xanh đỏ)')
     maker_id = Column(VARCHAR(36), nullable=False, comment='Mã người thực hiện')
@@ -74,7 +78,8 @@ class CustomerCompareImage(Base):
     __table_args__ = {'comment': 'Thông tin hình ảnh đối chiếu'}
 
     id = Column('compare_image_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='(PK) Id Thông tin hình ảnh đối chiếu (Hình gốc được so sánh với hình ảnh upload bên crm_cust_identity_image)')
+                comment='(PK) Id Thông tin hình ảnh đối chiếu '
+                        '(Hình gốc được so sánh với hình ảnh upload bên crm_cust_identity_image)')
     identity_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id Thông tin Giấy tờ định danh')
     identity_image_id = Column(ForeignKey('crm_cust_identity_image.identity_image_id'), nullable=False,
                                comment='(FK) ID Hình ảnh Giấy tờ định danh')
@@ -95,8 +100,10 @@ sys_guid()
 """), comment='(PK) Id Thay đổi hình ảnh đối chiếu giấy tờ định danh')
     compare_transaction_parent_id = Column(VARCHAR(36),
                                            comment='Id cấp cha Thay đổi hình ảnh đối chiếu giấy tờ định danh')
-    compare_image_id = Column(VARCHAR(36), nullable=False,
-                              comment='(FK) Id Hình ảnh đối chiếu (Hình gốc được so sánh với hình ảnh upload bên crm_cust_identity_image)')
+    compare_image_id = Column(
+        VARCHAR(36), nullable=False,
+        comment='(FK) Id Hình ảnh đối chiếu (Hình gốc được so sánh với hình ảnh upload bên crm_cust_identity_image)'
+    )
     identity_image_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id Hình ảnh giấy tờ định danh')
     compare_image_url = Column(VARCHAR(200), nullable=False, comment='Đường dẫn hình ảnh')
     similar_percent = Column(NUMBER(asdecimal=False), nullable=False, comment='Phần trăm tương đồng (range 0-100)')

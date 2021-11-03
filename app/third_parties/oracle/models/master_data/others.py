@@ -81,7 +81,7 @@ class ResidentStatus(Base):
                          comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class AverageIncomeAmount(Base):
@@ -257,9 +257,9 @@ class Lane(Base):
     created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày cập nhật')
 
-    branch = relationship('CrmBranch')
-    business_type = relationship('CrmBussinessType')
-    stages = relationship('CrmStage', secondary='crm_stage_lane')
+    branch = relationship('Branch')
+    business_type = relationship('BusinessType')
+    stage = relationship('Stage', secondary='crm_stage_lane')
 
 
 class MaritalStatus(Base):
@@ -274,7 +274,7 @@ class MaritalStatus(Base):
     active_flag = Column('marital_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class Nation(Base):
@@ -288,7 +288,7 @@ class Nation(Base):
     active_flag = Column('nation_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class Phase(Base):
@@ -301,8 +301,8 @@ class Phase(Base):
     code = Column('phase_code', VARCHAR(50), nullable=False, comment='Mã code Giai đoạn xử lý')
     name = Column('phase_name', VARCHAR(255), nullable=False, comment='Tên Giai đoạn xử lý')
 
-    business_type = relationship('CrmBussinessType')
-    stages = relationship('CrmStage', secondary='crm_stage_phase')
+    business_type = relationship('BusinessType')
+    stage = relationship('Stage', secondary='crm_stage_phase')
 
 
 class Religion(Base):
@@ -316,7 +316,7 @@ class Religion(Base):
     active_flag = Column('religion_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class StageRole(Base):
@@ -330,7 +330,7 @@ class StageRole(Base):
     name = Column('stage_role_name', VARCHAR(250), comment='Tên quyền thực hiện bước')
     created_at = Column(DateTime, comment='Ngày tạo bước thực hiện')
 
-    stage = relationship('CrmStage')
+    stage = relationship('Stage')
 
 
 class HrmEmployee(Base):

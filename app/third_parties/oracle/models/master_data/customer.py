@@ -30,7 +30,7 @@ class CustomerClassification(Base):
                          comment='Trạng thái hoạt động')
     order_no = Column('order_no', NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class CustomerType(Base):
@@ -57,7 +57,7 @@ class CustomerCategory(Base):
                          comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class CustomerStatus(Base):
@@ -85,7 +85,7 @@ class CustomerGender(Base):
     active_flag = Column('cust_gender_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class CustomerTitle(Base):
@@ -100,7 +100,7 @@ class CustomerTitle(Base):
     active_flag = Column('cust_title_active_flag', NUMBER(1, 3, True), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class CustomerContactType(Base):
@@ -114,7 +114,7 @@ class CustomerContactType(Base):
     name = Column('cust_contact_type_name', VARCHAR(255), comment='Tên loại liên hệ')
     description = Column('cust_contact_type_description', VARCHAR(500), comment='Mô tả loại  liệu liên hệ')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class CustomerRelationshipType(Base):
@@ -132,4 +132,4 @@ class CustomerRelationshipType(Base):
                          comment='Trạng thái hoạt động (Có/không)')
     order_no = Column(NUMBER(3, 2, True), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')

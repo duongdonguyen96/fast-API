@@ -37,7 +37,7 @@ class AddressProvince(Base):
     active_flag = Column('province_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    country = relationship('CrmAddressCountry')
+    country = relationship('AddressCountry')
 
 
 class AddressDistrict(Base):
@@ -56,7 +56,7 @@ class AddressDistrict(Base):
     active_flag = Column('district_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    province = relationship('CrmAddressProvince')
+    province = relationship('AddressProvince')
 
 
 class AddressWard(Base):
@@ -74,7 +74,7 @@ class AddressWard(Base):
     active_flag = Column('ward_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    district = relationship('CrmAddressDistrict')
+    district = relationship('AddressDistrict')
 
 
 class AddressType(Base):

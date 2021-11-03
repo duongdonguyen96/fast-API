@@ -5,27 +5,28 @@ from sqlalchemy.orm import relationship
 from app.third_parties.oracle.base import Base
 
 
-class CrmCustContactTypeDatum(Base):
+class CustomerContactTypeData(Base):
     __tablename__ = 'crm_cust_contact_type_data'
     __table_args__ = {'comment': 'CHI TIẾT THÔNG TIN LOẠI LIÊN HỆ'}
 
-    cust_contact_type_id = Column(ForeignKey('crm_cust_contact_type.cust_contact_type_id'), primary_key=True)
+    customer_contact_type_id = Column('cust_contact_type_id', ForeignKey('crm_cust_contact_type.cust_contact_type_id'),
+                                      primary_key=True)
     customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
-    cust_contact_type_created_at = Column(DateTime, comment='Ngày tạo')
+    customer_contact_type_created_at = Column('cust_contact_type_created_at', DateTime, comment='Ngày tạo')
     active_flag = Column(NUMBER(1, 2, True), comment='Sắp xếp')
     order_no = Column(NUMBER(4, 2, True), comment='(FK) Mã chi tiết liện hệTrạng thái hoạt động (Có/không)')
 
-    customer = relationship('CrmCustomer')
+    customer = relationship('Customer')
 
 
-class CrmCustCompanyInfo(Base):
+class CustomerCompanyInfo(Base):
     __tablename__ = 'crm_cust_company_info'
     __table_args__ = {'comment': 'Thông tin riêng Khách hàng Doanh nghiệp'}
 
     customer_id = Column(ForeignKey('crm_customer.customer_id'), primary_key=True, server_default=text("sys_guid() "),
                          comment='Mã khách hàng')
     open_date = Column(DateTime, comment='Ngày mở')
-    employees_num = Column(NUMBER(8, 2, True), comment='Mã Danh mục Loại nhân viên giới thiệu')
+    refer_employee_number = Column('employees_num', NUMBER(8, 2, True), comment='Mã Danh mục Loại nhân viên giới thiệu')
 
 
 class CustomerAddress(Base):
@@ -52,12 +53,12 @@ class CustomerAddress(Base):
 0
 """), comment='Cờ giống địa chỉ thường trú')
 
-    address_country = relationship('CrmAddressCountry')
-    address_district = relationship('CrmAddressDistrict')
-    address_province = relationship('CrmAddressProvince')
-    address_type = relationship('CrmAddressType')
-    address_ward = relationship('CrmAddressWard')
-    customer = relationship('CrmCustomer')
+    address_country = relationship('AddressCountry')
+    address_district = relationship('AddressDistrict')
+    address_province = relationship('AddressProvince')
+    address_type = relationship('AddressType')
+    address_ward = relationship('AddressWard')
+    customer = relationship('Customer')
 
 
 class CustomerProfessional(Base):
@@ -74,6 +75,6 @@ class CustomerProfessional(Base):
     company_phone = Column(VARCHAR(12), comment='Số điện thoại cơ quan')
     company_address = Column(VARCHAR(255), comment='Địa chỉ cơ quan')
 
-    average_income_amount = relationship('CrmAverageIncomeAmount')
-    career = relationship('CrmCareer')
-    position = relationship('CrmPosition')
+    average_income_amount = relationship('AverageIncomeAmount')
+    career = relationship('Career')
+    position = relationship('Position')

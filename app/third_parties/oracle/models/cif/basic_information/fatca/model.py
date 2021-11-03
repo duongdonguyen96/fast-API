@@ -14,7 +14,7 @@ class CustomerFatca(Base):
                                comment='ID danh mục FATCA')
     value = Column('fatca_value', VARCHAR(10), nullable=False, comment='Giá trị chọn FATCA (có/không)')
 
-    fatca_category = relationship('CrmFatcaCategory')
+    fatca_category = relationship('FatcaCategory')
 
 
 class CustomerFatcaDocument(Base):
@@ -33,4 +33,4 @@ class CustomerFatcaDocument(Base):
     created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
-    customer_fatca = relationship('CrmCustFatca')
+    customer_fatca = relationship('CustomerFatca')
