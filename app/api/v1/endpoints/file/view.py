@@ -27,7 +27,7 @@ async def view_file_upload(
         file: UploadFile = File(..., description='File cần upload'),
         current_user=Depends(get_current_user_from_header()),  # noqa
 ):
-    file_response = await CtrFile().upload_file(file)
+    file_response = await CtrFile(is_init_oracle_session=False).upload_file(file)
     return ResponseData[FileServiceResponse](**file_response)
 
 
@@ -48,7 +48,7 @@ async def view_file_multi_upload(
         ),
         current_user=Depends(get_current_user_from_header()),  # noqa
 ):
-    res = await CtrFile().upload_multi_file(file)
+    res = await CtrFile(is_init_oracle_session=False).upload_multi_file(file)
     return ResponseData[List[FileServiceResponse]](**res)
 
 
@@ -65,7 +65,7 @@ async def view_download_file(
         uuid: str = Query(..., description='Chuỗi định danh của file cần tải'),
         current_user=Depends(get_current_user_from_header()),  # noqa
 ):
-    res = await CtrFile().download_file(uuid)
+    res = await CtrFile(is_init_oracle_session=False).download_file(uuid)
     return ResponseData[FileServiceDownloadFileResponse](**res)
 
 
@@ -85,5 +85,5 @@ async def view_download_multi_file(
         ),
         current_user=Depends(get_current_user_from_header()),  # noqa
 ):
-    res = await CtrFile().download_multi_file(uuid)
+    res = await CtrFile(is_init_oracle_session=False).download_multi_file(uuid)
     return ResponseData[List[FileServiceDownloadFileResponse]](**res)
