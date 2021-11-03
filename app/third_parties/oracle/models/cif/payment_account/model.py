@@ -34,7 +34,7 @@ class CasaAccount(Base):
     updated_at = Column(DateTime, comment='Thời gian cập nhật')
 
     acc_class = relationship('CrmAccClas')
-    acc_structrure_type = relationship('CrmAccStructureType')
+    acc_structure_type = relationship('CrmAccStructureType')
     acc_type = relationship('CrmAccType')
     currency = relationship('CrmCurrency')
 
