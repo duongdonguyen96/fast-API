@@ -3,6 +3,34 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base, metadata
+from app.third_parties.oracle.models.cif.basic_information.model import \
+    Customer  # noqa
+from app.third_parties.oracle.models.master_data.customer import \
+    CustomerContactType  # noqa
+from app.third_parties.oracle.models.master_data.e_banking import \
+    EBankingNotification  # noqa
+from app.third_parties.oracle.models.master_data.others import \
+    MethodAuthentication  # noqa
+
+
+class TdAccount(Base):
+    __tablename__ = 'crm_td_account'
+    __table_args__ = {'comment': 'Tài khoản Tiết kiệm'}
+
+    id = Column('td_account_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã Tài khoản Tiết kiệm')
+    customer_id = Column(VARCHAR(36), comment='Mã khách hàng')
+    td_account_number = Column('td_account_num', VARCHAR(16), comment='Số tài khoản tiết kiệm,')
+    currency_id = Column(VARCHAR(36), comment='Danh mục loại tiền')
+    account_type_id = Column('acc_type_id', VARCHAR(36), comment='Loại nhóm sản phẩm (gói) tài khoản')
+    account_class_id = Column('acc_class_id', VARCHAR(36), comment='Loại hình tài khoản')
+    maker_id = Column(VARCHAR(36), comment='người thực hiện')
+    maker_at = Column(DateTime, comment='ngày thực hiện')
+    checker_id = Column(VARCHAR(36), comment='người phê duyệt')
+    checker_at = Column(DateTime, comment='ngày phê duyệt')
+    approve_status = Column(VARCHAR(3), comment='trạng phái phê duyệt')
+    active_flag = Column('acc_active_flag', NUMBER(1, 0, False), comment='trạng thái hoạt động')
+    updated_at = Column(DateTime, comment='ngày cập nhật')
 
 
 class EBankingReceiverNotificationRelationship(Base):
@@ -146,23 +174,3 @@ class EBankingResetPassword(Base):
     conclusion_note = Column(VARCHAR(1000), comment='Ghi chú')
 
     eb_info = relationship('EBankingInfo')
-
-
-class TdAccount(Base):
-    __tablename__ = 'crm_td_account'
-    __table_args__ = {'comment': 'Tài khoản Tiết kiệm'}
-
-    id = Column('td_account_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='Mã Tài khoản Tiết kiệm')
-    customer_id = Column(VARCHAR(36), comment='Mã khách hàng')
-    td_account_number = Column('td_account_num', VARCHAR(16), comment='Số tài khoản tiết kiệm,')
-    currency_id = Column(VARCHAR(36), comment='Danh mục loại tiền')
-    account_type_id = Column('acc_type_id', VARCHAR(36), comment='Loại nhóm sản phẩm (gói) tài khoản')
-    account_class_id = Column('acc_class_id', VARCHAR(36), comment='Loại hình tài khoản')
-    maker_id = Column(VARCHAR(36), comment='người thực hiện')
-    maker_at = Column(DateTime, comment='ngày thực hiện')
-    checker_id = Column(VARCHAR(36), comment='người phê duyệt')
-    checker_at = Column(DateTime, comment='ngày phê duyệt')
-    approve_status = Column(VARCHAR(3), comment='trạng phái phê duyệt')
-    active_flag = Column('acc_active_flag', NUMBER(1, 0, False), comment='trạng thái hoạt động')
-    updated_at = Column(DateTime, comment='ngày cập nhật')

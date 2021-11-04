@@ -3,6 +3,17 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
+from app.third_parties.oracle.models.cif.basic_information.fatca.model import \
+    CustomerFatca  # noqa
+from app.third_parties.oracle.models.master_data.address import (  # noqa
+    AddressCountry, AddressProvince
+)
+from app.third_parties.oracle.models.master_data.customer import (  # noqa
+    CustomerGender, CustomerTitle
+)
+from app.third_parties.oracle.models.master_data.others import (  # noqa
+    MaritalStatus, Nation, Religion, ResidentStatus
+)
 
 
 class CustomerIndividualInfo(Base):

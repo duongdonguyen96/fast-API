@@ -3,6 +3,14 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
+from app.third_parties.oracle.models.cif.basic_information.model import \
+    Customer  # noqa
+from app.third_parties.oracle.models.master_data.address import (  # noqa
+    AddressCountry, AddressDistrict, AddressProvince, AddressType, AddressWard
+)
+from app.third_parties.oracle.models.master_data.others import (  # noqa
+    AverageIncomeAmount, Career, Position
+)
 
 
 class CustomerContactTypeData(Base):

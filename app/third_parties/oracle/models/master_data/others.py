@@ -3,6 +3,9 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
+from app.third_parties.oracle.models.cif.form.model import Stage  # noqa
+from app.third_parties.oracle.models.master_data.address import \
+    AddressCountry  # noqa
 
 
 class KYCLevel(Base):
@@ -185,7 +188,7 @@ class StaffType(Base):
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
 
 
-class CrmStageStatus(Base):
+class StageStatus(Base):
     __tablename__ = 'crm_stage_status'
     __table_args__ = {'comment': 'Trạng thái xử lý'}
 

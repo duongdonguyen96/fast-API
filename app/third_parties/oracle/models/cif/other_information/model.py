@@ -2,9 +2,12 @@ from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
+from app.third_parties.oracle.models.cif.basic_information.model import \
+    Customer  # noqa
+from app.third_parties.oracle.models.master_data.others import \
+    HrmEmployee  # noqa
 
 
-# class CrmCustEmployee(CrmStaffType):
 class CustomerEmployee(Base):
     __tablename__ = 'crm_cust_employee'
     __table_args__ = {'comment': 'Nhân viên - khách hàng'}

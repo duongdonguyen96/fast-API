@@ -3,6 +3,10 @@ from sqlalchemy.dialects.oracle import NCLOB, NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base, metadata
+from app.third_parties.oracle.models.master_data.others import (  # noqa
+    BusinessType, Sla, StageStatus, TransactionStageLane,
+    TransactionStagePhase, TransactionStageStatus
+)
 
 
 class SlaTransaction(Base):
@@ -115,7 +119,23 @@ class TransactionDaily(Base):
     transaction_stage = relationship('TransactionStage')
 
 
-class CrmTransactionAll(Base):
+class Booking(Base):
+    __tablename__ = 'crm_booking'
+    __table_args__ = {'comment': 'Lưu dữ liệu đẩy qua core'}
+
+    id = Column('booking_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID chính')
+    code = Column('booking_code', VARCHAR(50), comment='Mã code')
+    transaction_id = Column(ForeignKey('crm_transaction_daily.transaction_id'), comment='ID Transaction')
+    business_type_id = Column('bussiness_type_id', ForeignKey('crm_bussiness_type.bussiness_type_id'),
+                              comment='ID type')
+    created_at = Column(DateTime, comment='Ngày tạo')
+    updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
+
+    business_type = relationship('BusinessType')
+    transaction = relationship('TransactionDaily')
+
+
+class TransactionAll(Base):
     __tablename__ = 'crm_transaction_all'
     __table_args__ = {'comment': 'Lưu tất cả quan hệ thông tin liên quan giao dịch'}
 
@@ -134,7 +154,7 @@ class CrmTransactionAll(Base):
     transaction_stage = relationship('TransactionStage')
 
 
-class CrmTransactionReceiver(CrmTransactionAll):
+class TransactionReceiver(Base):
     __tablename__ = 'crm_transaction_recevier'
     __table_args__ = {'comment': 'Các giao dịch tạo cif'}
 
@@ -158,7 +178,7 @@ class CrmTransactionReceiver(CrmTransactionAll):
     transaction = relationship('TransactionDaily', uselist=False)
 
 
-class TransactionSender(CrmTransactionAll):
+class TransactionSender(Base):
     __tablename__ = 'crm_transaction_sender'
     __table_args__ = {'comment': 'Phiên giao dịch tạo cif'}
 
@@ -179,21 +199,6 @@ class TransactionSender(CrmTransactionAll):
     position_name = Column(VARCHAR(100), comment='Tên khối')
 
     transaction = relationship('TransactionDaily', uselist=False)
-
-
-class Booking(Base):
-    __tablename__ = 'crm_booking'
-    __table_args__ = {'comment': 'Lưu dữ liệu đẩy qua core'}
-
-    id = Column('booking_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID chính')
-    code = Column('booking_code', VARCHAR(50), comment='Mã code')
-    transaction_id = Column(ForeignKey('crm_transaction_daily.transaction_id'), comment='ID Transaction')
-    business_type_id = Column('bussiness_type_id', ForeignKey('crm_bussiness_type.bussiness_type_id'), comment='ID type')
-    created_at = Column(DateTime, comment='Ngày tạo')
-    updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
-
-    business_type = relationship('BusinessType')
-    transaction = relationship('TransactionDaily')
 
 
 class BookingAccount(Base):

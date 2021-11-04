@@ -3,6 +3,12 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base, metadata
+from app.third_parties.oracle.models.master_data.account import (  # noqa
+    AccountClass, AccountStructureType, AccountType
+)
+from app.third_parties.oracle.models.master_data.others import (  # noqa
+    Currency, HrmEmployee
+)
 
 
 class CasaAccount(Base):
@@ -33,10 +39,10 @@ class CasaAccount(Base):
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Thời gian cập nhật')
 
-    acc_class = relationship('CrmAccClas')
-    acc_structure_type = relationship('CrmAccStructureType')
-    acc_type = relationship('CrmAccType')
-    currency = relationship('CrmCurrency')
+    account_class = relationship('AccountClass')
+    account_structure_type = relationship('AccountStructureType')
+    account_type = relationship('AccountType')
+    currency = relationship('Currency')
 
 
 # class CrmCasaAccountEmployee(CrmStaffType):
@@ -53,7 +59,7 @@ class CasaAccountEmployee(Base):
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày cập nhật')
 
-    casa_account = relationship('CrmCasaAccount')
+    casa_account = relationship('CasaAccount')
     employee = relationship('HrmEmployee')
 
 
@@ -69,7 +75,7 @@ class JointAccountHolder(Base):
     joint_account_holder_flag = Column(NUMBER(1, 2, True), comment='Cờ đồng sở hữu tài khoản')
     joint_account_holder_no = Column(NUMBER(4, 2, True), comment='Số thứ tự tài khoản người đồng sở hữu')
 
-    casa_account = relationship('CrmCasaAccount')
+    casa_account = relationship('CasaAccount')
 
 
 t_crm_joint_acc_agree = Table(
@@ -96,4 +102,4 @@ class AgreementAuthorization(Base):
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
 
-    joint_account_holders = relationship('CrmJointAccountHolder', secondary='crm_joint_acc_agree')
+    joint_account_holders = relationship('JointAccountHolder', secondary='crm_joint_acc_agree')

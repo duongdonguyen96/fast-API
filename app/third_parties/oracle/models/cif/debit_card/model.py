@@ -3,6 +3,37 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
+from app.third_parties.oracle.models.cif.basic_information.model import \
+    Customer  # noqa
+from app.third_parties.oracle.models.master_data.address import (  # noqa
+    AddressDistrict, AddressProvince, AddressWard
+)
+from app.third_parties.oracle.models.master_data.card import (  # noqa
+    BrandOfCard, CardIssuanceFee, CardIssuanceType, CardType
+)
+from app.third_parties.oracle.models.master_data.customer import \
+    CustomerType  # noqa
+from app.third_parties.oracle.models.master_data.others import Branch  # noqa
+
+
+class CardDeliveryAddress(Base):
+    __tablename__ = 'crm_card_delivery_address'
+    __table_args__ = {'comment': 'Địa chỉ giao nhận thẻ'}
+
+    card_delivery_address_id = Column(VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                                      comment='Mã địa chỉ giao nhận thẻv(PK)')
+    branch_id = Column(ForeignKey('crm_branch.branch_id'), nullable=False, comment='Mã đơn vị (FK)')
+    province_id = Column(ForeignKey('crm_address_province.province_id'), nullable=False, comment='Mã tỉnh (FK)')
+    district_id = Column(ForeignKey('crm_address_district.district_id'), nullable=False,
+                         comment='Mã Thông tin quận huyện (FK)')
+    ward_id = Column(ForeignKey('crm_address_ward.ward_id'), nullable=False, comment='Mã Thông tin xã phường (FK)')
+    card_delivery_address_address = Column(VARCHAR(500), nullable=False, comment='Địa chỉ')
+    card_delivery_address_note = Column(VARCHAR(500), comment='Ghi chú')
+
+    branch = relationship('Branch')
+    province = relationship('AddressProvince')
+    district = relationship('AddressDistrict')
+    ward = relationship('AddressWard')
 
 
 class DebitCard(Base):
@@ -40,23 +71,3 @@ class DebitCard(Base):
     customer_type = relationship('CustomerType')
     customer = relationship('Customer')
     parent_card = relationship('DebitCard', remote_side=[id])
-
-
-class CardDeliveryAddress(Base):
-    __tablename__ = 'crm_card_delivery_address'
-    __table_args__ = {'comment': 'Địa chỉ giao nhận thẻ'}
-
-    card_delivery_address_id = Column(VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                                      comment='Mã địa chỉ giao nhận thẻv(PK)')
-    branch_id = Column(ForeignKey('crm_branch.branch_id'), nullable=False, comment='Mã đơn vị (FK)')
-    province_id = Column(ForeignKey('crm_address_province.province_id'), nullable=False, comment='Mã tỉnh (FK)')
-    district_id = Column(ForeignKey('crm_address_district.district_id'), nullable=False,
-                         comment='Mã Thông tin quận huyện (FK)')
-    ward_id = Column(ForeignKey('crm_address_ward.ward_id'), nullable=False, comment='Mã Thông tin xã phường (FK)')
-    card_delivery_address_address = Column(VARCHAR(500), nullable=False, comment='Địa chỉ')
-    card_delivery_address_note = Column(VARCHAR(500), comment='Ghi chú')
-
-    branch = relationship('Branch')
-    district = relationship('AddressDistrict')
-    province = relationship('AddressProvince')
-    ward = relationship('AddressWard')

@@ -88,7 +88,7 @@ class CustomerCompareImage(Base):
     maker_id = Column(VARCHAR(36), nullable=False, comment='Mã người thực hiện')
     maker_at = Column(DateTime, nullable=False, comment='Thời gian thực hiện')
 
-    identity_image = relationship('CrmCustIdentityImage')
+    identity_image = relationship('CustomerIdentityImage')
 
 
 class CustomerCompareImageTransaction(Base):
