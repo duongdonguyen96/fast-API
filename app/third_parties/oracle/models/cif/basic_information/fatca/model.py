@@ -3,8 +3,9 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
-from app.third_parties.oracle.models.master_data.others import \
-    FatcaCategory  # noqa
+from app.third_parties.oracle.models.master_data.others import (  # noqa
+    FatcaCategory
+)
 
 
 class CustomerFatca(Base):

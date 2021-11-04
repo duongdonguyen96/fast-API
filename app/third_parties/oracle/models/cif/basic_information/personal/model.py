@@ -3,8 +3,9 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
-from app.third_parties.oracle.models.cif.basic_information.fatca.model import \
-    CustomerFatca  # noqa
+from app.third_parties.oracle.models.cif.basic_information.fatca.model import (  # noqa
+    CustomerFatca
+)
 from app.third_parties.oracle.models.master_data.address import (  # noqa
     AddressCountry, AddressProvince
 )

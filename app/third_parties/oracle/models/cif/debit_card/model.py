@@ -3,16 +3,18 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
-from app.third_parties.oracle.models.cif.basic_information.model import \
-    Customer  # noqa
+from app.third_parties.oracle.models.cif.basic_information.model import (  # noqa
+    Customer
+)
 from app.third_parties.oracle.models.master_data.address import (  # noqa
     AddressDistrict, AddressProvince, AddressWard
 )
 from app.third_parties.oracle.models.master_data.card import (  # noqa
     BrandOfCard, CardIssuanceFee, CardIssuanceType, CardType
 )
-from app.third_parties.oracle.models.master_data.customer import \
-    CustomerType  # noqa
+from app.third_parties.oracle.models.master_data.customer import (  # noqa
+    CustomerType
+)
 from app.third_parties.oracle.models.master_data.others import Branch  # noqa
 
 

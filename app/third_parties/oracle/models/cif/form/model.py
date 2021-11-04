@@ -4,8 +4,8 @@ from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base, metadata
 from app.third_parties.oracle.models.master_data.others import (  # noqa
-    BusinessType, Sla, StageStatus, TransactionStageLane,
-    TransactionStagePhase, TransactionStageStatus
+    BusinessType, Sla, TransactionStageLane, TransactionStagePhase,
+    TransactionStageStatus
 )
 
 
@@ -23,32 +23,6 @@ class SlaTransaction(Base):
     created_at = Column(DateTime, comment='ngày tạo')
 
     sla = relationship('Sla')
-
-
-class Stage(Base):
-    __tablename__ = 'crm_stage'
-    __table_args__ = {'comment': 'Bước xử lý\n\n  1.  Khởi tạo\n  2.  Gửi duyệt'}
-
-    id = Column('stage_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='Mã bước thực hiện')
-    lane_id = Column('stage_lane_id', VARCHAR(36), comment='Mã thông tin đơn vị và phòng ban thực hiện')
-    status_id = Column('stage_status_id', ForeignKey('crm_stage_status.stage_status_id'),
-                       comment='Mã trạng thái của bước thực hiện')
-    phase_id = Column('stage_phase_id', VARCHAR(36), comment='Mã Giai đoạn xử lý')
-    parent_id = Column('stage_parent_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện cấp cha')
-    business_type_id = Column('bussiness_type_id', VARCHAR(36),
-                              comment='Mã loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
-    name = Column('stage_name', VARCHAR(250), comment='Tên bước hiện')
-    code = Column('stage_code', VARCHAR(50), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
-    sla_id = Column(ForeignKey('crm_sla.sla_id'), comment='mã Giai đoạn xử lý')
-    responsible_flag = Column('stage_responsible_flag', NUMBER(1, 0, False),
-                              comment='Cờ người chịu trách nhiệm của bước thực hiện')
-    created_at = Column(DateTime, comment='Ngày tạo bước thực hiện')
-    updated_at = Column(DateTime, comment='Ngày cập nhật bước thực hiện')
-
-    sla = relationship('Sla')
-    parent = relationship('Stage', remote_side=[id])
-    status = relationship('StageStatus')
 
 
 class TransactionStage(Base):
