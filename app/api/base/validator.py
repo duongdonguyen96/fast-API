@@ -5,8 +5,7 @@ from app.api.base.schema import Error
 
 
 class BaseValidator:
-    def __init__(self, session_mongo=None, session_oracle=None):
-        self.session_mongo = session_mongo
+    def __init__(self, session_oracle=None):
         self.session_oracle = session_oracle
         self.errors: List[Error] = []
 

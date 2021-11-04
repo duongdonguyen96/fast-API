@@ -7,11 +7,3 @@ ORACLE_CONFIG = {
     "password": os.getenv("ORACLE_PASSWORD"),
     "service_name": os.getenv("ORACLE_SERVICE_NAME")
 }
-
-MONGO_CONFIG = {
-    "host": os.getenv("MONGO_HOST"),
-    "port": os.getenv("MONGO_PORT"),
-    "username": os.getenv("MONGO_USERNAME"),
-    "password": os.getenv("MONGO_PASSWORD"),
-    "database": os.getenv("MONGO_DATABASE"),
-}

@@ -69,7 +69,6 @@ Application parts are::
     │   ├── repositories
     │   ├── settings
     │   ├── third_party
-    │   │   ├── mongo
     │   │   ├── oracle
     │   │   │   └── models
     │   │   └── services

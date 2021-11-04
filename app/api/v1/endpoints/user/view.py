@@ -32,7 +32,7 @@ async def view_list_user(
         current_user=Depends(get_current_user_from_header()),  # noqa
         pagination_params: PaginationParams = Depends()
 ):
-    paging_users = await CtrUser(pagination_params=pagination_params).ctr_get_list_user()
+    paging_users = await CtrUser(is_init_oracle_session=False, pagination_params=pagination_params).ctr_get_list_user()
     return PagingResponse[UserInfoResponse](**paging_users)
 
 
@@ -47,7 +47,7 @@ async def view_list_user(
     ),
 )
 async def view_login(credentials: HTTPBasicCredentials = Depends(basic_auth)):
-    data = await CtrUser().ctr_login(credentials)
+    data = await CtrUser(is_init_oracle_session=False).ctr_login(credentials)
     return ResponseData[AuthResponse](**data)
 
 
@@ -64,7 +64,7 @@ async def view_login(credentials: HTTPBasicCredentials = Depends(basic_auth)):
 async def view_retrieve_current_user(
         current_user=Depends(get_current_user_from_header())
 ):
-    user_info = await CtrUser(current_user).ctr_get_current_user_info()
+    user_info = await CtrUser(is_init_oracle_session=False, current_user=current_user).ctr_get_current_user_info()
     return ResponseData[UserInfoResponse](**user_info)
 
 
@@ -82,7 +82,7 @@ async def view_retrieve_user(
         user_id: str,
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
-    user_info = await CtrUser().ctr_get_user_info(user_id)
+    user_info = await CtrUser(is_init_oracle_session=False).ctr_get_user_info(user_id)
     return ResponseData[UserInfoResponse](**user_info)
 
 
@@ -106,5 +106,9 @@ async def view_update(
         ),
         current_user=Depends(get_current_user_from_header())
 ):
-    data = await CtrUser(current_user).ctr_update_user_info(user_id=user_id, user_update_req=user_update_req)
+    data = await CtrUser(
+        is_init_oracle_session=False,
+        current_user=current_user
+    ).ctr_update_user_info(user_id=user_id, user_update_req=user_update_req)
+
     return ResponseData[UserUpdateResponse](**data)
