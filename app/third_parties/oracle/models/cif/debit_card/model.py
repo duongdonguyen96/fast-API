@@ -39,7 +39,7 @@ class CardDeliveryAddress(Base):
 
 
 class DebitCard(Base):
-    __tablename__ = 'CRM_DEBIT_CARD '
+    __tablename__ = 'crm_debit_card'
     __table_args__ = {'comment': 'THẺ Ghi nợ'}
 
     id = Column('card_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='Mã thẻ (PK)')
@@ -54,7 +54,7 @@ class DebitCard(Base):
                                   comment='Mã Phí phát hành thẻ')
     card_delivery_address_id = Column(ForeignKey('crm_card_delivery_address.card_delivery_address_id'),
                                       comment='Mã địa chỉ giao nhận thẻv(PK)')
-    parent_card_id = Column(ForeignKey('CRM_DEBIT_CARD .card_id'), comment='Mã thẻ cấp cha')
+    parent_card_id = Column(ForeignKey('crm_debit_card.card_id'), comment='Mã thẻ cấp cha')
     card_registration_flag = Column(NUMBER(1, 2, True), comment='Trạng thái đk thẻ')
     payment_online_flag = Column(NUMBER(1, 2, True), comment='Trạng thái thanh toán')
     first_name_on_card = Column(VARCHAR(21), comment='Họ in trên thẻ')
