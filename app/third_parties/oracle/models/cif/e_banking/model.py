@@ -3,14 +3,18 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base, metadata
-from app.third_parties.oracle.models.cif.basic_information.model import \
-    Customer  # noqa
-from app.third_parties.oracle.models.master_data.customer import \
-    CustomerContactType  # noqa
-from app.third_parties.oracle.models.master_data.e_banking import \
-    EBankingNotification  # noqa
-from app.third_parties.oracle.models.master_data.others import \
-    MethodAuthentication  # noqa
+from app.third_parties.oracle.models.cif.basic_information.model import (  # noqa
+    Customer
+)
+from app.third_parties.oracle.models.master_data.customer import (  # noqa
+    CustomerContactType
+)
+from app.third_parties.oracle.models.master_data.e_banking import (  # noqa
+    EBankingNotification
+)
+from app.third_parties.oracle.models.master_data.others import (  # noqa
+    MethodAuthentication
+)
 
 
 class TdAccount(Base):

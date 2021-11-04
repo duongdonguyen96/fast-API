@@ -2,10 +2,12 @@ from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
-from app.third_parties.oracle.models.cif.basic_information.model import \
-    Customer  # noqa
-from app.third_parties.oracle.models.master_data.others import \
-    HrmEmployee  # noqa
+from app.third_parties.oracle.models.cif.basic_information.model import (  # noqa
+    Customer
+)
+from app.third_parties.oracle.models.master_data.others import (  # noqa
+    HrmEmployee
+)
 
 
 class CustomerEmployee(Base):

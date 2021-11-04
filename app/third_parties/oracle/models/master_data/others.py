@@ -3,9 +3,9 @@ from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
-from app.third_parties.oracle.models.cif.form.model import Stage  # noqa
-from app.third_parties.oracle.models.master_data.address import \
-    AddressCountry  # noqa
+from app.third_parties.oracle.models.master_data.address import (  # noqa
+    AddressCountry
+)
 
 
 class KYCLevel(Base):
@@ -202,6 +202,50 @@ class StageStatus(Base):
     updated_at = Column(DateTime, comment='Ngày cập nhật trạng thái của bước thực hiện')
 
 
+class Stage(Base):
+    __tablename__ = 'crm_stage'
+    __table_args__ = {'comment': 'Bước xử lý\n\n  1.  Khởi tạo\n  2.  Gửi duyệt'}
+
+    id = Column('stage_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã bước thực hiện')
+    lane_id = Column('stage_lane_id', VARCHAR(36), comment='Mã thông tin đơn vị và phòng ban thực hiện')
+    status_id = Column('stage_status_id', ForeignKey('crm_stage_status.stage_status_id'),
+                       comment='Mã trạng thái của bước thực hiện')
+    phase_id = Column('stage_phase_id', VARCHAR(36), comment='Mã Giai đoạn xử lý')
+    parent_id = Column('stage_parent_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện cấp cha')
+    business_type_id = Column('bussiness_type_id', VARCHAR(36),
+                              comment='Mã loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
+    name = Column('stage_name', VARCHAR(250), comment='Tên bước hiện')
+    code = Column('stage_code', VARCHAR(50), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
+    sla_id = Column(ForeignKey('crm_sla.sla_id'), comment='mã Giai đoạn xử lý')
+    responsible_flag = Column('stage_responsible_flag', NUMBER(1, 0, False),
+                              comment='Cờ người chịu trách nhiệm của bước thực hiện')
+    created_at = Column(DateTime, comment='Ngày tạo bước thực hiện')
+    updated_at = Column(DateTime, comment='Ngày cập nhật bước thực hiện')
+
+    sla = relationship('Sla')
+    parent = relationship('Stage', remote_side=[id])
+    status = relationship('StageStatus')
+
+
+class Lane(Base):
+    __tablename__ = 'crm_lane'
+
+    id = Column('lane_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID Luồng xử lý')
+    business_type_id = Column(ForeignKey('crm_bussiness_type.bussiness_type_id'), nullable=False,
+                              comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
+    department_id = Column(VARCHAR(36), nullable=False, comment='ID Phòng ban')
+    branch_id = Column(ForeignKey('crm_branch.branch_id'), nullable=False, comment='ID Chi nhánh')
+    code = Column('lane_code', VARCHAR(50), nullable=False, comment='Mã Luồng xử lý')
+    name = Column('lane_name', VARCHAR(255), nullable=False, comment='Tên Luồng xử lý')
+    created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
+    updated_at = Column(DateTime, comment='Ngày cập nhật')
+
+    branch = relationship('Branch')
+    business_type = relationship('BusinessType')
+    stage = relationship('Stage', secondary='crm_stage_lane')
+
+
 class TransactionStageLane(Base):
     __tablename__ = 'crm_transaction_stage_lane'
     __table_args__ = {'comment': 'Phân luồng từng giai đoạn'}
@@ -245,24 +289,6 @@ class TransactionStageStatus(Base):
     code = Column('transaction_stage_status_code', VARCHAR(10),
                   comment='Mã trạng thái của bước thực hiện kiểu chữ (vd: KHOI_TAO) ')
     name = Column('transaction_stage_status_name', VARCHAR(200), comment='Tên trạng thái của bước thực hiện')
-
-
-class Lane(Base):
-    __tablename__ = 'crm_lane'
-
-    id = Column('lane_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID Luồng xử lý')
-    business_type_id = Column(ForeignKey('crm_bussiness_type.bussiness_type_id'), nullable=False,
-                              comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
-    department_id = Column(VARCHAR(36), nullable=False, comment='ID Phòng ban')
-    branch_id = Column(ForeignKey('crm_branch.branch_id'), nullable=False, comment='ID Chi nhánh')
-    code = Column('lane_code', VARCHAR(50), nullable=False, comment='Mã Luồng xử lý')
-    name = Column('lane_name', VARCHAR(255), nullable=False, comment='Tên Luồng xử lý')
-    created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
-    updated_at = Column(DateTime, comment='Ngày cập nhật')
-
-    branch = relationship('Branch')
-    business_type = relationship('BusinessType')
-    stage = relationship('Stage', secondary='crm_stage_lane')
 
 
 class MaritalStatus(Base):
