@@ -9,7 +9,7 @@ from app.third_parties.oracle.models.master_data.address import (  # noqa
 
 
 class KYCLevel(Base):
-    __tablename__ = 'crm_kcy_level'
+    __tablename__ = 'crm_kyc_level'
 
     id = Column('kyc_level_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID cấp độ KYC')

@@ -133,3 +133,4 @@ class CustomerSubIdentity(Base):
     maker_id = Column(VARCHAR(36), nullable=False, comment='Người tạo')
     updater_at = Column(DateTime, comment='Ngày cập nhập')
     updater_id = Column(VARCHAR(36), comment='Người cập nhật')
+    issued_date = Column(DateTime, nullable=False, comment='Ngày cấp')

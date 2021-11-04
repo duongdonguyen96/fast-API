@@ -172,7 +172,8 @@ class EBankingResetPassword(Base):
                 comment='Mã Cấp lại mật khẩu e-banking')
     e_banking_info_id = Column('eb_info_id', ForeignKey('crm_ebanking_info.eb_info_id'),
                                comment='Mã Thông tin e-banking')
-    e_banking_method_new_password_id = Column('eb_method_new_pass_id', VARCHAR(36), comment='Mã Id  tạo pass mới ')
+    e_banking_method_new_password_id = Column('eb_method_new_pass_id', VARCHAR(36),
+                                              comment='ID hình thứ nhận mật khẩu mới')
     upload_file_url = Column(VARCHAR(1000), comment='đường dẫn url')
     conclusion_flag = Column(NUMBER(1, 0, False), comment='Trạng thái thực hiện yêu cầu')
     conclusion_note = Column(VARCHAR(1000), comment='Ghi chú')
