@@ -41,7 +41,7 @@ class Customer(Base):
     active_flag = Column(NUMBER(1, 0, False), nullable=False, comment='Cờ trạng thái hoạt động')
     open_cif_at = Column(DateTime, nullable=False, comment='Ngày mở Cif')
     open_branch_id = Column(VARCHAR(36), nullable=False, comment='Mã Thông tin đơn vị kinh doanh theo FCC')
-    kyc_level_id = Column(ForeignKey('crm_kcy_level.kyc_level_id'), nullable=False, comment='Cấp độ KYC')
+    kyc_level_id = Column(ForeignKey('crm_kyc_level.kyc_level_id'), nullable=False, comment='Cấp độ KYC')
     customer_type_id = Column('cust_type_id', ForeignKey('crm_cust_type.cust_type_id'), nullable=False,
                               comment='Mã loại khách hàng')
     customer_category_id = Column('cust_category_id', ForeignKey('crm_cust_category.cust_category_id'), nullable=False,
