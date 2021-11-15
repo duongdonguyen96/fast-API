@@ -41,17 +41,41 @@ class BranchRegion(Base):
 
 
 class BusinessType(Base):
-    __tablename__ = 'crm_bussiness_type'
+    __tablename__ = 'crm_business_type'
 
-    id = Column('bussiness_type_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+    id = Column('business_type_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID loại nghiệp vụ')
     code = Column(VARCHAR(50), nullable=False, comment='Mã code loại nghiệp vụ')
     name = Column(VARCHAR(500), nullable=False, comment='Tên loại nghiệp vụ')
     description = Column(VARCHAR(1000), comment='Mô tả loại nghiệp vụ')
     active_flag = Column(NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-    created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
+    created_at = Column(DateTime, nullable=False, server_default=text("sysdate "), comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày cập nhật')
+
+
+class BusinessForm(Base):
+    __tablename__ = 'crm_business_form'
+
+    id = Column('business_form_id', VARCHAR(36), primary_key=True)
+    code = Column('business_form_code', VARCHAR(20), nullable=False)
+    name = Column('business_form_name', VARCHAR(200), nullable=False)
+    business_type_id = Column(VARCHAR(36), nullable=False)
+    order_no = Column(NUMBER(asdecimal=False), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime)
+
+
+class BusinessJob(Base):
+    __tablename__ = 'crm_business_job'
+
+    id = Column('business_job_id', VARCHAR(36), primary_key=True)
+    code = Column('business_job_code', VARCHAR(20), nullable=False)
+    name = Column('business_job_name', VARCHAR(200), nullable=False)
+    active_flag = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "))
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime)
+    business_type_id = Column(VARCHAR(36), nullable=False)
 
 
 class Branch(Base):
@@ -65,7 +89,7 @@ class Branch(Base):
     code = Column('branch_code', VARCHAR(3), nullable=False, comment='Mã đơn vị')
     name = Column('branch_name', VARCHAR(255), nullable=False, comment='Tên đơn vị')
     parent_code = Column('parent_branch_code', VARCHAR(3), nullable=False, comment='Mã cấp cha đơn vị')
-    tax_code = Column('branch_tax_code', VARCHAR(13), nullable=False, comment='Mã số thuế đơn vị')
+    tax_code = Column('branch_tax_code', VARCHAR(15), nullable=False, comment='Mã số thuế đơn vị')
     phone_number = Column('branch_phone_num', VARCHAR(12), nullable=False, comment='Số điện thoại đơn vị')
     active_flag = Column('branch_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     address = Column('branch_address', VARCHAR(255), nullable=False, comment='Địa chỉ đơn vị')
@@ -76,15 +100,11 @@ class ResidentStatus(Base):
 
     id = Column('resident_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID trạng thái cư trú/dân cư')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ)')
     code = Column('resident_status_code', VARCHAR(50), nullable=False, comment='Mã trạng thái cư trú/dân cư')
     name = Column('resident_status_name', VARCHAR(255), nullable=False, comment='Tên trạng thái cư trú/dân cư')
     active_flag = Column('resident_status_active_flag', NUMBER(1, 0, False), nullable=False,
                          comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class AverageIncomeAmount(Base):
@@ -120,7 +140,7 @@ class Currency(Base):
     id = Column('currency_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='Mã tiền tệ')
     code = Column('currency_code', VARCHAR(50), nullable=False, comment='Mã tiền tệ code ( vd: VND..)')
     name = Column('currency_name', VARCHAR(255), nullable=False, comment='Tên tiền tệ')
-    active_flag = Column('currency_active_flag', NUMBER(1, 2, True), comment='Cờ kích hoạt tiền tệ')
+    active_flag = Column('currency_active_flag', NUMBER(1, 0, False), comment='Cờ kích hoạt tiền tệ')
     order_no = Column(NUMBER(3, 2, True), comment='Thứ tự sắp xếp')
 
 
@@ -158,8 +178,8 @@ class Position(Base):
     id = Column('position_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID chức vụ')
     code = Column('position_code', VARCHAR(50), nullable=False, comment='Mã chức vụ')
     name = Column('position_name', VARCHAR(255), nullable=False, comment='Tên chức vụ')
-    active_flag = Column('position_active_flag', NUMBER(1, 3, True), nullable=False, comment='Trạng thái hoạt động')
-    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
+    active_flag = Column('position_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
+    order_no = Column(NUMBER(4, 2, True), comment='Sắp xếp')
 
 
 class Sla(Base):
@@ -195,11 +215,14 @@ class StageStatus(Base):
     id = Column('stage_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã trạng thái của bước thực hiện')
     code = Column('stage_status_code', VARCHAR(50), comment='Tên trạng thái của bước thực hiện')
-    business_type_id = Column(VARCHAR(36), comment='Mã trạng thái của bước thực hiện kiểu chữ (vd: KHOI_TAO) ')
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'),
+                              comment='Mã trạng thái của bước thực hiện kiểu chữ (vd: KHOI_TAO) ')
     name = Column('stage_status_name', VARCHAR(250),
                   comment='Mã loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
     created_at = Column(DateTime, comment='Ngày tạo trạng thái của bước thực hiện')
     updated_at = Column(DateTime, comment='Ngày cập nhật trạng thái của bước thực hiện')
+
+    business_type = relationship('BusinessType')
 
 
 class Stage(Base):
@@ -208,12 +231,10 @@ class Stage(Base):
 
     id = Column('stage_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã bước thực hiện')
-    lane_id = Column('stage_lane_id', VARCHAR(36), comment='Mã thông tin đơn vị và phòng ban thực hiện')
     status_id = Column('stage_status_id', ForeignKey('crm_stage_status.stage_status_id'),
                        comment='Mã trạng thái của bước thực hiện')
-    phase_id = Column('stage_phase_id', VARCHAR(36), comment='Mã Giai đoạn xử lý')
     parent_id = Column('stage_parent_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện cấp cha')
-    business_type_id = Column('bussiness_type_id', VARCHAR(36),
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'),
                               comment='Mã loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
     name = Column('stage_name', VARCHAR(250), comment='Tên bước hiện')
     code = Column('stage_code', VARCHAR(50), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
@@ -223,6 +244,7 @@ class Stage(Base):
     created_at = Column(DateTime, comment='Ngày tạo bước thực hiện')
     updated_at = Column(DateTime, comment='Ngày cập nhật bước thực hiện')
 
+    business_type = relationship('BusinessType')
     sla = relationship('Sla')
     parent = relationship('Stage', remote_side=[id])
     status = relationship('StageStatus')
@@ -232,18 +254,14 @@ class Lane(Base):
     __tablename__ = 'crm_lane'
 
     id = Column('lane_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID Luồng xử lý')
-    business_type_id = Column(ForeignKey('crm_bussiness_type.bussiness_type_id'), nullable=False,
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
                               comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
-    department_id = Column(VARCHAR(36), nullable=False, comment='ID Phòng ban')
-    branch_id = Column(ForeignKey('crm_branch.branch_id'), nullable=False, comment='ID Chi nhánh')
     code = Column('lane_code', VARCHAR(50), nullable=False, comment='Mã Luồng xử lý')
     name = Column('lane_name', VARCHAR(255), nullable=False, comment='Tên Luồng xử lý')
-    created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
+    created_at = Column(DateTime, nullable=False, server_default=text("sysdate "), comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày cập nhật')
 
-    branch = relationship('Branch')
     business_type = relationship('BusinessType')
-    stage = relationship('Stage', secondary='crm_stage_lane')
 
 
 class TransactionStageLane(Base):
@@ -296,14 +314,10 @@ class MaritalStatus(Base):
 
     id = Column('marital_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID tình trạng hôn nhân')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ')
     code = Column('marital_status_code', VARCHAR(50), nullable=False, comment='Mã tình trạng hôn nhân')
     name = Column('marital_status_name', VARCHAR(255), nullable=False, comment='Tên tình trạng hôn nhân')
     active_flag = Column('marital_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class Nation(Base):
@@ -325,7 +339,7 @@ class Phase(Base):
 
     id = Column('phase_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID Giai đoạn xử lý')
-    business_type_id = Column(ForeignKey('crm_bussiness_type.bussiness_type_id'), nullable=False,
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
                               comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
     code = Column('phase_code', VARCHAR(50), nullable=False, comment='Mã code Giai đoạn xử lý')
     name = Column('phase_name', VARCHAR(255), nullable=False, comment='Tên Giai đoạn xử lý')

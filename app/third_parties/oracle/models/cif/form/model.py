@@ -4,8 +4,8 @@ from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base, metadata
 from app.third_parties.oracle.models.master_data.others import (  # noqa
-    BusinessType, Sla, TransactionStageLane, TransactionStagePhase,
-    TransactionStageStatus
+    BusinessForm, BusinessType, Sla, TransactionStageLane,
+    TransactionStagePhase, TransactionStageStatus
 )
 
 
@@ -39,12 +39,13 @@ class TransactionStage(Base):
     phase_id = Column('transaction_stage_phase_id',
                       ForeignKey('crm_transaction_stage_phase.transaction_stage_phase_id'),
                       comment='Mã giai đoạn')
-    business_type_id = Column('bussiness_type_id', VARCHAR(36), comment='Tên bước hiện')
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), comment='Tên bước hiện')
     sla_transaction_id = Column(VARCHAR(36), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
     transaction_stage_phase_code = Column(VARCHAR(10), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
     transaction_stage_phase_name = Column(VARCHAR(200), comment='Tên bước hiện')
     responsible_flag = Column(NUMBER(1, 0, False), comment='Cờ người chịu trách nhiệm của bước thực hiện')
 
+    business_type = relationship('BusinessType')
     lane = relationship('TransactionStageLane')
     phase = relationship('TransactionStagePhase')
     status = relationship('TransactionStageStatus')
@@ -54,6 +55,8 @@ t_crm_stage_lane = Table(
     'crm_stage_lane', metadata,
     Column('lane_id', ForeignKey('crm_lane.lane_id'), comment='Mã luồng xử lý của bước thực hiện'),
     Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước  thực hiện'),
+    Column('department_id', VARCHAR(36), nullable=False, comment='ID Phòng ban'),
+    Column('branch_id', VARCHAR(20), nullable=False, comment='ID Chi nhánh'),
     comment='''Luồng xử lý
 
   1. Phòng A
@@ -93,6 +96,19 @@ class TransactionDaily(Base):
     transaction_stage = relationship('TransactionStage')
 
 
+class TransactionJob(Base):
+    __tablename__ = 'crm_transaction_job'
+
+    transaction_id = Column(VARCHAR(36), primary_key=True)
+    booking_id = Column(VARCHAR(36), nullable=False)
+    business_job_id = Column(VARCHAR(36), nullable=False)
+    complete_flag = Column(NUMBER(1, 0, False), nullable=False)
+    error_code = Column(VARCHAR(20), nullable=False)
+    error_desc = Column(VARCHAR(500), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime)
+
+
 class Booking(Base):
     __tablename__ = 'crm_booking'
     __table_args__ = {'comment': 'Lưu dữ liệu đẩy qua core'}
@@ -100,13 +116,26 @@ class Booking(Base):
     id = Column('booking_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID chính')
     code = Column('booking_code', VARCHAR(50), comment='Mã code')
     transaction_id = Column(ForeignKey('crm_transaction_daily.transaction_id'), comment='ID Transaction')
-    business_type_id = Column('bussiness_type_id', ForeignKey('crm_bussiness_type.bussiness_type_id'),
+    business_type_id = Column('business_type_id', ForeignKey('crm_business_type.business_type_id'),
                               comment='ID type')
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
 
     business_type = relationship('BusinessType')
     transaction = relationship('TransactionDaily')
+
+
+class BookingBusinessForm(Base):
+    __tablename__ = 'crm_booking_business_form'
+
+    booking_id = Column(ForeignKey('crm_booking.booking_id'), primary_key=True, nullable=False,
+                        server_default=text("sys_guid() "))
+    business_form_id = Column(ForeignKey('crm_business_form.business_form_id'), primary_key=True, nullable=False)
+    save_flag = Column(NUMBER(1, 0, False), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime)
+    booking = relationship('Booking')
+    business_form = relationship('BusinessForm')
 
 
 class TransactionAll(Base):

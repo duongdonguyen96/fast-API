@@ -78,7 +78,9 @@ class CustomerSubIdentityType(Base):
                   comment='(UN) Mã code loại giấy tờ định danh phụ')
     name = Column('sub_identity_type_name', VARCHAR(255), nullable=False, comment='Tên loại giấy tờ định danh phụ')
     active_flag = Column('sub_identity_type_active_flag', NUMBER(1, 0, False), comment='cờ hoạt động')
-    created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
+    created_at = Column(DateTime, nullable=False, server_default=text("""\
+    sysdate
+    """), comment='Ngày tạo')
     updated_at = Column(DateTime, nullable=False, comment='Ngày cập nhật')
     order_no = Column(NUMBER(2, 0, False), nullable=False, comment='Sắp xếp')
 
@@ -90,5 +92,5 @@ class PlaceOfIssue(Base):
     id = Column('place_of_issue_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='(PK) Id nơi phát hành/Nơi cấp Giấy tờ định danh')
     country_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id quốc gia')
-    code = Column('place_of_issue_code', VARCHAR(50), nullable=False, comment='Mã nơi phát hành/Nơi cấp')
+    code = Column('place_of_issue_code', VARCHAR(50), server_default=text("null "), comment='Mã nơi phát hành/Nơi cấp')
     name = Column('place_of_issue_name', VARCHAR(255), nullable=False, comment='Tên nơi phát hành/Nơi cấp')

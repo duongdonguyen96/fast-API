@@ -81,14 +81,10 @@ class CustomerGender(Base):
 
     id = Column('cust_gender_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID giới tính')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ')
     code = Column('cust_gender_code', VARCHAR(50), nullable=False, comment='Mã giới tính')
     name = Column('cust_gender_name', VARCHAR(255), nullable=False, comment='Tên giới tính')
     active_flag = Column('cust_gender_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class CustomerTitle(Base):
@@ -126,13 +122,10 @@ class CustomerRelationshipType(Base):
 
     id = Column('cust_relationship_type_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='(PK) Mã loại mối quan hệ khách hàng')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False, comment='(FK) Mã quốc gia')
     code = Column('cust_relationship_type_code', VARCHAR(50), nullable=False,
                   comment='Mã code loại mối quan hệ khách hàng')
     name = Column('cust_relationship_type_name', VARCHAR(255), nullable=False,
                   comment='Tên loại mối quan hệ khách hàng')
-    active_flag = Column('cust_relationship_type_active_flag', NUMBER(1, 2, True),
+    active_flag = Column('cust_relationship_type_active_flag', NUMBER(1, 0, False),
                          comment='Trạng thái hoạt động (Có/không)')
     order_no = Column(NUMBER(3, 2, True), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')

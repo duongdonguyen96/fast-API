@@ -11,7 +11,7 @@ from app.third_parties.oracle.models.master_data.customer import (  # noqa
     CustomerStatus, CustomerType
 )
 from app.third_parties.oracle.models.master_data.others import (  # noqa
-    Branch, Channel, KYCLevel
+    Channel, KYCLevel
 )
 
 
@@ -40,8 +40,7 @@ class Customer(Base):
                                         comment='Cờ mối quan hệ khách hàng (có/không)')
     active_flag = Column(NUMBER(1, 0, False), nullable=False, comment='Cờ trạng thái hoạt động')
     open_cif_at = Column(DateTime, nullable=False, comment='Ngày mở Cif')
-    open_branch_id = Column(ForeignKey('crm_branch.branch_id'), nullable=False,
-                            comment='Mã Thông tin đơn vị kinh doanh theo FCC')
+    open_branch_id = Column(VARCHAR(36), nullable=False, comment='Mã Thông tin đơn vị kinh doanh theo FCC')
     kyc_level_id = Column(ForeignKey('crm_kcy_level.kyc_level_id'), nullable=False, comment='Cấp độ KYC')
     customer_type_id = Column('cust_type_id', ForeignKey('crm_cust_type.cust_type_id'), nullable=False,
                               comment='Mã loại khách hàng')
@@ -70,4 +69,3 @@ class Customer(Base):
     customer_economic_profession = relationship('CustomerEconomicProfession')
     kyc_level = relationship('KYCLevel')
     nationality = relationship('AddressCountry')
-    open_branch = relationship('Branch')
