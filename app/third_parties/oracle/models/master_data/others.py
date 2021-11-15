@@ -1,8 +1,8 @@
-from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, text
+from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, Table, text
 from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
-from app.third_parties.oracle.base import Base
+from app.third_parties.oracle.base import Base, metadata
 from app.third_parties.oracle.models.master_data.address import (  # noqa
     AddressCountry
 )
@@ -332,6 +332,18 @@ class Nation(Base):
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
     country = relationship('AddressCountry')
+
+
+t_crm_stage_phase = Table(
+    'crm_stage_phase', metadata,
+    Column('phase_id', ForeignKey('crm_phase.phase_id'), comment='Mã Giai đoạn xử lý'),
+    Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện'),
+    comment='''Giai đoạn xử lý
+
+  1. Mở CIF
+  2. Upload giấy tờ
+  3. Ebank'''
+)
 
 
 class Phase(Base):
