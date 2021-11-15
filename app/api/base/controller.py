@@ -51,7 +51,7 @@ class BaseController:
 
         return result_call_repos.data
 
-    def append_error(self, msg: str, loc: str = None, detail: str = ""):
+    def append_error(self, msg: str, loc: str = "", detail: str = ""):
         """
         Hàm add exception để trả về
         :param msg: code exception
