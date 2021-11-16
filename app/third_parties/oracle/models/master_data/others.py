@@ -72,10 +72,11 @@ class BusinessJob(Base):
     id = Column('business_job_id', VARCHAR(36), primary_key=True)
     code = Column('business_job_code', VARCHAR(20), nullable=False)
     name = Column('business_job_name', VARCHAR(200), nullable=False)
-    active_flag = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "))
+    active_flag = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "), comment='Trạng thái hoạt động')
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime)
     business_type_id = Column(VARCHAR(36), nullable=False)
+    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
 
 class Branch(Base):
