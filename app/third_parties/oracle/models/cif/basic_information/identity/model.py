@@ -56,6 +56,10 @@ sys_guid()
     maker_at = Column(DateTime, nullable=False, comment='Thời gian thực hiện')
     updater_id = Column(VARCHAR(36), comment='Mã người cập nhật')
     updater_at = Column(DateTime, comment='Thời gian cập nhật')
+    identity_image_front_flag = Column(NUMBER(1, 0, False),
+                                       comment='Nếu giấy giờ tịnh danh là CMND:\n'
+                                               'Giá trị 1: mặt trước\n'
+                                               'Giá trị 0: mặt sau\n')
 
 
 class CustomerIdentityImageTransaction(Base):
