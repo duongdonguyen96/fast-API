@@ -33,7 +33,7 @@ async def repos_get_list_face(cif_id: str, session: Session) -> ReposReturn:
             )
         ).order_by(desc(CustomerIdentityImage.maker_at))
     ).all()
-    print('query', query_data, len(query_data))
+
     if not query_data:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
