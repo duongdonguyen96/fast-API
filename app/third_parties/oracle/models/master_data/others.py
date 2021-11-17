@@ -325,14 +325,10 @@ class Nation(Base):
     __tablename__ = 'crm_nation'
 
     id = Column('nation_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID dân tộc')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ')
     code = Column('nation_code', VARCHAR(50), nullable=False, comment='Mã dân tộc')
     name = Column('nation_name', VARCHAR(255), nullable=False, comment='Tên dân tộc')
     active_flag = Column('nation_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 t_crm_stage_phase = Table(
@@ -365,14 +361,10 @@ class Religion(Base):
     __tablename__ = 'crm_religion'
 
     id = Column('religion_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID tôn giáo')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ')
     code = Column('religion_code', VARCHAR(50), nullable=False, comment='Mã tôn giáo')
     name = Column('religion_name', VARCHAR(255), nullable=False, comment='Tên tôn giáo')
     active_flag = Column('religion_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class StageRole(Base):

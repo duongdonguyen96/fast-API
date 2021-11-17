@@ -1,6 +1,5 @@
-from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, text
+from sqlalchemy import VARCHAR, Column, DateTime, text
 from sqlalchemy.dialects.oracle import NUMBER
-from sqlalchemy.orm import relationship
 
 from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.master_data.address import (  # noqa
@@ -25,15 +24,11 @@ class CustomerClassification(Base):
 
     id = Column('cust_classification_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID phân hạng khách hàng')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ)')
     code = Column('cust_classification_code', VARCHAR(50), nullable=False, comment='Mã phân hạng khách hàng')
     name = Column('cust_classification_name', VARCHAR(255), nullable=False, comment='Tên phân hạng khách hàng')
     active_flag = Column('cust_classification_active_flag', NUMBER(1, 0, False), nullable=False,
                          comment='Trạng thái hoạt động')
     order_no = Column('order_no', NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class CustomerType(Base):
@@ -52,15 +47,11 @@ class CustomerCategory(Base):
 
     id = Column('cust_category_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID đối tượng khách hàng')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ)')
     code = Column('cust_category_code', VARCHAR(50), nullable=False, comment='Mã đối tượng khách hàng')
     name = Column('cust_category_name', VARCHAR(255), nullable=False, comment='Tên đối tượng khách hàng')
     active_flag = Column('cust_category_active_flag', NUMBER(1, 0, False), nullable=False,
                          comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class CustomerStatus(Base):
@@ -92,14 +83,10 @@ class CustomerTitle(Base):
 
     id = Column('cust_title_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID chức danh xưng hô')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ)')
     code = Column('cust_title_code', VARCHAR(50), nullable=False, comment='Mã chức danh xưng hô')
     name = Column('cust_title_name', VARCHAR(255), nullable=False, comment='Tên chức danh xưng hô')
-    active_flag = Column('cust_title_active_flag', NUMBER(1, 3, True), nullable=False, comment='Trạng thái hoạt động')
+    active_flag = Column('cust_title_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class CustomerContactType(Base):
@@ -108,12 +95,9 @@ class CustomerContactType(Base):
 
     id = Column('cust_contact_type_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='(PK)  Mã loại dữ liệu liên hệ')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), comment='(FK)  Mã quốc gia')
     group = Column('cust_contact_type_group', VARCHAR(255))
     name = Column('cust_contact_type_name', VARCHAR(255), comment='Tên loại liên hệ')
     description = Column('cust_contact_type_description', VARCHAR(500), comment='Mô tả loại  liệu liên hệ')
-
-    country = relationship('AddressCountry')
 
 
 class CustomerRelationshipType(Base):
