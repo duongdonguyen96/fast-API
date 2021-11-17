@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
@@ -28,7 +29,7 @@ async def repos_save_fingerprint(cif_id: str, finger_request: TwoFingerPrintRequ
     })
 
 
-async def repos_get_data_finger(cif_id: str, session) -> ReposReturn:
+async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
 
     query_data = session.execute(
         select(
@@ -47,6 +48,7 @@ async def repos_get_data_finger(cif_id: str, session) -> ReposReturn:
             FingerType, CustomerIdentityImage.finger_type_id == FingerType.id
         ).filter(Customer.id == cif_id).order_by(CustomerIdentityImage.finger_type_id)
     ).all()
+
     if not query_data:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
@@ -57,7 +59,7 @@ async def repos_get_data_finger(cif_id: str, session) -> ReposReturn:
         'fingerprint_2': fingerprint_2,
     }
 
-    for customer, customer_identity, customer_identity_image, hand_side, finger_print in query_data:
+    for _, _, customer_identity_image, hand_side, finger_print in query_data:
         if hand_side.id == "1":
             fingerprint_1.append(
                 {
