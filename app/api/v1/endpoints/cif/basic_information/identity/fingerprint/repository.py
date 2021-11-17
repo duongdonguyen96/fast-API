@@ -16,7 +16,7 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.utils.constant.cif import CIF_ID_TEST, CRM_HAND_SIDE_LEFT_HAND_CODE
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+from app.utils.functions import dropdown, now
 
 
 async def repos_save_fingerprint(cif_id: str, finger_request: TwoFingerPrintRequest, created_by: str):
@@ -59,38 +59,15 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
     fingerprint_2 = []
 
     for _, _, customer_identity_image, hand_side, finger_print in query_data:
+        fingerprint = {
+            'image_url': customer_identity_image.image_url,
+            'hand_side': dropdown(hand_side),
+            'finger_type': dropdown(finger_print)
+        }
         if hand_side.code == CRM_HAND_SIDE_LEFT_HAND_CODE:
-            fingerprint_1.append(
-                {
-                    'image_url': customer_identity_image.image_url,
-                    'hand_side': {
-                        'id': hand_side.id,
-                        'code': hand_side.code,
-                        'name': hand_side.name
-                    },
-                    'finger_type': {
-                        'id': finger_print.id,
-                        'code': finger_print.code,
-                        'name': finger_print.name
-                    }
-                }
-            )
+            fingerprint_1.append(fingerprint)
         else:
-            fingerprint_2.append(
-                {
-                    'image_url': customer_identity_image.image_url,
-                    'hand_side': {
-                        'id': hand_side.id,
-                        'code': hand_side.code,
-                        'name': hand_side.name
-                    },
-                    'finger_type': {
-                        'id': finger_print.id,
-                        'code': finger_print.code,
-                        'name': finger_print.name
-                    }
-                }
-            )
+            fingerprint_2.append(fingerprint)
 
     return ReposReturn(data={
         'fingerprint_1': fingerprint_1,
