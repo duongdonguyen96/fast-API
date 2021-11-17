@@ -1,10 +1,22 @@
+from sqlalchemy import and_, select
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
     TwoFingerPrintRequest
 )
-from app.utils.constant.cif import CIF_ID_TEST
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerIdentity, CustomerIdentityImage
+)
+from app.third_parties.oracle.models.cif.basic_information.model import (
+    Customer
+)
+from app.third_parties.oracle.models.master_data.identity import (
+    FingerType, HandSide
+)
+from app.utils.constant.cif import CIF_ID_TEST, CRM_HAND_SIDE_LEFT_HAND_CODE
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+from app.utils.functions import dropdown, now
 
 
 async def repos_save_fingerprint(cif_id: str, finger_request: TwoFingerPrintRequest, created_by: str):
@@ -17,91 +29,47 @@ async def repos_save_fingerprint(cif_id: str, finger_request: TwoFingerPrintRequ
     })
 
 
-async def repos_get_data_finger(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
+    query_data = session.execute(
+        select(
+            Customer,
+            CustomerIdentity,
+            CustomerIdentityImage,
+            HandSide,
+            FingerType
+        ).join(
+            CustomerIdentity, Customer.id == CustomerIdentity.customer_id
+        ).join(
+            CustomerIdentityImage, and_(
+                CustomerIdentity.id == CustomerIdentityImage.identity_id,
+                CustomerIdentityImage.finger_type_id.isnot(None),
+                CustomerIdentityImage.hand_side_id.isnot(None)
+            )
+        ).join(
+            HandSide, CustomerIdentityImage.hand_side_id == HandSide.id
+        ).join(
+            FingerType, CustomerIdentityImage.finger_type_id == FingerType.id
+        ).filter(Customer.id == cif_id).order_by(CustomerIdentityImage.finger_type_id)
+    ).all()
+
+    if not query_data:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    fingerprint_1 = []
+    fingerprint_2 = []
+
+    for _, _, customer_identity_image, hand_side, finger_print in query_data:
+        fingerprint = {
+            'image_url': customer_identity_image.image_url,
+            'hand_side': dropdown(hand_side),
+            'finger_type': dropdown(finger_print)
+        }
+        if hand_side.code == CRM_HAND_SIDE_LEFT_HAND_CODE:
+            fingerprint_1.append(fingerprint)
+        else:
+            fingerprint_2.append(fingerprint)
 
     return ReposReturn(data={
-        "fingerprint_1": [
-            {
-                "image_url": "https://example.com/abc.png",
-                "hand_side": {
-                    "id": "1",
-                    "code": "taytrai",
-                    "name": "bàn tay trái"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "ngontro",
-                    "name": "ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/abc.png",
-                "hand_side": {
-                    "id": "1",
-                    "code": "taytrai",
-                    "name": "bàn tay trái"
-                },
-                "finger_type": {
-                    "id": "2",
-                    "code": "ngongiua",
-                    "name": "ngón giữa"
-                }
-            },
-            {
-                "image_url": "https://example.com/abc.png",
-                "hand_side": {
-                    "id": "1",
-                    "code": "taytrai",
-                    "name": "bàn tay trái"
-                },
-                "finger_type": {
-                    "id": "3",
-                    "code": "ngoncai",
-                    "name": "ngón cái"
-                }
-            }
-        ],
-        "fingerprint_2": [
-            {
-                "image_url": "https://example.com/abc.png",
-                "hand_side": {
-                    "id": "2",
-                    "code": "tayphai",
-                    "name": "bàn tay phải"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "ngontro",
-                    "name": "ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/abc.png",
-                "hand_side": {
-                    "id": "2",
-                    "code": "tayphai",
-                    "name": "bàn tay phải"
-                },
-                "finger_type": {
-                    "id": "2",
-                    "code": "ngongiua",
-                    "name": "ngón giữa"
-                }
-            },
-            {
-                "image_url": "https://example.com/abc.png",
-                "hand_side": {
-                    "id": "2",
-                    "code": "tayphai",
-                    "name": "bàn tay phẩi"
-                },
-                "finger_type": {
-                    "id": "3",
-                    "code": "ngoncai",
-                    "name": "ngón cái"
-                }
-            }
-        ]
+        'fingerprint_1': fingerprint_1,
+        'fingerprint_2': fingerprint_2,
     })

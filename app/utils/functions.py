@@ -7,6 +7,14 @@ from app.settings.config import (
 )
 
 
+def dropdown(data) -> dict:
+    return {
+        'id': data.id,
+        'code': data.code,
+        'name': data.name,
+    }
+
+
 def today():
     """
     get today
