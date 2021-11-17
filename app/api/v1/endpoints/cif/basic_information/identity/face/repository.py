@@ -37,31 +37,24 @@ async def repos_get_list_face(cif_id: str, session: Session) -> ReposReturn:
     if not query_data:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
-    data_response = []
-    data = {}
+    date__faces = {}
     for _, _, customer_identity_image, customer_compare_image in query_data:
+        date_str = datetime_to_date(customer_identity_image.maker_at)
+        if date_str not in date__faces:
+            date__faces[date_str] = []
 
-        if data.get(datetime_to_date(customer_identity_image.maker_at)):
-            data[datetime_to_date(customer_identity_image.maker_at)].append(
-                {
-                    "identity_image_id": customer_identity_image.id,
-                    "image_url": customer_identity_image.image_url,
-                    "created_at": customer_identity_image.maker_at,
-                    "similar_percent": customer_compare_image.similar_percent
-                }
-            )
-        else:
-            data[datetime_to_date(customer_identity_image.maker_at)] = [{
+        date__faces[date_str].append(
+            {
                 "identity_image_id": customer_identity_image.id,
                 "image_url": customer_identity_image.image_url,
                 "created_at": customer_identity_image.maker_at,
                 "similar_percent": customer_compare_image.similar_percent
-            }]
+            }
+        )
 
-    for data_key, data_value in data.items():
-        data_response.append({
-            'created_date': data_key,
-            'faces': data_value
-        })
+    data_response = [{
+        'created_date': data_str,
+        'faces': faces
+    } for data_str, faces in date__faces.items()]
 
     return ReposReturn(data=data_response)
