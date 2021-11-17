@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
@@ -14,7 +14,7 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.master_data.identity import (
     FingerType, HandSide
 )
-from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.constant.cif import CIF_ID_TEST, CRM_HAND_SIDE_LEFT_HAND_CODE
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
@@ -30,7 +30,6 @@ async def repos_save_fingerprint(cif_id: str, finger_request: TwoFingerPrintRequ
 
 
 async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
-
     query_data = session.execute(
         select(
             Customer,
@@ -41,7 +40,11 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
         ).join(
             CustomerIdentity, Customer.id == CustomerIdentity.customer_id
         ).join(
-            CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id
+            CustomerIdentityImage, and_(
+                CustomerIdentity.id == CustomerIdentityImage.identity_id,
+                CustomerIdentityImage.finger_type_id.isnot(None),
+                CustomerIdentityImage.hand_side_id.isnot(None)
+            )
         ).join(
             HandSide, CustomerIdentityImage.hand_side_id == HandSide.id
         ).join(
@@ -54,13 +57,9 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
 
     fingerprint_1 = []
     fingerprint_2 = []
-    data_response = {
-        'fingerprint_1': fingerprint_1,
-        'fingerprint_2': fingerprint_2,
-    }
 
     for _, _, customer_identity_image, hand_side, finger_print in query_data:
-        if hand_side.id == "1":
+        if hand_side.code == CRM_HAND_SIDE_LEFT_HAND_CODE:
             fingerprint_1.append(
                 {
                     'image_url': customer_identity_image.image_url,
@@ -93,4 +92,7 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
                 }
             )
 
-    return ReposReturn(data=data_response)
+    return ReposReturn(data={
+        'fingerprint_1': fingerprint_1,
+        'fingerprint_2': fingerprint_2,
+    })
