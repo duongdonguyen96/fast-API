@@ -6,5 +6,5 @@ from app.api.v1.endpoints.cif.basic_information.identity.face.repository import 
 
 class CtrFace(BaseController):
     async def ctr_get_list_face(self, cif_id: str):
-        face_data = self.call_repos(await repos_get_list_face(cif_id))
+        face_data = self.call_repos(await repos_get_list_face(cif_id, self.oracle_session))
         return self.response(data=face_data)

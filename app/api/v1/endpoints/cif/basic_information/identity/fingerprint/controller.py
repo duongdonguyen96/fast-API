@@ -19,5 +19,5 @@ class CtrFingerPrint(BaseController):
         return self.response(data=data)
 
     async def ctr_get_fingerprint(self, cif_id: str):
-        fingerprint_data = self.call_repos(await repos_get_data_finger(cif_id))
+        fingerprint_data = self.call_repos(await repos_get_data_finger(cif_id, self.oracle_session))
         return self.response(data=fingerprint_data)
