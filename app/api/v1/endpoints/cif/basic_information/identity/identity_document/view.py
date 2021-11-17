@@ -17,6 +17,7 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schem
     PassportDetailResponse
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
+from app.utils.constant.cif import IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
 
 router = APIRouter()
 
@@ -46,9 +47,12 @@ async def view_detail(
         identity_document_type_id=identity_document_type_id
     )
 
-    return ResponseData[Union[IdentityCardDetailResponse, CitizenCardDetailResponse, PassportDetailResponse]](
-        **detail_info
-    )
+    if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
+        return ResponseData[IdentityCardDetailResponse](**detail_info)
+    elif identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
+        return ResponseData[CitizenCardDetailResponse](**detail_info)
+    else:
+        return ResponseData[PassportDetailResponse](**detail_info)
 
 
 @router.get(
