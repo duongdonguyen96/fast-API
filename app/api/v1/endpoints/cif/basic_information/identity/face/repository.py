@@ -22,15 +22,15 @@ async def repos_get_list_face(cif_id: str, session: Session) -> ReposReturn:
         ).join(
             CustomerIdentity, Customer.id == CustomerIdentity.customer_id
         ).join(
-            CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id
-        ).join(
-            CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id
-        ).filter(
-            and_(
-                Customer.id == cif_id,
+            CustomerIdentityImage, and_(
+                CustomerIdentity.id == CustomerIdentityImage.identity_id,
                 CustomerIdentityImage.finger_type_id.is_(None),
                 CustomerIdentityImage.hand_side_id.is_(None)
             )
+        ).join(
+            CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id
+        ).filter(
+            Customer.id == cif_id
         ).order_by(desc(CustomerIdentityImage.maker_at))
     ).all()
 
