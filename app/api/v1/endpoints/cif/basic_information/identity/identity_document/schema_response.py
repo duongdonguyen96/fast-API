@@ -5,7 +5,8 @@ from pydantic import Field
 
 from app.api.base.schema import BaseSchema
 from app.api.v1.schemas.cif import AddressResponse, FingerPrintResponse
-from app.api.v1.schemas.utils import DropdownResponse
+from app.api.v1.schemas.utils import DropdownResponse, OptionalDropdownResponse
+
 
 ########################################################################################################################
 # response detail giấy tờ định danh
@@ -43,7 +44,7 @@ class OCRAddressIdentityCitizenCardResponse(BaseSchema):  # noqa
 class OCRDocumentIdentityCardResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
-    place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
+    place_of_issue: OptionalDropdownResponse = Field(..., description="Nơi cấp") #data place_of_issue.code được null
     expired_date: date = Field(..., description="Có giá trị đến")
 
 
