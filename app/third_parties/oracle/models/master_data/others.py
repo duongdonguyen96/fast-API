@@ -72,10 +72,11 @@ class BusinessJob(Base):
     id = Column('business_job_id', VARCHAR(36), primary_key=True)
     code = Column('business_job_code', VARCHAR(20), nullable=False)
     name = Column('business_job_name', VARCHAR(200), nullable=False)
-    active_flag = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "))
+    active_flag = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "), comment='Trạng thái hoạt động')
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime)
     business_type_id = Column(VARCHAR(36), nullable=False)
+    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
 
 class Branch(Base):
@@ -324,14 +325,10 @@ class Nation(Base):
     __tablename__ = 'crm_nation'
 
     id = Column('nation_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID dân tộc')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ')
     code = Column('nation_code', VARCHAR(50), nullable=False, comment='Mã dân tộc')
     name = Column('nation_name', VARCHAR(255), nullable=False, comment='Tên dân tộc')
     active_flag = Column('nation_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 t_crm_stage_phase = Table(
@@ -364,14 +361,10 @@ class Religion(Base):
     __tablename__ = 'crm_religion'
 
     id = Column('religion_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID tôn giáo')
-    country_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
-                        comment='ID quốc gia (nhiều ngôn ngữ')
     code = Column('religion_code', VARCHAR(50), nullable=False, comment='Mã tôn giáo')
     name = Column('religion_name', VARCHAR(255), nullable=False, comment='Tên tôn giáo')
     active_flag = Column('religion_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-    country = relationship('AddressCountry')
 
 
 class StageRole(Base):

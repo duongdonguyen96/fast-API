@@ -24,7 +24,7 @@ class CardDeliveryAddress(Base):
 
     card_delivery_address_id = Column(VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                                       comment='Mã địa chỉ giao nhận thẻv(PK)')
-    branch_id = Column(ForeignKey('crm_branch.branch_id'), nullable=False, comment='Mã đơn vị (FK)')
+    branch_id = Column(VARCHAR(36), nullable=False, comment='Mã đơn vị (FK)')
     province_id = Column(ForeignKey('crm_address_province.province_id'), nullable=False, comment='Mã tỉnh (FK)')
     district_id = Column(ForeignKey('crm_address_district.district_id'), nullable=False,
                          comment='Mã Thông tin quận huyện (FK)')
@@ -32,7 +32,6 @@ class CardDeliveryAddress(Base):
     card_delivery_address_address = Column(VARCHAR(500), nullable=False, comment='Địa chỉ')
     card_delivery_address_note = Column(VARCHAR(500), comment='Ghi chú')
 
-    branch = relationship('Branch')
     province = relationship('AddressProvince')
     district = relationship('AddressDistrict')
     ward = relationship('AddressWard')
