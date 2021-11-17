@@ -86,7 +86,7 @@ class OCRDocumentCitizenCardResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
-    place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
+    place_of_issue: OptionalDropdownResponse = Field(..., description="Nơi cấp")
     mrz_content: str = Field(None, description="MRZ")  # CCCD
     qr_code_content: str = Field(None, description="Nội dung QR Code")  # CCCD
 
@@ -132,7 +132,7 @@ class InformationPassportResponse(BaseSchema):
 class OCRDocumentPassportResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
-    place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
+    place_of_issue: OptionalDropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     passport_type: DropdownResponse = Field(..., description="Loại")
     passport_code: DropdownResponse = Field(..., description="Mã số")
