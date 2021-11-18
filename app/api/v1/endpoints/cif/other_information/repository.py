@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
@@ -14,7 +14,9 @@ from app.third_parties.oracle.models.cif.other_information.model import (
 from app.third_parties.oracle.models.master_data.others import (
     HrmEmployee, StaffType
 )
-from app.utils.constant.cif import CIF_ID_TEST, STAFF_TYPE_BUSINESS_CODE
+from app.utils.constant.cif import (
+    STAFF_TYPE_BUSINESS_CODE, STAFF_TYPE_REFER_INDIRECT_CODE
+)
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
@@ -60,15 +62,72 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
     })
 
 
+async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInformationUpdateRequest,
+                                  session: Session) -> ReposReturn:  # noqa
 
+    if update_other_info_req.sale_staff is None or update_other_info_req.indirect_sale_staff is None:
+        session.execute(
+            update(Customer).values(
+                legal_agreement_flag=update_other_info_req.legal_agreement_flag,
+                advertising_marketing_flag=update_other_info_req.advertising_marketing_flag
+            ))
+        session.commit()
 
-async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInformationUpdateRequest) -> ReposReturn: # noqa
-    if cif_id == CIF_ID_TEST:
         return ReposReturn(data={
             'created_at': now(),
             'created_by': 'system',
             'updated_at': now(),
             'updated_by': 'system'
         })
-    else:
+
+    customer_id = session.execute(select(Customer.id).filter(Customer.id == cif_id)).scalar()
+    if not customer_id:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    staff_id = update_other_info_req.sale_staff.id
+    indirect_staff_id = update_other_info_req.indirect_sale_staff.id
+
+    employee_id_engine = session.execute(
+        select(
+            HrmEmployee.id
+        ).filter(
+            HrmEmployee.id.in_([staff_id, indirect_staff_id])  # noqa
+        )
+    )
+    employee_id = employee_id_engine.all()
+    if (staff_id == indirect_staff_id and len(employee_id) < 1) or (
+            staff_id != indirect_staff_id and len(employee_id) < 2):
+        return ReposReturn(
+            is_error=True, msg="employee is not exist", loc="sale_staff -> id or indirect_sale_staff -> id"
+        )
+
+    new_customer_employees = [
+        {
+            "staff_type_id": STAFF_TYPE_BUSINESS_CODE,
+            "employee_id": staff_id,
+            "customer_id": cif_id
+        },
+        {
+            "staff_type_id": STAFF_TYPE_REFER_INDIRECT_CODE,
+            "employee_id": indirect_staff_id,
+            "customer_id": cif_id
+        }
+    ]
+
+    data_insert = [CustomerEmployee(**data_insert) for data_insert in new_customer_employees]
+    session.bulk_save_objects(data_insert)
+    session.commit()
+
+    session.execute(
+        update(Customer).values(
+            legal_agreement_flag=update_other_info_req.legal_agreement_flag,
+            advertising_marketing_flag=update_other_info_req.advertising_marketing_flag
+        ))
+    session.commit()
+
+    return ReposReturn(data={
+        'created_at': now(),
+        'created_by': 'system',
+        'updated_at': now(),
+        'updated_by': 'system'
+    })
