@@ -9,7 +9,7 @@ from app.api.v1.endpoints.cif.other_information.schema import (
 
 class CtrOtherInfo(BaseController):
     async def ctr_other_info(self, cif_id: str):
-        other_information = self.call_repos(await repos_other_info(cif_id))
+        other_information = self.call_repos(await repos_other_info(cif_id, self.oracle_session))
         return self.response(other_information)
 
     async def ctr_update_other_info(self, cif_id: str, update_other_info_req: OtherInformationUpdateRequest):
