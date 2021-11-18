@@ -108,3 +108,6 @@ def travel_dict(d: dict, process_func: Callable):
 def process_generate_uuid(d):
     if isinstance(d, dict) and ("uuid" in d) and (d["uuid"] is None):
         d.update({"uuid": generate_uuid()})
+
+def raise_does_not_exist_string(object_str) -> str:
+    return f"{object_str} does not exist"

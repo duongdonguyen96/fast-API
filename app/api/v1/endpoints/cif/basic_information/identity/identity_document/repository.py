@@ -26,7 +26,7 @@ from app.utils.constant.cif import (
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST, MESSAGE_STATUS
 )
-from app.utils.functions import now
+from app.utils.functions import now, raise_does_not_exist_string
 
 IDENTITY_LOGS_INFO = [
     {
@@ -84,40 +84,31 @@ async def repos_get_detail(
         cif_id: str, identity_document_type_id: str, oracle_session: Session, current_user
 ) -> ReposReturn:
     if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
-        return ReposReturn(is_error=True, msg=MESSAGE_STATUS[ERROR_IDENTITY_DOCUMENT_NOT_EXIST] +
-                                              f" in {IDENTITY_DOCUMENT_TYPE}", loc='identity_document_type_id')
+        return ReposReturn(is_error=True, msg=f"{MESSAGE_STATUS[ERROR_IDENTITY_DOCUMENT_NOT_EXIST]} in "
+                                              f"{IDENTITY_DOCUMENT_TYPE}", loc='identity_document_type_id')
 
-    try:
-        customer_identity_type, _ = oracle_session.execute(
-            select(
-                CustomerIdentityType,
-                CustomerIdentity
-            )
-            .join(CustomerIdentity, CustomerIdentityType.id == CustomerIdentity.identity_type_id)
-            .filter(CustomerIdentity.customer_id == cif_id, CustomerIdentityType.id == identity_document_type_id)
-        ).one()
-    except Exception as ex:
-        return ReposReturn(is_error=True, msg=str(ex), loc='identity_document_type_id, cif_id')
-
+    # Loại giấy tờ định danh
     # Phân tích OCR -> Giấy tờ định danh
     try:
-        ocr_customer_identity, ocr_place_of_issue, ocr_passport_type, ocr_passport_code = oracle_session.execute(
+        customer_identity_type, ocr_customer_identity, ocr_place_of_issue, ocr_passport_type, ocr_passport_code = \
+        oracle_session.execute(
             select(
+                CustomerIdentityType,
                 CustomerIdentity,
                 PlaceOfIssue,
                 PassportType,
                 PassportCode
             )
+            .join(CustomerIdentity, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
             .join(PlaceOfIssue, PlaceOfIssue.id == CustomerIdentity.place_of_issue_id)
             .outerjoin(PassportType, PassportType.id == CustomerIdentity.passport_type_id)
             .outerjoin(PassportCode, PassportCode.id == CustomerIdentity.passport_code_id)
-            .filter(
-                CustomerIdentity.customer_id == cif_id,
-                CustomerIdentity.identity_type_id == identity_document_type_id
-            )
-        ).first()
+            .filter(CustomerIdentity.customer_id == cif_id, CustomerIdentityType.id == identity_document_type_id)
+        ).one()
     except Exception as ex:
-        return ReposReturn(is_error=True, msg=str(ex), loc='ocr_result -> identity_document')
+        return ReposReturn(is_error=True, msg=f"Customer Identity Type does not exist in {identity_document_type_id=} "
+                                              f"and {cif_id=}", loc='identity_document_type_id, cif_id')
+
 
     # Phân tích OCR -> Thông tin cơ bản
     try:
@@ -134,39 +125,44 @@ async def repos_get_detail(
                 Nation,
                 CustomerIdentity
             )
-            .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
-            .join(CustomerIdentity, CustomerIdentity.identity_type_id == identity_document_type_id)
+            .join(CustomerIndividualInfo, CustomerIndividualInfo.customer_id == Customer.id)
+            .join(CustomerGender, CustomerGender.id == CustomerIndividualInfo.gender_id)
+            .join(AddressCountry, AddressCountry.id == CustomerIndividualInfo.country_of_birth_id)
+            .join(AddressProvince, AddressProvince.id == CustomerIndividualInfo.place_of_birth_id)
+            .join(Religion, Religion.id == CustomerIndividualInfo.religion_id)
+            .join(Nation, Nation.id == CustomerIndividualInfo.nation_id)
             .filter(
                 Customer.id == cif_id,
+                CustomerIdentity.identity_type_id == identity_document_type_id
             )
         ).first()
     except Exception as ex:
-        return ReposReturn(is_error=True, msg=str(ex), loc='ocr_result -> basic_information')
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Basic Information"), loc='ocr_result -> basic_information')
 
     # Phân tích OCR -> Địa chi thường trú
     try:
         customer_resident_address, customer_resident_address_province, \
-        customer_resident_address_district, customer_resident_address_ward, _ = oracle_session.execute(
+        customer_resident_address_district, customer_resident_address_ward = oracle_session.execute(
             select(
                 CustomerAddress,
                 AddressProvince,
                 AddressDistrict,
-                AddressWard,
-                AddressType
+                AddressWard
             )
             .join(AddressProvince, AddressProvince.id == CustomerAddress.address_province_id)
             .join(AddressDistrict, AddressDistrict.id == CustomerAddress.address_district_id)
             .join(AddressWard, AddressWard.id == CustomerAddress.address_ward_id)
             .join(AddressType, and_(
-                AddressType.id == CustomerAddress.address_type_id, AddressType.code == RESIDENT_ADDRESS_CODE
+                AddressType.id == CustomerAddress.address_type_id,
+                AddressType.code == RESIDENT_ADDRESS_CODE
             ))
             .filter(
                 Customer.id == cif_id,
                 CustomerIdentity.identity_type_id == identity_document_type_id
             )
-        ).one()
+        ).first()
     except Exception as ex:
-        return ReposReturn(is_error=True, msg=str(ex), loc='ocr_result -> resident_address')
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Resident Address"), loc='ocr_result -> resident_address')
 
     # Phân tích OCR -> Địa chỉ liên lạc
     try:
@@ -190,24 +186,25 @@ async def repos_get_detail(
                 Customer.id == cif_id,
                 CustomerIdentity.identity_type_id == identity_document_type_id
             )
-        ).one()
+        ).first()
     except Exception as ex:
-        return ReposReturn(is_error=True, msg=str(ex), loc='ocr_result -> contact_address')
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Contact Address"), loc='ocr_result -> contact_address')
 
     fingerprint_list = []
 
     if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD or \
-            identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
+            identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
         # Thông tin mặt trước
         try:
-            front_side_customer_identity_image, _, front_side_customer_compare_image = oracle_session.execute(
+            front_side_customer_identity_image, front_side_customer_compare_image = oracle_session.execute(
                 select(
                     CustomerIdentityImage,
-                    CustomerIdentity,
                     CustomerCompareImage,
                 )
-                .join(CustomerIdentity, and_(CustomerIdentity.id == CustomerIdentityImage.identity_id,
-                                             CustomerIdentity.customer_id == cif_id))
+                .join(CustomerIdentity, and_(
+                    CustomerIdentity.id == CustomerIdentityImage.identity_id,
+                    CustomerIdentity.customer_id == cif_id
+                ))
                 .join(CustomerCompareImage, CustomerCompareImage.identity_image_id == CustomerIdentityImage.id)
                 .order_by(desc(CustomerIdentityImage.updater_at))
                 .filter(
@@ -217,7 +214,7 @@ async def repos_get_detail(
                 )
             ).first()
         except Exception as ex:
-            return ReposReturn(is_error=True, msg=str(ex), loc='front_side_information')
+            return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Front Side Information"), loc='front_side_information')
 
         # Thông tin mặt sau
         try:
@@ -228,19 +225,20 @@ async def repos_get_detail(
                     HandSide,
                     FingerType
                 )
-                .join(CustomerIdentity, and_(CustomerIdentity.id == CustomerIdentityImage.identity_id,
-                                             CustomerIdentity.customer_id == cif_id))
-                .join(HandSide, CustomerIdentityImage.hand_side_id == HandSide.id)
-                .join(FingerType, CustomerIdentityImage.finger_type_id == FingerType.id)
+                .join(CustomerIdentity, and_(
+                    CustomerIdentity.id == CustomerIdentityImage.identity_id,
+                    CustomerIdentity.customer_id == cif_id
+                ))
+                .join(HandSide, HandSide.id == CustomerIdentityImage.hand_side_id)
+                .join(FingerType, FingerType.id == CustomerIdentityImage.finger_type_id)
                 .filter(
                     CustomerIdentity.customer_id == cif_id,
                     CustomerIdentityImage.identity_type_id == identity_document_type_id,
                     CustomerIdentityImage.identity_image_front_flag == IDENTITY_BACK_SIDE
                 )
             ).all()
-
         except Exception as ex:
-            return ReposReturn(is_error=True, msg=str(ex), loc='back_side_information')
+            return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Back Side Information"), loc='back_side_information')
 
         identity_info_backside_information = {
             "identity_image_url": "",
@@ -366,6 +364,7 @@ async def repos_get_detail(
                 }
             }
             return ReposReturn(data=identity_info)
+
         elif identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
             citizen_card_info = {
                 "identity_document_type": {
@@ -465,7 +464,7 @@ async def repos_get_detail(
                     FingerType
                 )
                 .join(CustomerIdentityImage, and_(
-                    CustomerIdentity.id == CustomerIdentityImage.identity_id,
+                    CustomerIdentityImage.identity_id ==CustomerIdentity.id,
                     CustomerIdentityImage.identity_image_front_flag.is_(None),
                 ))
                 .outerjoin(CustomerCompareImage, and_(
@@ -480,7 +479,7 @@ async def repos_get_detail(
                 .order_by(desc(CustomerIdentityImage.updater_at))
             ).all()
         except Exception as ex:
-            return ReposReturn(is_error=True, msg=str(ex), loc='passport_information')
+            return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Passport Information"), loc='passport_information')
 
         passport_information_image_url = ""
         passport_information_compare_image_url = ""
