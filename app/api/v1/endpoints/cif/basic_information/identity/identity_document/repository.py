@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy import select, and_, desc
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
@@ -20,13 +20,171 @@ from app.third_parties.oracle.models.master_data.identity import CustomerIdentit
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
-    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, RESIDENT_ADDRESS_CODE, CONTACT_ADDRESS_CODE, IDENTITY_FRONT_SIDE,
-    IDENTITY_BACK_SIDE
+    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, RESIDENT_ADDRESS_CODE, CONTACT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST, MESSAGE_STATUS
 )
-from app.utils.functions import now, raise_does_not_exist_string, dropdown
+from app.utils.functions import now, dropdown
+
+address_information = {
+    "resident_address": {
+        "province": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "district": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "ward": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "number_and_street": ""
+    },
+    "contact_address": {
+        "province": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "district": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "ward": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "number_and_street": ""
+    }
+}
+identity_document = {
+    "identity_number": "",
+    "issued_date": "2000-01-01",
+    "place_of_issue": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "expired_date": "2000-01-01",
+    #HC
+    "passport_type": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "passport_code": {
+        "id": "",
+        "code": "",
+        "name": ""
+    }
+}
+basic_information = {
+    "id": "",
+    "full_name_vn": "",
+    "gender": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "date_of_birth": "2000-01-01",
+    "nationality": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "province": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "ethnic": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "religion": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "identity_characteristic": "",
+    "father_full_name_vn": "",
+    "mother_full_name_vn": "",
+    # HC
+    "place_of_birth": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "identity_card_number": ""
+}
+backside_information = {
+    "identity_image_url": "",
+    "fingerprint": [
+        {
+            "image_url": "",
+            "hand_side": {
+                "id": "",
+                "code": "",
+                "name": ""
+            },
+            "finger_type": {
+                "id": "",
+                "code": "",
+                "name": ""
+            }
+        }
+    ],
+    "updated_at": "2000-01-01 00:00:00",
+    "updated_by": ""
+}
+passport_information = {
+        "identity_image_url": "",
+        "face_compare_image_url": "",
+        "similar_percent": 00,
+        "fingerprint": [
+            {
+                "image_url": "",
+                "hand_side": {
+                    "id": "",
+                    "code": "",
+                    "name": ""
+                },
+                "finger_type": {
+                    "id": "",
+                    "code": "",
+                    "name": ""
+                }
+            }
+        ]
+    }
+identity_info = {
+    "identity_document_type": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "frontside_information": {
+        "identity_image_url": "",
+        "face_compare_image_url": "",
+        "similar_percent": 00
+    },
+    "backside_information": backside_information,
+    "ocr_result": {
+        "identity_document": identity_document,
+        "basic_information": basic_information,
+        "address_information": address_information
+    },
+    "passport_information": passport_information
+}
 
 IDENTITY_LOGS_INFO = [
     {
@@ -81,334 +239,173 @@ IDENTITY_LOGS_INFO = [
 
 
 async def repos_get_detail(
-        cif_id: str, identity_document_type_id: str, oracle_session: Session, current_user
+        cif_id: str, identity_document_type_id: str, oracle_session: Session
 ) -> ReposReturn:
     if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
         return ReposReturn(is_error=True, msg=f"{MESSAGE_STATUS[ERROR_IDENTITY_DOCUMENT_NOT_EXIST]} in "
                                               f"{IDENTITY_DOCUMENT_TYPE}", loc='identity_document_type_id')
 
-    # Loại giấy tờ định danh
-    # Phân tích OCR -> Giấy tờ định danh
-    try:
-        customer_identity_type, ocr_customer_identity, ocr_place_of_issue, ocr_passport_type, ocr_passport_code = \
-        oracle_session.execute(
-            select(
-                CustomerIdentityType,
-                CustomerIdentity,
-                PlaceOfIssue,
-                PassportType,
-                PassportCode
-            )
-            .join(CustomerIdentity, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
-            .join(PlaceOfIssue, PlaceOfIssue.id == CustomerIdentity.place_of_issue_id)
-            .outerjoin(PassportType, PassportType.id == CustomerIdentity.passport_type_id)
-            .outerjoin(PassportCode, PassportCode.id == CustomerIdentity.passport_code_id)
-            .filter(CustomerIdentity.customer_id == cif_id, CustomerIdentityType.id == identity_document_type_id)
-        ).one()
-    except Exception as ex:
-        return ReposReturn(is_error=True, msg=f"Customer Identity Type does not exist in {identity_document_type_id=} "
-                                              f"and {cif_id=}", loc='identity_document_type_id, cif_id')
+    identities = oracle_session.execute(
+        select(
+            Customer,
+            CustomerIdentity,
+            CustomerIndividualInfo,
+            CustomerAddress,
+            CustomerIdentityImage,
+            CustomerIdentityType,
+            CustomerCompareImage,
+            HandSide,
+            FingerType,
+            PlaceOfIssue,
+            CustomerGender,
+            AddressCountry,
+            AddressProvince,
+            AddressDistrict,
+            AddressWard,
+            Nation,
+            Religion,
+            PassportType,
+            PassportCode
+        )
+        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+        .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .outerjoin(CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id)
+        .outerjoin(CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id)
+        .outerjoin(CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
 
-    # Phân tích OCR -> Thông tin cơ bản
-    try:
-        ocr_basic_info_customer, ocr_basic_info_customer_individual_info, ocr_basic_info_customer_gender, \
-        ocr_basic_info_customer_country, ocr_basic_info_customer_province, ocr_basic_info_customer_religion, \
-        ocr_basic_info_customer_nation, _ = oracle_session.execute(
-            select(
-                Customer,
-                CustomerIndividualInfo,
-                CustomerGender,
-                AddressCountry,
-                AddressProvince,
-                Religion,
-                Nation,
-                CustomerIdentity
-            )
-            .join(CustomerIndividualInfo, CustomerIndividualInfo.customer_id == Customer.id)
-            .join(CustomerGender, CustomerGender.id == CustomerIndividualInfo.gender_id)
-            .join(AddressCountry, AddressCountry.id == CustomerIndividualInfo.country_of_birth_id)
-            .join(AddressProvince, AddressProvince.id == CustomerIndividualInfo.place_of_birth_id)
-            .join(Religion, Religion.id == CustomerIndividualInfo.religion_id)
-            .join(Nation, Nation.id == CustomerIndividualInfo.nation_id)
-            .filter(
-                Customer.id == cif_id,
-                CustomerIdentity.identity_type_id == identity_document_type_id
-            )
-        ).first()
-    except Exception as ex:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Basic Information"),
-                           loc='ocr_result -> basic_information')
+        .outerjoin(HandSide, CustomerIdentityImage.hand_side_id == HandSide.id)
+        .outerjoin(FingerType, CustomerIdentityImage.finger_type_id == FingerType.id)
+        .join(PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id)
+        .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
+        .join(AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id)
+        .join(AddressProvince, CustomerIndividualInfo.place_of_birth_id == AddressProvince.id)
+        .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
+        .join(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
+        .join(Nation, CustomerIndividualInfo.nation_id == Nation.id)
+        .join(Religion, CustomerIndividualInfo.religion_id == Religion.id)
+        .join(PassportType, CustomerIdentity.passport_type_id == PassportType.id)
+        .join(PassportCode, CustomerIdentity.passport_code_id == PassportCode.id)
+        .filter(
+            Customer.id == cif_id,
+            CustomerIdentity.identity_type_id == identity_document_type_id
+        )
+        .order_by(CustomerIdentityImage.updater_at)
+    ).all()
 
-    # Phân tích OCR -> Địa chi thường trú
-    try:
-        customer_resident_address, customer_resident_address_province, \
-        customer_resident_address_district, customer_resident_address_ward = oracle_session.execute(
-            select(
-                CustomerAddress,
-                AddressProvince,
-                AddressDistrict,
-                AddressWard
-            )
-            .join(AddressProvince, AddressProvince.id == CustomerAddress.address_province_id)
-            .join(AddressDistrict, AddressDistrict.id == CustomerAddress.address_district_id)
-            .join(AddressWard, AddressWard.id == CustomerAddress.address_ward_id)
-            .join(AddressType, and_(
-                AddressType.id == CustomerAddress.address_type_id,
-                AddressType.code == RESIDENT_ADDRESS_CODE
-            ))
-            .filter(
-                Customer.id == cif_id,
-                CustomerIdentity.identity_type_id == identity_document_type_id
-            )
-        ).first()
-    except Exception as ex:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Resident Address"),
-                           loc='ocr_result -> resident_address')
-
-    # Phân tích OCR -> Địa chỉ liên lạc
-    try:
-        customer_contact_address, customer_contact_address_province, \
-        customer_contact_address_district, customer_contact_address_ward, _ = oracle_session.execute(
-            select(
-                CustomerAddress,
-                AddressProvince,
-                AddressDistrict,
-                AddressWard,
-                AddressType
-            )
-            .join(AddressProvince, AddressProvince.id == CustomerAddress.address_province_id)
-            .join(AddressDistrict, AddressDistrict.id == CustomerAddress.address_district_id)
-            .join(AddressWard, AddressWard.id == CustomerAddress.address_ward_id)
-            .join(AddressType, and_(
-                AddressType.id == CustomerAddress.address_type_id,
-                AddressType.code == CONTACT_ADDRESS_CODE
-            ))
-            .filter(
-                Customer.id == cif_id,
-                CustomerIdentity.identity_type_id == identity_document_type_id
-            )
-        ).first()
-    except Exception as ex:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Contact Address"),
-                           loc='ocr_result -> contact_address')
+    if not identities:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
     fingerprint_list = []
-
-    if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD or \
-            identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
-        # Thông tin mặt trước
-        # Thông tin mặt sau
-        try:
-            identity_informations = oracle_session.execute(
-                select(
-                    CustomerIdentityImage,
-                    HandSide,
-                    FingerType,
-                    CustomerCompareImage
-                )
-                .join(CustomerIdentity, and_(
-                    CustomerIdentity.id == CustomerIdentityImage.identity_id,
-                    CustomerIdentity.customer_id == cif_id
-                ))
-                .outerjoin(CustomerCompareImage, CustomerCompareImage.identity_image_id == CustomerIdentityImage.id)
-                .outerjoin(HandSide, HandSide.id == CustomerIdentityImage.hand_side_id)
-                .outerjoin(FingerType, FingerType.id == CustomerIdentityImage.finger_type_id)
-                .filter(
-                    CustomerIdentity.customer_id == cif_id,
-                    CustomerIdentityImage.identity_type_id == identity_document_type_id
-                )
-            ).all()
-        except Exception as ex:
-            return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Back Side Information"), loc='back_side_information')
-
-        # Set up giá trị mặc nhiên
-        identity_info_front_side_information = {
-            "identity_image_url": "",
-            "face_compare_image_url": "",
-            "similar_percent": 00
-        }
-        identity_info_backside_information = {
-            "identity_image_url": "",
-            "fingerprint": fingerprint_list,
-            "updated_at": now(),
-            "updated_by": ""
-        }
-        for customer_identity_image, hand_side, finger_type, front_side_customer_compare_image in identity_informations:
-            if customer_identity_image.identity_image_front_flag:
-                identity_info_front_side_information['identity_image_url'] = customer_identity_image.image_url
-                identity_info_front_side_information['face_compare_image_url'] = front_side_customer_compare_image.compare_image_url
-                identity_info_front_side_information['similar_percent'] = front_side_customer_compare_image.similar_percent
-            else:
-                if customer_identity_image.hand_side_id and customer_identity_image.finger_type_id:
-                    fingerprint_list.append({
-                        "image_url": customer_identity_image.image_url,
-                        "hand_side": dropdown(hand_side),
-                        "finger_type": dropdown(finger_type)
-                    })
-                else:
-                    identity_info_backside_information['identity_image_url'] = customer_identity_image.image_url
-                    identity_info_backside_information['updated_at'] = customer_identity_image.updater_at
-                    identity_info_backside_information['updated_by'] = customer_identity_image.updater_id
-
-
-        if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
-            identity_info = {
-                "identity_document_type": dropdown(customer_identity_type),
-                "frontside_information": identity_info_front_side_information,
-                "backside_information": identity_info_backside_information,
-                "ocr_result": {
-                    "identity_document": {
-                        "identity_number": ocr_customer_identity.identity_num,
-                        "issued_date": ocr_customer_identity.issued_date,
-                        "place_of_issue": dropdown(ocr_place_of_issue),
-                        "expired_date": ocr_customer_identity.expired_date
-                    },
-                    "basic_information": {
-                        "full_name_vn": ocr_basic_info_customer.full_name_vn,
-                        "gender": dropdown(ocr_basic_info_customer_gender),
-                        "date_of_birth": ocr_basic_info_customer_individual_info.date_of_birth,
-                        "nationality": dropdown(ocr_basic_info_customer_country),
-                        "province": dropdown(ocr_basic_info_customer_province),
-                        "ethnic": dropdown(ocr_basic_info_customer_nation),
-                        "religion": dropdown(ocr_basic_info_customer_religion),
-                        "identity_characteristic": ocr_basic_info_customer_individual_info.identifying_characteristics,
-                        "father_full_name_vn": ocr_basic_info_customer_individual_info.father_full_name,
-                        "mother_full_name_vn": ocr_basic_info_customer_individual_info.mother_full_name
-                    },
-                    "address_information": {
-                        "resident_address": {
-                            "province": dropdown(customer_resident_address_province),
-                            "district": dropdown(customer_resident_address_district),
-                            "ward": dropdown(customer_resident_address_ward),
-                            "number_and_street": customer_resident_address.address
-                        },
-                        "contact_address": {
-                            "province": dropdown(customer_contact_address_province),
-                            "district": dropdown(customer_contact_address_district),
-                            "ward": dropdown(customer_contact_address_ward),
-                            "number_and_street": customer_contact_address.address
-                        }
-                    }
+    for customer, identity, individual_info, customer_address, identity_image, identity_type, compare_image, \
+        hand_side, finger_type, place_of_issue, gender, country, province, district, ward, nation, religion, \
+        passport_type, passport_code in identities:
+        # Loại giấy tờ định danh
+        identity_info.update({
+            "identity_document_type": dropdown(identity_type),
+        })
+        # Mặt trước
+        if identity_image.identity_image_front_flag == 1:
+            identity_info.update({
+                "frontside_information": {
+                    "identity_image_url": identity_image.image_url,
+                    "face_compare_image_url": compare_image.compare_image_url,
+                    "similar_percent": compare_image.similar_percent
                 }
-            }
-            return ReposReturn(data=identity_info)
-
-        elif identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
-            citizen_card_info = {
-                "identity_document_type": dropdown(customer_identity_type),
-                "frontside_information": identity_info_front_side_information,
-                "backside_information": identity_info_backside_information,
-                "ocr_result": {
-                    "identity_document": {
-                        "identity_number": ocr_customer_identity.identity_num,
-                        "issued_date": ocr_customer_identity.issued_date,
-                        "place_of_issue": dropdown(ocr_place_of_issue),
-                        "expired_date": ocr_customer_identity.expired_date,
-                        "mrz_content": ocr_customer_identity.mrz_content,
-                        "qr_code_content": ocr_customer_identity.qrcode_content
-                    },
-                    "basic_information": {
-                        "full_name_vn": ocr_basic_info_customer.full_name_vn,
-                        "gender": dropdown(ocr_basic_info_customer_gender),
-                        "date_of_birth": ocr_basic_info_customer_individual_info.date_of_birth,
-                        "nationality": dropdown(ocr_basic_info_customer_country),
-                        "province": dropdown(ocr_basic_info_customer_province),
-                        "identity_characteristic": "Sẹo chấm cách 2.5 so với trán"
-                    },
-                    "address_information": {
-                        "resident_address": {
-                            "province": dropdown(customer_resident_address_province),
-                            "district": dropdown(customer_resident_address_district),
-                            "ward": dropdown(customer_resident_address_ward),
-                            "number_and_street": customer_resident_address.address
-                        },
-                        "contact_address": {
-                            "province": dropdown(customer_contact_address_province),
-                            "district": dropdown(customer_contact_address_district),
-                            "ward": dropdown(customer_contact_address_ward),
-                            "number_and_street": customer_contact_address.address
-                        }
-                    }
-                }
-            }
-            return ReposReturn(data=citizen_card_info)
-    else:
-        # Thông tin hộ chiếu
-        try:
-            passport_images = oracle_session.execute(
-                select(
-                    CustomerIdentity,
-                    CustomerIdentityImage,
-                    CustomerCompareImage,
-                    HandSide,
-                    FingerType
-                )
-                .join(CustomerIdentityImage, and_(
-                    CustomerIdentityImage.identity_id ==CustomerIdentity.id,
-                    CustomerIdentityImage.identity_image_front_flag.is_(None),
-                ))
-                .outerjoin(CustomerCompareImage, and_(
-                    CustomerCompareImage.identity_image_id == CustomerIdentityImage.id
-                ))
-                .outerjoin(HandSide, HandSide.id == CustomerIdentityImage.hand_side_id)
-                .outerjoin(FingerType, FingerType.id == CustomerIdentityImage.finger_type_id)
-                .filter(
-                    CustomerIdentity.customer_id == cif_id,
-                    CustomerIdentity.identity_type_id == identity_document_type_id,
-                )
-                .order_by(desc(CustomerIdentityImage.updater_at))
-            ).all()
-        except Exception as ex:
-            return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Passport Information"), loc='passport_information')
-
-        passport_information_image_url = ""
-        passport_information_compare_image_url = ""
-        passport_information_similar_percent = 00
-        for _, customer_identity_passport_image, customer_passport_compare_image, \
-            hand_side, finger_type in passport_images:
-
-            # Nếu CÓ thông tin vân tay, bàn tay -> Hình ảnh vân tay hộ chiếu
-            if hand_side and finger_type:
-                fingerprint_list.append({
-                    "image_url": customer_identity_passport_image.image_url,
+            })
+        # Mặt sau
+        else:
+            if identity_image.hand_side_id and identity_image.finger_type_id:
+                fingerprint = {
+                    "image_url": identity_image.image_url,
                     "hand_side": dropdown(hand_side),
                     "finger_type": dropdown(finger_type)
-                })
-            # Nếu KHÔNG có thông tin vân tay, bàn tay -> Hình ảnh hộ chiếu/ Hình ảnh đối chiếu
-            else:
-                passport_information_image_url = customer_identity_passport_image.image_url
-                passport_information_compare_image_url = customer_passport_compare_image.compare_image_url
-                passport_information_similar_percent = customer_passport_compare_image.similar_percent
-
-        passport_info = {
-            "identity_document_type": dropdown(customer_identity_type),
-            "passport_information": {
-                "identity_image_url": passport_information_image_url,
-                "face_compare_image_url": passport_information_compare_image_url,
-                "similar_percent": passport_information_similar_percent,
-                "fingerprint": fingerprint_list
-            },
-            "ocr_result": {
-                "identity_document": {
-                    "identity_number": ocr_customer_identity.identity_num,
-                    "issued_date": ocr_customer_identity.issued_date,
-                    "place_of_issue": dropdown(ocr_place_of_issue),
-                    "expired_date": ocr_customer_identity.expired_date,
-                    "passport_type": dropdown(ocr_passport_type),
-                    "passport_code": dropdown(ocr_passport_code)
-                },
-                "basic_information": {
-                    "full_name_vn": ocr_basic_info_customer.full_name_vn,
-                    "gender": dropdown(ocr_basic_info_customer_gender),
-                    "date_of_birth": ocr_basic_info_customer_individual_info.date_of_birth,
-                    "nationality": dropdown(ocr_basic_info_customer_country),
-                    "place_of_birth": dropdown(ocr_basic_info_customer_province),
-                    "identity_card_number": ocr_customer_identity.identity_number_in_passport,
-                    "mrz_content": ocr_customer_identity.mrz_content
                 }
-            }
-        }
-        return ReposReturn(data=passport_info)
+                if fingerprint not in fingerprint_list:
+                    fingerprint_list.append(fingerprint)
+                    backside_information.update({
+                        "identity_image_url": identity_image.image_url,
+                        "fingerprint": fingerprint_list,
+                        "updated_at": identity_image.updater_at,
+                        "updated_by": identity_image.updater_id
+                    })
+
+            backside_information.update({
+                "identity_image_url": identity_image.image_url,
+                "fingerprint": fingerprint_list,
+                "updated_at": identity_image.updater_at,
+                "updated_by": identity_image.updater_id
+            })
+
+        # Phân tích OCR -> Giấy tờ định danh
+
+        identity_document.update({
+            "identity_number": identity.identity_num,
+            "issued_date": identity.issued_date,
+            "place_of_issue": dropdown(place_of_issue),
+            "expired_date": identity.expired_date,
+            "mrz_content": identity.mrz_content,
+            "qr_code_content": identity.qrcode_content,
+            #HC
+            "passport_type": dropdown(passport_type),
+            "passport_code": dropdown(passport_code)
+        })
+
+        # Phân tích OCR -> Thông tin cơ bản
+        basic_information.update({
+            "full_name_vn": customer.full_name_vn,
+            "gender": dropdown(gender),
+            "date_of_birth": individual_info.date_of_birth,
+            "nationality": dropdown(country),
+            "province": dropdown(province),
+            "ethnic": dropdown(nation),
+            "religion": dropdown(religion),
+            "identity_characteristic": individual_info.identifying_characteristics,
+            "father_full_name_vn": individual_info.father_full_name,
+            "mother_full_name_vn": individual_info.mother_full_name,
+            #HC
+            "place_of_birth": dropdown(province),
+            "identity_card_number": identity.identity_number_in_passport,
+            "mrz_content": identity.mrz_content
+        })
+
+        # Phân tích OCR -> Thông tin địa chỉ
+        if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
+            address_information['resident_address'].update({
+                "province": dropdown(province),
+                "district": dropdown(district),
+                "ward": dropdown(ward),
+                "number_and_street": customer_address.address
+            })
+
+        if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
+            address_information['contact_address'].update({
+                "province": dropdown(province),
+                "district": dropdown(district),
+                "ward": dropdown(ward),
+                "number_and_street": customer_address.address
+            })
+
+        #HC
+        if compare_image:
+            passport_information.update({
+                "face_compare_image_url": compare_image.compare_image_url,
+                "similar_percent": compare_image.similar_percent
+            })
+
+        passport_information.update({
+            "identity_image_url": identity_image.image_url,
+            "fingerprint": fingerprint_list
+        })
+
+    identity_info.update({
+        "identity_document": identity_document,
+        "basic_information": basic_information,
+        "address_information": address_information,
+        "passport_information": passport_information
+    })
+
+    return ReposReturn(data=identity_info)
 
 
 async def repos_get_list_log(cif_id: str) -> ReposReturn:
