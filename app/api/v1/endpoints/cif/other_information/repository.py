@@ -14,7 +14,7 @@ from app.third_parties.oracle.models.cif.other_information.model import (
 from app.third_parties.oracle.models.master_data.others import (
     HrmEmployee, StaffType
 )
-from app.utils.constant.cif import BUSINESS_STAFF_TYPE_CODE, CIF_ID_TEST
+from app.utils.constant.cif import CIF_ID_TEST, STAFF_TYPE_BUSINESS_CODE
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
@@ -44,7 +44,7 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
     advertising_marketing_flag = customer_employee[0][0].advertising_marketing_flag
 
     for _, staff_type, employee in customer_employee:
-        if staff_type.code == BUSINESS_STAFF_TYPE_CODE:
+        if staff_type.code == STAFF_TYPE_BUSINESS_CODE:
             sale_staff = {
                 "id": employee.id,
                 "fullname_vn": employee.fullname_vn
