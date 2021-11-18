@@ -44,7 +44,7 @@ class OCRAddressIdentityCitizenCardResponse(BaseSchema):  # noqa
 class OCRDocumentIdentityCardResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
-    place_of_issue: OptionalDropdownResponse = Field(..., description="Nơi cấp") #data place_of_issue.code được null
+    place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
 
 
@@ -132,7 +132,7 @@ class InformationPassportResponse(BaseSchema):
 class OCRDocumentPassportResponse(BaseSchema):
     identity_number: str = Field(..., description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
-    place_of_issue: OptionalDropdownResponse = Field(..., description="Nơi cấp")
+    place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     passport_type: DropdownResponse = Field(..., description="Loại")
     passport_code: DropdownResponse = Field(..., description="Mã số")
