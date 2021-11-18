@@ -18,7 +18,7 @@ class AccountStructureType(Base):
     __tablename__ = 'crm_acc_structure_type'
     __table_args__ = {'comment': 'Loại kết cấu tài khoản'}
 
-    id = Column('acc_structure_type_', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+    id = Column('acc_structure_type_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã loại kết cấu tài khoản')
     parent_id = Column('acc_structure_type_parent_id', VARCHAR(36), comment='Mã cấp cha loại kết cấu tài khoản')
     code = Column('acc_structure_type_code', VARCHAR(50), comment='Mã code loại kết cấu tài khoản')

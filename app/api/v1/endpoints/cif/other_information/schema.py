@@ -1,7 +1,14 @@
+from typing import Optional
+
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
+from app.api.v1.schemas.utils import DropdownRequest
+
+
+class EmployeeDropdownResponse(BaseSchema):
+    id: str = Field(..., description='`Mã nhân viên`')
+    fullname_vn: str = Field(..., description='`Tên nhân viên`')
 
 
 class OtherInformationResponse(BaseSchema):
@@ -12,8 +19,8 @@ class OtherInformationResponse(BaseSchema):
                     "`True`: có, "
                     "`False`: không."
     )
-    sale_staff: DropdownResponse = Field(..., description="Mã nhân viên kinh doanh")
-    indirect_sale_staff: DropdownResponse = Field(..., description="Mã nhân viên kinh doanh gián tiếp")
+    sale_staff: Optional[EmployeeDropdownResponse] = Field(..., description="Mã nhân viên kinh doanh")
+    indirect_sale_staff: Optional[EmployeeDropdownResponse] = Field(..., description="Mã nhân viên kinh doanh gián tiếp")
 
 
 class OtherInformationUpdateRequest(BaseSchema):
