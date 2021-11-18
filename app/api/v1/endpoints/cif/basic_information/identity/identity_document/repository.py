@@ -197,74 +197,65 @@ async def repos_get_detail(
     if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD or \
             identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
         # Thông tin mặt trước
-        try:
-            front_side_customer_identity_image, front_side_customer_compare_image = oracle_session.execute(
-                select(
-                    CustomerIdentityImage,
-                    CustomerCompareImage,
-                )
-                .join(CustomerIdentity, and_(
-                    CustomerIdentity.id == CustomerIdentityImage.identity_id,
-                    CustomerIdentity.customer_id == cif_id
-                ))
-                .join(CustomerCompareImage, CustomerCompareImage.identity_image_id == CustomerIdentityImage.id)
-                .order_by(desc(CustomerIdentityImage.updater_at))
-                .filter(
-                    CustomerIdentityImage.identity_id == CustomerIdentity.id,
-                    CustomerIdentityImage.identity_type_id == identity_document_type_id,
-                    CustomerIdentityImage.identity_image_front_flag == IDENTITY_FRONT_SIDE
-                )
-            ).first()
-        except Exception as ex:
-            return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Front Side Information"), loc='front_side_information')
-
         # Thông tin mặt sau
         try:
-            identity_backside_informations = oracle_session.execute(
+            identity_informations = oracle_session.execute(
                 select(
                     CustomerIdentityImage,
-                    CustomerIdentity,
                     HandSide,
-                    FingerType
+                    FingerType,
+                    CustomerCompareImage
                 )
                 .join(CustomerIdentity, and_(
                     CustomerIdentity.id == CustomerIdentityImage.identity_id,
                     CustomerIdentity.customer_id == cif_id
                 ))
-                .join(HandSide, HandSide.id == CustomerIdentityImage.hand_side_id)
-                .join(FingerType, FingerType.id == CustomerIdentityImage.finger_type_id)
+                .outerjoin(CustomerCompareImage, CustomerCompareImage.identity_image_id == CustomerIdentityImage.id)
+                .outerjoin(HandSide, HandSide.id == CustomerIdentityImage.hand_side_id)
+                .outerjoin(FingerType, FingerType.id == CustomerIdentityImage.finger_type_id)
                 .filter(
                     CustomerIdentity.customer_id == cif_id,
-                    CustomerIdentityImage.identity_type_id == identity_document_type_id,
-                    CustomerIdentityImage.identity_image_front_flag == IDENTITY_BACK_SIDE
+                    CustomerIdentityImage.identity_type_id == identity_document_type_id
                 )
             ).all()
         except Exception as ex:
             return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Back Side Information"), loc='back_side_information')
 
+        # Set up giá trị mặc nhiên
+        identity_info_front_side_information = {
+            "identity_image_url": "",
+            "face_compare_image_url": "",
+            "similar_percent": 00
+        }
         identity_info_backside_information = {
             "identity_image_url": "",
-            "fingerprint": fingerprint_list
+            "fingerprint": fingerprint_list,
+            "updated_at": now(),
+            "updated_by": ""
         }
-        for backside_customer_identity_image, _, hand_side, finger_type in identity_backside_informations:
-            if backside_customer_identity_image.hand_side_id is None and \
-                    backside_customer_identity_image.finger_type_id is None:
-
-                identity_info_backside_information['identity_image_url'] = backside_customer_identity_image.image_url
-
+        for customer_identity_image, hand_side, finger_type, front_side_customer_compare_image in identity_informations:
+            if customer_identity_image.identity_image_front_flag:
+                identity_info_front_side_information['identity_image_url'] = customer_identity_image.image_url
+                identity_info_front_side_information['face_compare_image_url'] = front_side_customer_compare_image.compare_image_url
+                identity_info_front_side_information['similar_percent'] = front_side_customer_compare_image.similar_percent
             else:
-                fingerprint_list.append({
-                    "image_url": backside_customer_identity_image.image_url,
-                    "hand_side": dropdown(hand_side),
-                    "finger_type": dropdown(finger_type)
-                })
-        identity_info_backside_information['updated_at'] = now()
-        identity_info_backside_information['updated_by'] = current_user.full_name_vn
+                if customer_identity_image.hand_side_id is None and \
+                        customer_identity_image.finger_type_id is None:
+                    identity_info_backside_information['identity_image_url'] = customer_identity_image.image_url
+                    identity_info_backside_information['updated_at'] = customer_identity_image.updater_at
+                    identity_info_backside_information['updated_by'] = customer_identity_image.updater_id
+
+                else:
+                    fingerprint_list.append({
+                        "image_url": customer_identity_image.image_url,
+                        "hand_side": dropdown(hand_side),
+                        "finger_type": dropdown(finger_type)
+                    })
 
         if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
             identity_info = {
                 "identity_document_type": dropdown(customer_identity_type),
-                "frontside_information": dropdown(front_side_customer_identity_image),
+                "frontside_information": identity_info_front_side_information,
                 "backside_information": identity_info_backside_information,
                 "ocr_result": {
                     "identity_document": {
@@ -306,11 +297,7 @@ async def repos_get_detail(
         elif identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
             citizen_card_info = {
                 "identity_document_type": dropdown(customer_identity_type),
-                "frontside_information": {
-                    "identity_image_url": front_side_customer_identity_image.image_url,
-                    "face_compare_image_url": front_side_customer_compare_image.compare_image_url,
-                    "similar_percent": front_side_customer_compare_image.similar_percent
-                },
+                "frontside_information": identity_info_front_side_information,
                 "backside_information": identity_info_backside_information,
                 "ocr_result": {
                     "identity_document": {
