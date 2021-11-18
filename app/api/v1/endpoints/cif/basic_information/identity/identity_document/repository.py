@@ -26,7 +26,7 @@ from app.utils.constant.cif import (
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST, MESSAGE_STATUS
 )
-from app.utils.functions import now, raise_does_not_exist_string
+from app.utils.functions import now, raise_does_not_exist_string, dropdown
 
 IDENTITY_LOGS_INFO = [
     {
@@ -109,7 +109,6 @@ async def repos_get_detail(
         return ReposReturn(is_error=True, msg=f"Customer Identity Type does not exist in {identity_document_type_id=} "
                                               f"and {cif_id=}", loc='identity_document_type_id, cif_id')
 
-
     # Phân tích OCR -> Thông tin cơ bản
     try:
         ocr_basic_info_customer, ocr_basic_info_customer_individual_info, ocr_basic_info_customer_gender, \
@@ -137,7 +136,8 @@ async def repos_get_detail(
             )
         ).first()
     except Exception as ex:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Basic Information"), loc='ocr_result -> basic_information')
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Basic Information"),
+                           loc='ocr_result -> basic_information')
 
     # Phân tích OCR -> Địa chi thường trú
     try:
@@ -162,7 +162,8 @@ async def repos_get_detail(
             )
         ).first()
     except Exception as ex:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Resident Address"), loc='ocr_result -> resident_address')
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Resident Address"),
+                           loc='ocr_result -> resident_address')
 
     # Phân tích OCR -> Địa chỉ liên lạc
     try:
@@ -188,7 +189,8 @@ async def repos_get_detail(
             )
         ).first()
     except Exception as ex:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Contact Address"), loc='ocr_result -> contact_address')
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Contact Address"),
+                           loc='ocr_result -> contact_address')
 
     fingerprint_list = []
 
@@ -253,111 +255,47 @@ async def repos_get_detail(
             else:
                 fingerprint_list.append({
                     "image_url": backside_customer_identity_image.image_url,
-                    "hand_side": {
-                        "id": hand_side.id,
-                        "code": hand_side.code,
-                        "name": hand_side.name
-                    },
-                    "finger_type": {
-                        "id": finger_type.id,
-                        "code": finger_type.code,
-                        "name": finger_type.name,
-                    }
+                    "hand_side": dropdown(hand_side),
+                    "finger_type": dropdown(finger_type)
                 })
         identity_info_backside_information['updated_at'] = now()
         identity_info_backside_information['updated_by'] = current_user.full_name_vn
 
         if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
             identity_info = {
-                "identity_document_type": {
-                    "id": customer_identity_type.id,
-                    "code": customer_identity_type.code,
-                    "name": customer_identity_type.name
-                },
-                "frontside_information": {
-                    "identity_image_url": front_side_customer_identity_image.image_url,
-                    "face_compare_image_url": front_side_customer_compare_image.compare_image_url,
-                    "similar_percent": front_side_customer_compare_image.similar_percent
-                },
+                "identity_document_type": dropdown(customer_identity_type),
+                "frontside_information": dropdown(front_side_customer_identity_image),
                 "backside_information": identity_info_backside_information,
                 "ocr_result": {
                     "identity_document": {
                         "identity_number": ocr_customer_identity.identity_num,
                         "issued_date": ocr_customer_identity.issued_date,
-                        "place_of_issue": {
-                            "id": ocr_place_of_issue.id,
-                            "code": ocr_place_of_issue.code,
-                            "name": ocr_place_of_issue.name
-                        },
+                        "place_of_issue": dropdown(ocr_place_of_issue),
                         "expired_date": ocr_customer_identity.expired_date
                     },
                     "basic_information": {
                         "full_name_vn": ocr_basic_info_customer.full_name_vn,
-                        "gender": {
-                            "id": ocr_basic_info_customer_gender.id,
-                            "code": ocr_basic_info_customer_gender.code,
-                            "name": ocr_basic_info_customer_gender.name
-                        },
+                        "gender": dropdown(ocr_basic_info_customer_gender),
                         "date_of_birth": ocr_basic_info_customer_individual_info.date_of_birth,
-                        "nationality": {
-                            "id": ocr_basic_info_customer_country.id,
-                            "code": ocr_basic_info_customer_country.code,
-                            "name": ocr_basic_info_customer_country.name,
-                        },
-                        "province": {
-                            "id": ocr_basic_info_customer_province.id,
-                            "code": ocr_basic_info_customer_province.code,
-                            "name": ocr_basic_info_customer_province.name,
-                        },
-                        "ethnic": {
-                            "id": ocr_basic_info_customer_nation.id,
-                            "code": ocr_basic_info_customer_nation.code,
-                            "name": ocr_basic_info_customer_nation.name
-                        },
-                        "religion": {
-                            "id": ocr_basic_info_customer_religion.id,
-                            "code": ocr_basic_info_customer_religion.code,
-                            "name": ocr_basic_info_customer_religion.name
-                        },
+                        "nationality": dropdown(ocr_basic_info_customer_country),
+                        "province": dropdown(ocr_basic_info_customer_province),
+                        "ethnic": dropdown(ocr_basic_info_customer_nation),
+                        "religion": dropdown(ocr_basic_info_customer_religion),
                         "identity_characteristic": ocr_basic_info_customer_individual_info.identifying_characteristics,
                         "father_full_name_vn": ocr_basic_info_customer_individual_info.father_full_name,
                         "mother_full_name_vn": ocr_basic_info_customer_individual_info.mother_full_name
                     },
                     "address_information": {
                         "resident_address": {
-                            "province": {
-                                "id": customer_resident_address_province.id,
-                                "code": customer_resident_address_province.code,
-                                "name": customer_resident_address_province.name
-                            },
-                            "district": {
-                                "id": customer_resident_address_district.id,
-                                "code": customer_resident_address_district.code,
-                                "name": customer_resident_address_district.name
-                            },
-                            "ward": {
-                                "id": customer_resident_address_ward.id,
-                                "code": customer_resident_address_ward.code,
-                                "name": customer_resident_address_ward.name
-                            },
+                            "province": dropdown(customer_resident_address_province),
+                            "district": dropdown(customer_resident_address_district),
+                            "ward": dropdown(customer_resident_address_ward),
                             "number_and_street": customer_resident_address.address
                         },
                         "contact_address": {
-                            "province": {
-                                "id": customer_contact_address_province.id,
-                                "code": customer_contact_address_province.code,
-                                "name": customer_contact_address_province.name
-                            },
-                            "district": {
-                                "id": customer_contact_address_district.id,
-                                "code": customer_contact_address_district.code,
-                                "name": customer_contact_address_district.name
-                            },
-                            "ward": {
-                                "id": customer_contact_address_ward.id,
-                                "code": customer_contact_address_ward.code,
-                                "name": customer_contact_address_ward.name
-                            },
+                            "province": dropdown(customer_contact_address_province),
+                            "district": dropdown(customer_contact_address_district),
+                            "ward": dropdown(customer_contact_address_ward),
                             "number_and_street": customer_contact_address.address
                         }
                     }
@@ -367,11 +305,7 @@ async def repos_get_detail(
 
         elif identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
             citizen_card_info = {
-                "identity_document_type": {
-                    "id": customer_identity_type.id,
-                    "code": customer_identity_type.code,
-                    "name": customer_identity_type.name
-                },
+                "identity_document_type": dropdown(customer_identity_type),
                 "frontside_information": {
                     "identity_image_url": front_side_customer_identity_image.image_url,
                     "face_compare_image_url": front_side_customer_compare_image.compare_image_url,
@@ -382,70 +316,30 @@ async def repos_get_detail(
                     "identity_document": {
                         "identity_number": ocr_customer_identity.identity_num,
                         "issued_date": ocr_customer_identity.issued_date,
-                        "place_of_issue": {
-                            "id": ocr_place_of_issue.id,
-                            "code": ocr_place_of_issue.code,
-                            "name": ocr_place_of_issue.name
-                        },
+                        "place_of_issue": dropdown(ocr_place_of_issue),
                         "expired_date": ocr_customer_identity.expired_date,
                         "mrz_content": ocr_customer_identity.mrz_content,
                         "qr_code_content": ocr_customer_identity.qrcode_content
                     },
                     "basic_information": {
                         "full_name_vn": ocr_basic_info_customer.full_name_vn,
-                        "gender": {
-                            "id": ocr_basic_info_customer_gender.id,
-                            "code": ocr_basic_info_customer_gender.code,
-                            "name": ocr_basic_info_customer_gender.name
-                        },
+                        "gender": dropdown(ocr_basic_info_customer_gender),
                         "date_of_birth": ocr_basic_info_customer_individual_info.date_of_birth,
-                        "nationality": {
-                            "id": ocr_basic_info_customer_country.id,
-                            "code": ocr_basic_info_customer_country.code,
-                            "name": ocr_basic_info_customer_country.name
-                        },
-                        "province": {
-                            "id": ocr_basic_info_customer_province.id,
-                            "code": ocr_basic_info_customer_province.code,
-                            "name": ocr_basic_info_customer_province.name
-                        },
+                        "nationality": dropdown(ocr_basic_info_customer_country),
+                        "province": dropdown(ocr_basic_info_customer_province),
                         "identity_characteristic": "Sẹo chấm cách 2.5 so với trán"
                     },
                     "address_information": {
                         "resident_address": {
-                            "province": {
-                                "id": customer_resident_address_province.id,
-                                "code": customer_resident_address_province.code,
-                                "name": customer_resident_address_province.name
-                            },
-                            "district": {
-                                "id": customer_resident_address_district.id,
-                                "code": customer_resident_address_district.code,
-                                "name": customer_resident_address_district.name
-                            },
-                            "ward": {
-                                "id": customer_resident_address_ward.id,
-                                "code": customer_resident_address_ward.code,
-                                "name": customer_resident_address_ward.name
-                            },
+                            "province": dropdown(customer_resident_address_province),
+                            "district": dropdown(customer_resident_address_district),
+                            "ward": dropdown(customer_resident_address_ward),
                             "number_and_street": customer_resident_address.address
                         },
                         "contact_address": {
-                            "province": {
-                                "id": customer_contact_address_province.id,
-                                "code": customer_contact_address_province.code,
-                                "name": customer_contact_address_province.name
-                            },
-                            "district": {
-                                "id": customer_contact_address_district.id,
-                                "code": customer_contact_address_district.code,
-                                "name": customer_contact_address_district.name
-                            },
-                            "ward": {
-                                "id": customer_contact_address_ward.id,
-                                "code": customer_contact_address_ward.code,
-                                "name": customer_contact_address_ward.name
-                            },
+                            "province": dropdown(customer_contact_address_province),
+                            "district": dropdown(customer_contact_address_district),
+                            "ward": dropdown(customer_contact_address_ward),
                             "number_and_street": customer_contact_address.address
                         }
                     }
@@ -491,16 +385,8 @@ async def repos_get_detail(
             if hand_side and finger_type:
                 fingerprint_list.append({
                     "image_url": customer_identity_passport_image.image_url,
-                    "hand_side": {
-                        "id": hand_side.id,
-                        "code": hand_side.code,
-                        "name": hand_side.name
-                    },
-                    "finger_type": {
-                        "id": finger_type.id,
-                        "code": finger_type.code,
-                        "name": finger_type.name,
-                    }
+                    "hand_side": dropdown(hand_side),
+                    "finger_type": dropdown(finger_type)
                 })
             # Nếu KHÔNG có thông tin vân tay, bàn tay -> Hình ảnh hộ chiếu/ Hình ảnh đối chiếu
             else:
@@ -509,11 +395,7 @@ async def repos_get_detail(
                 passport_information_similar_percent = customer_passport_compare_image.similar_percent
 
         passport_info = {
-            "identity_document_type": {
-                "id": customer_identity_type.id,
-                "code": customer_identity_type.code,
-                "name": customer_identity_type.name
-            },
+            "identity_document_type": dropdown(customer_identity_type),
             "passport_information": {
                 "identity_image_url": passport_information_image_url,
                 "face_compare_image_url": passport_information_compare_image_url,
@@ -524,41 +406,17 @@ async def repos_get_detail(
                 "identity_document": {
                     "identity_number": ocr_customer_identity.identity_num,
                     "issued_date": ocr_customer_identity.issued_date,
-                    "place_of_issue": {
-                        "id": ocr_place_of_issue.id,
-                        "code": ocr_place_of_issue.code,
-                        "name": ocr_place_of_issue.name
-                    },
+                    "place_of_issue": dropdown(ocr_place_of_issue),
                     "expired_date": ocr_customer_identity.expired_date,
-                    "passport_type": {
-                        "id": ocr_passport_type.id,
-                        "code": ocr_passport_type.code,
-                        "name": ocr_passport_type.name
-                    },
-                    "passport_code": {
-                        "id": ocr_passport_code.id,
-                        "code": ocr_passport_code.code,
-                        "name": ocr_passport_code.name
-                    }
+                    "passport_type": dropdown(ocr_passport_type),
+                    "passport_code": dropdown(ocr_passport_code)
                 },
                 "basic_information": {
                     "full_name_vn": ocr_basic_info_customer.full_name_vn,
-                    "gender": {
-                        "id": ocr_basic_info_customer_gender.id,
-                        "code": ocr_basic_info_customer_gender.code,
-                        "name": ocr_basic_info_customer_gender.name
-                    },
+                    "gender": dropdown(ocr_basic_info_customer_gender),
                     "date_of_birth": ocr_basic_info_customer_individual_info.date_of_birth,
-                    "nationality": {
-                        "id": ocr_basic_info_customer_country.id,
-                        "code": ocr_basic_info_customer_country.code,
-                        "name": ocr_basic_info_customer_country.name,
-                    },
-                    "place_of_birth": {
-                        "id": ocr_basic_info_customer_province.id,
-                        "code": ocr_basic_info_customer_province.code,
-                        "name": ocr_basic_info_customer_province.name
-                    },
+                    "nationality": dropdown(ocr_basic_info_customer_country),
+                    "place_of_birth": dropdown(ocr_basic_info_customer_province),
                     "identity_card_number": ocr_customer_identity.identity_number_in_passport,
                     "mrz_content": ocr_customer_identity.mrz_content
                 }
