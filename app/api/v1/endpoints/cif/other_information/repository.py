@@ -63,11 +63,11 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
 
 
 async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInformationUpdateRequest,
-                                  session: Session) -> ReposReturn:  # noqa
+                                  session: Session) -> ReposReturn:
 
     if update_other_info_req.sale_staff is None or update_other_info_req.indirect_sale_staff is None:
         session.execute(
-            update(Customer).values(
+            update(Customer).filter(Customer.id == cif_id).values(
                 legal_agreement_flag=update_other_info_req.legal_agreement_flag,
                 advertising_marketing_flag=update_other_info_req.advertising_marketing_flag
             ))
@@ -119,7 +119,7 @@ async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInfor
     session.commit()
 
     session.execute(
-        update(Customer).values(
+        update(Customer).filter(Customer.id == cif_id).values(
             legal_agreement_flag=update_other_info_req.legal_agreement_flag,
             advertising_marketing_flag=update_other_info_req.advertising_marketing_flag
         ))
