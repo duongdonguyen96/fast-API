@@ -39,10 +39,6 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
     sale_staff = None
     indirect_sale_staff = None
 
-    # vị trí của customer trong query ở vị trí 0
-    legal_agreement_flag = customer_employee[0][0].legal_agreement_flag
-    advertising_marketing_flag = customer_employee[0][0].advertising_marketing_flag
-
     for _, staff_type, employee in customer_employee:
         if staff_type.code == STAFF_TYPE_BUSINESS_CODE:
             sale_staff = {
@@ -56,8 +52,9 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
             }
 
     return ReposReturn(data={
-        "legal_agreement_flag": legal_agreement_flag,
-        "advertising_marketing_flag": advertising_marketing_flag,
+        # lấy ra data ở vị trí 0 trong query sau đó lấy ra customer ở vị trí 0
+        "legal_agreement_flag": customer_employee[0][0].legal_agreement_flag,
+        "advertising_marketing_flag": customer_employee[0][0].advertising_marketing_flag,
         "sale_staff": sale_staff,
         "indirect_sale_staff": indirect_sale_staff,
     })
