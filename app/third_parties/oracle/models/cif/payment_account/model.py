@@ -93,16 +93,16 @@ class AgreementAuthorization(Base):
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
 
 
-# class JointAccountHolderAgreementAuthorization(Base):
-#     __tablename__ = 'crm_joint_acc_agree'
-#     __table_args__ = {'comment': 'Thỏa thuận/ ủy quyền đồng sở hữu'}
-#
-#     agreement_authorization_id = Column('agreement_author_id',
-#                                         ForeignKey('crm_agreement_authorization.agreement_author_id'), primary_key=True,
-#                                         server_default=text("sys_guid() "), comment='Mã thỏa thuận - ủy quyền'),
-#     joint_account_holder_id = Column('joint_account_holder_id',
-#                                      ForeignKey('crm_joint_account_holder.joint_account_holder_id'),
-#                                      comment='Mã Thông tin đồng chủ sở hữu'),
-#
-#     agreement_authorization = relationship('AgreementAuthorization')
-#     joint_account_holder = relationship('JointAccountHolder')
+class JointAccountHolderAgreementAuthorization(Base):
+    __tablename__ = 'crm_joint_acc_agree'
+    __table_args__ = {'comment': 'Thỏa thuận/ ủy quyền đồng sở hữu'}
+
+    agreement_authorization_id = Column('agreement_author_id',
+                                        ForeignKey('crm_agreement_authorization.agreement_author_id'), primary_key=True,
+                                        server_default=text("sys_guid() "), comment='Mã thỏa thuận - ủy quyền'),
+    joint_account_holder_id = Column('joint_account_holder_id',
+                                     ForeignKey('crm_joint_account_holder.joint_account_holder_id'),
+                                     comment='Mã Thông tin đồng chủ sở hữu'),
+
+    agreement_authorization = relationship('AgreementAuthorization')
+    joint_account_holder = relationship('JointAccountHolder')

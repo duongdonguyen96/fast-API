@@ -15,8 +15,6 @@ ERROR_TOO_MANY_FILE = "ERROR_TOO_MANY_FILE"
 ERROR_CIF_ID_NOT_EXIST = "CIF_ID_NOT_EXIST"
 ERROR_IDENTITY_DOCUMENT_NOT_EXIST = "ERROR_IDENTITY_DOCUMENT_NOT_EXIST"
 
-ERROR_STAFF_TYPE_NOT_EXIST = "ERROR_STAFF_TYPE_NOT_EXIST"
-
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -33,7 +31,5 @@ MESSAGE_STATUS = {
     ERROR_TOO_MANY_FILE: "Upload too many file",
 
     ERROR_CIF_ID_NOT_EXIST: "CIF id is not exist",
-    ERROR_IDENTITY_DOCUMENT_NOT_EXIST: "Identity Document is not exist",
-
-    ERROR_STAFF_TYPE_NOT_EXIST: "Staff type is not exist"
+    ERROR_IDENTITY_DOCUMENT_NOT_EXIST: "Identity Document is not exist"
 }
