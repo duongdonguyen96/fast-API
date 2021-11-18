@@ -239,18 +239,17 @@ async def repos_get_detail(
                 identity_info_front_side_information['face_compare_image_url'] = front_side_customer_compare_image.compare_image_url
                 identity_info_front_side_information['similar_percent'] = front_side_customer_compare_image.similar_percent
             else:
-                if customer_identity_image.hand_side_id is None and \
-                        customer_identity_image.finger_type_id is None:
-                    identity_info_backside_information['identity_image_url'] = customer_identity_image.image_url
-                    identity_info_backside_information['updated_at'] = customer_identity_image.updater_at
-                    identity_info_backside_information['updated_by'] = customer_identity_image.updater_id
-
-                else:
+                if customer_identity_image.hand_side_id and customer_identity_image.finger_type_id:
                     fingerprint_list.append({
                         "image_url": customer_identity_image.image_url,
                         "hand_side": dropdown(hand_side),
                         "finger_type": dropdown(finger_type)
                     })
+                else:
+                    identity_info_backside_information['identity_image_url'] = customer_identity_image.image_url
+                    identity_info_backside_information['updated_at'] = customer_identity_image.updater_at
+                    identity_info_backside_information['updated_by'] = customer_identity_image.updater_id
+
 
         if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
             identity_info = {
