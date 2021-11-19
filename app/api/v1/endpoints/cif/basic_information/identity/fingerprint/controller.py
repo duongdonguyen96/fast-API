@@ -1,6 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.repository import (
-    repos_get_data_finger, repos_get_identity_id, repos_save_fingerprint
+    check_cif_number, repos_get_data_finger, repos_get_identity_id,
+    repos_save_fingerprint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
     TwoFingerPrintRequest
@@ -13,6 +14,9 @@ from app.utils.functions import now
 
 class CtrFingerPrint(BaseController):
     async def ctr_save_fingerprint(self, cif_id: str, finger_request: TwoFingerPrintRequest):
+        # TODO: xây dựng hàm kiểm tra điều kiện trước khi tạo vân tay
+        query_data = self.call_repos(await check_cif_number(cif_id, self.oracle_session)) # noqa
+
         identity = self.call_repos(await repos_get_identity_id(cif_id, self.oracle_session))
 
         list_data_insert = []
