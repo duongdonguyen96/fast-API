@@ -15,6 +15,8 @@ ERROR_TOO_MANY_FILE = "ERROR_TOO_MANY_FILE"
 ERROR_CIF_ID_NOT_EXIST = "CIF_ID_NOT_EXIST"
 ERROR_IDENTITY_DOCUMENT_NOT_EXIST = "ERROR_IDENTITY_DOCUMENT_NOT_EXIST"
 
+ERROR_SIGNATURE_IS_NULL = "ERROR_SIGNATURE_IS_NULL"
+
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -31,5 +33,7 @@ MESSAGE_STATUS = {
     ERROR_TOO_MANY_FILE: "Upload too many file",
 
     ERROR_CIF_ID_NOT_EXIST: "CIF id is not exist",
-    ERROR_IDENTITY_DOCUMENT_NOT_EXIST: "Identity Document is not exist"
+    ERROR_IDENTITY_DOCUMENT_NOT_EXIST: "Identity Document is not exist",
+
+    ERROR_SIGNATURE_IS_NULL: "Signature can not be empty"
 }
