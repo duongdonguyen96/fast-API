@@ -37,7 +37,8 @@ class CtrIdentityDocument(BaseController):
         info_save_document = self.call_repos(
             await repos_save(
                 identity_document_req=identity_document_req,
-                created_by=self.current_user.full_name_vn
+                save_by=self.current_user.full_name_vn,
+                oracle_session=self.oracle_session
             )
         )
         return self.response(data=info_save_document)
