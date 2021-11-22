@@ -25,11 +25,11 @@ router = APIRouter()
     ),
 )
 async def view_create_signature(
-        signature: SignaturesRequest,
+        signatures: SignaturesRequest,
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    signature_data_request = await CtrSignature(current_user).ctr_save_signature(cif_id, signature)
+    signature_data_request = await CtrSignature(current_user).ctr_save_signature(cif_id, signatures)
     return ResponseData[SaveSuccessResponse](**signature_data_request)
 
 

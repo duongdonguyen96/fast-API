@@ -7,12 +7,11 @@ from app.api.base.schema import BaseSchema
 
 
 class SignatureRequest(BaseSchema):
-    identity_image_transaction_1: str = Field(..., description='Đường dẫn hình ảnh định danh chữ ký khách hàng')
-    identity_image_transaction_2: str = Field(..., description='Đường dẫn hình ảnh định danh chữ ký khách hàng')
+    image_url: str = Field(..., description='Đường dẫn hình ảnh định danh chữ ký khách hàng')
 
 
 class SignaturesRequest(BaseSchema):
-    customer_signatures: List[SignatureRequest] = Field(..., description='Hình ảnh chữ ký')
+    signatures: List[SignatureRequest] = Field(..., description='Hình ảnh chữ ký')
 
 
 class SignaturesResponse(BaseSchema):
