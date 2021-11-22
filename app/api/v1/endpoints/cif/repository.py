@@ -11,7 +11,10 @@ async def repos_get_initializing_customer(cif_id: str, session: Session) -> Repo
     customer = session.execute(
         select(
             Customer
-        ).filter(Customer.id == cif_id)
+        ).filter(
+            Customer.id == cif_id,
+            Customer.complete_flag == 0
+        )
     ).scalar()
     if not customer:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
