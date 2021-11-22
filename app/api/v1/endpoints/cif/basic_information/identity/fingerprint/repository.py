@@ -9,18 +9,18 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
 from app.third_parties.oracle.models.master_data.identity import (
-    FingerType, HandSide
+    FingerType, HandSide, ImageType
 )
-from app.utils.constant.cif import HAND_SIDE_LEFT_CODE
+from app.utils.constant.cif import HAND_SIDE_LEFT_CODE, IMAGE_TYPE_FINGERPRINT
 from app.utils.error_messages import (
     ERROR_CAN_NOT_CREATE, ERROR_CIF_ID_NOT_EXIST
 )
 from app.utils.functions import dropdown, now
 
 
-async def check_cif_number(cif_id: str, session: Session):
+async def check_cif_number(cif_id: str, session: Session) -> ReposReturn:
     flag = True
-    query_data = session.execute( # noqa
+    query_data = session.execute(  # noqa
         select(
             Customer
         ).filter(Customer.id == cif_id)
@@ -30,6 +30,19 @@ async def check_cif_number(cif_id: str, session: Session):
     #     return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_number")
 
     return ReposReturn(data=flag)
+
+
+async def repos_get_type_id(session: Session) -> ReposReturn:
+    query_data = session.execute(
+        select(
+            ImageType
+        ).filter(ImageType.code == IMAGE_TYPE_FINGERPRINT)
+    ).scalars().first()
+
+    if not query_data:
+        return ReposReturn(is_error=True, msg='ERROR_IMAGE_TYPE_NOT_EXIST', loc='image_type')
+
+    return ReposReturn(data=query_data)
 
 
 async def repos_get_identity_id(cif_id: str, session: Session):
@@ -45,8 +58,13 @@ async def repos_get_identity_id(cif_id: str, session: Session):
     return ReposReturn(data=query_data)
 
 
-async def repos_save_fingerprint(cif_id: str, oracle_session: Session, list_data_insert: list,
-                                 created_by: str):
+async def repos_save_fingerprint(
+        cif_id: str,
+        oracle_session: Session,
+        list_data_insert: list,
+        created_by: str
+) -> ReposReturn:
+
     try:
         data_insert = [CustomerIdentityImage(**data_insert) for data_insert in list_data_insert]
         oracle_session.bulk_save_objects(data_insert)
