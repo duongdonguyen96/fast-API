@@ -1,6 +1,26 @@
+from typing import List
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
+from app.third_parties.oracle.models.master_data.others import HrmEmployee
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+
+
+async def repos_get_hrm_employees(hrm_employee_ids: List[str], session: Session) -> ReposReturn:
+    hrm_employees = session.execute(
+        select(
+            HrmEmployee
+        ).filter(
+            HrmEmployee.id.in_(hrm_employee_ids)
+        )
+    ).scalars().all()
+    if len(hrm_employees) != len(hrm_employee_ids):
+        return ReposReturn(is_error=True, detail="employee is not exist", loc="staff_id")
+
+    return ReposReturn(data=hrm_employees)
 
 
 async def repos_get_cif_info(cif_id: str) -> ReposReturn:

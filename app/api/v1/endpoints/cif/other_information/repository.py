@@ -65,60 +65,36 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
 async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInformationUpdateRequest,
                                   session: Session) -> ReposReturn:
 
-    customer_id = session.execute(select(Customer.id).filter(Customer.id == cif_id)).scalar()
-    if not customer_id:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
-
-    if update_other_info_req.sale_staff is None or update_other_info_req.indirect_sale_staff is None:
-        session.execute(
-            update(Customer).filter(Customer.id == cif_id).values(
-                legal_agreement_flag=update_other_info_req.legal_agreement_flag,
-                advertising_marketing_flag=update_other_info_req.advertising_marketing_flag
-            ))
-        session.commit()
-
-    else:
-
-        staff_id = update_other_info_req.sale_staff.id
-        indirect_staff_id = update_other_info_req.indirect_sale_staff.id
-
-        employee_id_engine = session.execute(
-            select(
-                HrmEmployee.id
-            ).filter(
-                HrmEmployee.id.in_([staff_id, indirect_staff_id])  # noqa
-            )
+    session.execute(
+        update(Customer).filter(Customer.id == cif_id).values(
+            legal_agreement_flag=update_other_info_req.legal_agreement_flag,
+            advertising_marketing_flag=update_other_info_req.advertising_marketing_flag
         )
-        employee_id = employee_id_engine.all()
-        if (staff_id == indirect_staff_id and len(employee_id) < 1) or (
-                staff_id != indirect_staff_id and len(employee_id) < 2):
-            return ReposReturn(
-                is_error=True, msg="employee is not exist", loc="sale_staff -> id or indirect_sale_staff -> id"
-            )
+    )
 
-        new_customer_employees = [
+    new_customer_employees = []
+    if update_other_info_req.sale_staff:
+        new_customer_employees.append(
             {
                 "staff_type_id": STAFF_TYPE_BUSINESS_CODE,
-                "employee_id": staff_id,
-                "customer_id": cif_id
-            },
-            {
-                "staff_type_id": STAFF_TYPE_REFER_INDIRECT_CODE,
-                "employee_id": indirect_staff_id,
+                "employee_id": update_other_info_req.sale_staff.id,
                 "customer_id": cif_id
             }
-        ]
+        )
 
-        data_insert = [CustomerEmployee(**data_insert) for data_insert in new_customer_employees]
-        session.bulk_save_objects(data_insert)
-        session.commit()
+    if update_other_info_req.indirect_sale_staff:
+        new_customer_employees.append(
+            {
+                "staff_type_id": STAFF_TYPE_REFER_INDIRECT_CODE,
+                "employee_id": update_other_info_req.indirect_sale_staff.id,
+                "customer_id": cif_id
+            }
+        )
 
-        session.execute(
-            update(Customer).filter(Customer.id == cif_id).values(
-                legal_agreement_flag=update_other_info_req.legal_agreement_flag,
-                advertising_marketing_flag=update_other_info_req.advertising_marketing_flag
-            ))
-        session.commit()
+    data_insert = [CustomerEmployee(**data_insert) for data_insert in new_customer_employees]
+    session.bulk_save_objects(data_insert)
+
+    session.commit()
 
     return ReposReturn(data={
         'created_at': now(),
