@@ -18,20 +18,6 @@ from app.utils.error_messages import (
 from app.utils.functions import dropdown, now
 
 
-async def check_cif_number(cif_id: str, session: Session) -> ReposReturn:
-    flag = True
-    query_data = session.execute(  # noqa
-        select(
-            Customer
-        ).filter(Customer.id == cif_id)
-    ).scalar_one()
-    # TODO: kiểm tra điều kiện để có thể tạo vân tay
-    # if query_data.cif_number is not None:
-    #     return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_number")
-
-    return ReposReturn(data=flag)
-
-
 async def repos_get_type_id(session: Session) -> ReposReturn:
     query_data = session.execute(
         select(

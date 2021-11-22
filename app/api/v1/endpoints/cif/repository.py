@@ -1,6 +1,22 @@
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
+from app.third_parties.oracle.models.cif.basic_information.model import Customer
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+
+
+async def repos_get_initializing_customer(cif_id: str, session: Session) -> ReposReturn:
+    customer = session.execute(
+        select(
+            Customer
+        ).filter(Customer.id == cif_id)
+    ).scalar()
+    if not customer:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data=customer)
 
 
 async def repos_get_cif_info(cif_id: str) -> ReposReturn:
