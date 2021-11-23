@@ -747,7 +747,6 @@ async def repos_save(
         self_selected_cif_flag = 0
 
         if not cif_number:
-            cif_number = "CIF_THONG_THUONG"
             self_selected_cif_flag = 1
 
         # Tạo thông tin KH
