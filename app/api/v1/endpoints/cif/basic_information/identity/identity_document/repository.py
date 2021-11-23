@@ -22,7 +22,7 @@ from app.utils.constant.cif import (
     CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE, CONTACT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
-    ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST, MESSAGE_STATUS
+    ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST
 )
 from app.utils.functions import now, dropdown
 
@@ -78,13 +78,10 @@ IDENTITY_LOGS_INFO = [
 ]
 
 
-async def repos_get_detail_identity(
-        cif_id: str, identity_document_type_id: str, session: Session
-) -> ReposReturn:
-    if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
-        return ReposReturn(is_error=True, msg=f"{MESSAGE_STATUS[ERROR_IDENTITY_DOCUMENT_NOT_EXIST]} in "
-                                              f"{IDENTITY_DOCUMENT_TYPE}", loc='identity_document_type_id')
-
+########################################################################################################################
+# Chi tiết A. Giấy tờ định danh
+########################################################################################################################
+async def repos_get_detail_identity(cif_id: str, identity_document_type_id: str, session: Session) -> ReposReturn:
     identities = session.execute(
         select(
             Customer,
@@ -146,7 +143,7 @@ async def repos_get_identity_info(
         identity_document_type_id,
 ):
     customer, identity, individual_info, _, _, identity_type, _, _, _, place_of_issue, gender, country, province, _, \
-    _, nation, religion, passport_type, passport_code = identities[0]
+        _, nation, religion, passport_type, passport_code = identities[0]
     address_information = {
         "resident_address": {
             "province": {
@@ -346,7 +343,7 @@ async def repos_get_identity_info(
 
     fingerprint_list = []
     for _, _, _, customer_address, identity_image, _, compare_image, hand_side, finger_type, _, _, _, province, \
-        district, ward, _, _, _, _ in identities:
+            district, ward, _, _, _, _ in identities:
 
         if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
             # Mặt trước
@@ -422,6 +419,7 @@ async def repos_get_identity_info(
     })
 
     return identity_info
+########################################################################################################################
 
 
 async def repos_get_list_log(cif_id: str) -> ReposReturn:
