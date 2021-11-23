@@ -7,7 +7,7 @@ from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
 )
-from app.api.v1.endpoints.cif.repository import repos_get_identity_info
+from app.api.v1.endpoints.cif.basic_information.repository import repos_get_identity_info
 from app.third_parties.oracle.models.cif.basic_information.contact.model import CustomerAddress
 from app.third_parties.oracle.models.cif.basic_information.identity.model import CustomerIdentity, \
     CustomerIdentityImage, CustomerCompareImage
