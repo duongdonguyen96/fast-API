@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
@@ -290,7 +290,7 @@ async def repos_get_detail(
             Customer.id == cif_id,
             CustomerIdentity.identity_type_id == identity_document_type_id
         )
-        .order_by(CustomerIdentityImage.updater_at)
+        .order_by(desc(CustomerIdentityImage.updater_at))
     ).all()
 
     if not identities:
