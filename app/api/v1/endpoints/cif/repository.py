@@ -1,6 +1,7 @@
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
+from typing import List
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity
@@ -9,6 +10,7 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
 from app.third_parties.oracle.models.master_data.identity import ImageType
+from app.third_parties.oracle.models.master_data.others import HrmEmployee
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
@@ -26,6 +28,20 @@ async def repos_get_initializing_customer(cif_id: str, session: Session) -> Repo
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
     return ReposReturn(data=customer)
+
+
+async def repos_get_hrm_employees(hrm_employee_ids: List[str], session: Session) -> ReposReturn:
+    hrm_employees = session.execute(
+        select(
+            HrmEmployee
+        ).filter(
+            HrmEmployee.id.in_(hrm_employee_ids)
+        )
+    ).scalars().all()
+    if len(hrm_employees) != len(hrm_employee_ids):
+        return ReposReturn(is_error=True, detail="employee is not exist", loc="staff_id")
+
+    return ReposReturn(data=hrm_employees)
 
 
 async def repos_get_cif_info(cif_id: str) -> ReposReturn:
