@@ -42,7 +42,7 @@ async def view_detail(
 ):
     ctr_identity_document = CtrIdentityDocument(current_user)
 
-    detail_info = await ctr_identity_document.detail(
+    detail_info = await ctr_identity_document.detail_identity(
         cif_id=cif_id,
         identity_document_type_id=identity_document_type_id
     )
