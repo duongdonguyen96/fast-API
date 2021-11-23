@@ -18,7 +18,7 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
 
-async def repos_get_crm_hand_side(hand_side_ids: List[str], session: Session):
+async def repos_get_hand_sides(hand_side_ids: List[str], session: Session):
     crm_hand_sides = session.execute(
         select(
             HandSide
@@ -31,7 +31,7 @@ async def repos_get_crm_hand_side(hand_side_ids: List[str], session: Session):
     return ReposReturn(data=crm_hand_sides)
 
 
-async def repos_get_crm_finger_type(finger_type_ids: List[str], session: Session):
+async def repos_get_finger_types(finger_type_ids: List[str], session: Session):
     crm_finger_types = session.execute(
         select(
             FingerType
@@ -47,11 +47,11 @@ async def repos_get_crm_finger_type(finger_type_ids: List[str], session: Session
 async def repos_save_fingerprint(
         cif_id: str,
         session: Session,
-        list_data_inserts: list,
+        list_data_insert: list,
         created_by: str
 ) -> ReposReturn:
 
-    data_insert = [CustomerIdentityImage(**data_insert) for data_insert in list_data_inserts]
+    data_insert = [CustomerIdentityImage(**data_insert) for data_insert in list_data_insert]
     session.bulk_save_objects(data_insert)
     session.commit()
 
