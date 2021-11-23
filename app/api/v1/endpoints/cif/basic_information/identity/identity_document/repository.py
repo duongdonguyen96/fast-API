@@ -25,7 +25,7 @@ from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
     IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, RESIDENT_ADDRESS_CODE, CONTACT_ADDRESS_CODE, IMAGE_TYPE_CODE_IDENTITY,
-    IDENTITY_IMAGE_FLAG_BACKSIDE, IDENTITY_IMAGE_FLAG_FRONT_SIDE
+    IDENTITY_IMAGE_FLAG_BACKSIDE, IDENTITY_IMAGE_FLAG_FRONT_SIDE, UNCOMPLETED, ACTIVED, UNSAVED
 )
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST
@@ -526,11 +526,7 @@ async def repos_save_identity(
         session: Session
 ):
     cif_number = identity_document_req.cif_id
-
     identity_document_type_id = identity_document_req.identity_document_type.id
-    if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
-        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> id')
-
     frontside_information_identity_image_url = identity_document_req.frontside_information.identity_image_url
     frontside_information_compare_image_url = identity_document_req.frontside_information.face_compare_image_url
     backside_information_identity_image_url = identity_document_req.frontside_information.face_compare_image_url
@@ -540,10 +536,7 @@ async def repos_save_identity(
     expired_date = identity_document_req.ocr_result.identity_document.expired_date
     full_name_vn = identity_document_req.ocr_result.basic_information.full_name_vn
     full_name = vietnamese_converted(full_name_vn)
-    split_data = split_name(full_name_vn)
-    first_name = split_data['first_name']
-    middle_name = split_data['middle_name']
-    last_name = split_data['last_name']
+    first_name, middle_name, last_name = split_name(full_name)
     date_of_birth = identity_document_req.ocr_result.basic_information.date_of_birth
     identity_characteristic = identity_document_req.ocr_result.basic_information.identity_characteristic
     father_full_name_vn = identity_document_req.ocr_result.basic_information.father_full_name_vn
@@ -564,25 +557,6 @@ async def repos_save_identity(
     contact_address_district_id = identity_document_req.ocr_result.address_information.contact_address.district.id
     contact_address_ward_id = identity_document_req.ocr_result.address_information.contact_address.ward.id
 
-    list_exist = [
-        (place_of_issue_id, PlaceOfIssue, session, "place_of_issue_id"),
-        (gender_id, CustomerGender, session, "gender_id"),
-        (nationality_id, AddressCountry, session, "nationality_id"),
-        (province_id, AddressProvince, session, "province_id"),
-        (ethnic_id, Nation, session, "ethnic_id"),
-        (religion_id, Religion, session, "religion_id"),
-        (resident_address_province_id, AddressProvince, session, "resident_address_province_id"),
-        (resident_address_district_id, AddressDistrict, session, "resident_address_district_id"),
-        (resident_address_ward_id, AddressWard, session, "resident_address_ward_id"),
-        (contact_address_province_id, AddressProvince, session, "contact_address_province_id"),
-        (contact_address_district_id, AddressDistrict, session, "contact_address_district_id"),
-        (contact_address_ward_id, AddressWard, session, "contact_address_ward_id"),
-    ]
-    list_error = check_exist_list_by_id(list_exist)
-    if list_error:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string(", ".join(list_error)),
-                           loc=", ".join(list_error))
-
     saving_customer = {
         "full_name": full_name,
         "full_name_vn": full_name_vn,
@@ -590,47 +564,34 @@ async def repos_save_identity(
         "middle_name": middle_name,
         "last_name": last_name,
         "short_name": make_short_name(full_name),
-        "active_flag": 1,
+        "active_flag": ACTIVED,
         "open_cif_at": now(),
-        "open_branch_id": "000",
-        "kyc_level_id": "KYC_1",
+        "open_branch_id": "000",  # TODO
+        "kyc_level_id": "KYC_1",  # TODO
 
-        "customer_category_id": "D0682B44BEB3830EE0530100007F1DDC",
-        "customer_economic_profession_id": "D0682B44BE6D830EE0530100007F1DDC",
+        "customer_category_id": "D0682B44BEB3830EE0530100007F1DDC",  # TODO
+        "customer_economic_profession_id": "D0682B44BE6D830EE0530100007F1DDC",  # TODO
         "nationality_id": nationality_id,
-        "customer_classification_id": "1",
-        "customer_status_id": "1",
-        "channel_id": "1",
+        "customer_classification_id": "1",  # TODO
+        "customer_status_id": "1",  # TODO
+        "channel_id": "1",  # TODO
         "avatar_url": None,
-        "complete_flag": 0
+        "complete_flag": UNCOMPLETED
     }
-
-    # Kiểm tra cif có tồn tại hay không, có thì cập nhật không là tạo mới
-    customer = session.execute(
-        select(Customer).filter(Customer.cif_number == cif_number)
-    ).first()
 
     customer_identity = {
         "identity_type_id": identity_document_type_id,
-        "customer_id": "",
         "identity_num": identity_number,
         "issued_date": issued_date,
         "expired_date": expired_date,
         "place_of_issue_id": place_of_issue_id,
         "maker_at": now(),
-        "maker_id": "1",
+        "maker_id": save_by,
         "updater_at": now(),
-        "updater_id": "1",
-        "identity_number_in_passport": "",
-        "passport_type_id": "",
-        "passport_code_id": "",
-        "primary_flag": "",
-        "mrz_content": "",
-        "qrcode_content": ""
+        "updater_id": save_by
     }
     under_15_year_old_flag = True if calculate_age(date.today(), date_of_birth) < 15 else False
     customer_individual_info = {
-        "customer_id": "",
         "gender_id": gender_id,
         "place_of_birth_id": province_id,
         "country_of_birth_id": nationality_id,
@@ -640,33 +601,32 @@ async def repos_save_identity(
         "under_15_year_old_flag": under_15_year_old_flag,
         "identifying_characteristics": identity_characteristic,
         "father_full_name": father_full_name_vn,
-        "mother_full_name": mother_full_name_vn,
-        "guardian_flag": 0
+        "mother_full_name": mother_full_name_vn
     }
-    try:
-        resident_address = session.execute(
-            select(AddressType).filter(AddressType.code == RESIDENT_ADDRESS_CODE)
-        ).one()
-    except:
+    
+    resident_address = session.execute(
+        select(AddressType).filter(AddressType.code == RESIDENT_ADDRESS_CODE)
+    ).scalars().first()
+    if not resident_address:
         return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Resident Address"), loc="resident_address")
     customer_resident_address = {
         "customer_id": "",
-        "address_type_id": resident_address[0].id,
+        "address_type_id": resident_address.id,
         "address_country_id": nationality_id,
         "address_province_id": resident_address_province_id,
         "address_district_id": resident_address_district_id,
         "address_ward_id": resident_address_ward_id,
         "address": resident_address_number_and_street
     }
-    try:
-        contact_address = session.execute(
-            select(AddressType).filter(AddressType.code == CONTACT_ADDRESS_CODE)
-        ).one()
-    except:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Contact Address"), loc="contact_addess")
+    
+    contact_address = session.execute(
+        select(AddressType).filter(AddressType.code == CONTACT_ADDRESS_CODE)
+    ).scalars().first()
+    if not contact_address:
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Contact Address"), loc="contact_address")
     customer_contact_address = {
         "customer_id": "",
-        "address_type_id": contact_address[0].id,
+        "address_type_id": contact_address.id,
         "address_country_id": nationality_id,
         "address_province_id": contact_address_province_id,
         "address_district_id": contact_address_district_id,
@@ -674,66 +634,65 @@ async def repos_save_identity(
         "address": contact_address_number_and_street
     }
 
+    # Kiểm tra cif có tồn tại hay không, có thì cập nhật không là tạo mới
+    customer = session.execute(
+        select(Customer).filter(Customer.cif_number == cif_number)
+    ).scalars().first()
+
     # Update
     if customer:
         # Cập nhật 1 cif_number đã tồn tại
         try:
-            customer_id = customer[0].id
-            customer_identity.update({"customer_id": customer[0].id})
-            customer_individual_info.update({"customer_id": customer[0].id})
-            customer_resident_address.update({"customer_id": customer[0].id})
-            customer_contact_address.update({"customer_id": customer[0].id})
+            customer_id = customer.id
+            customer_identity.update({"customer_id": customer.id})
+            customer_individual_info.update({"customer_id": customer.id})
+            customer_resident_address.update({"customer_id": customer.id})
+            customer_contact_address.update({"customer_id": customer.id})
             session.execute(update(Customer).where(
-                Customer.id == customer[0].id
+                Customer.id == customer.id
             ).values(**saving_customer))
             session.execute(update(CustomerIdentity).where(
-                CustomerIdentity.customer_id == customer[0].id
+                CustomerIdentity.customer_id == customer.id
             ).values(customer_identity))
             session.execute(update(CustomerIndividualInfo).where(
-                CustomerIndividualInfo.customer_id == customer[0].id
+                CustomerIndividualInfo.customer_id == customer.id
             ).values(customer_individual_info))
             session.execute(update(CustomerAddress).where(and_(
-                CustomerAddress.customer_id == customer[0].id,
+                CustomerAddress.customer_id == customer.id,
                 CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE,
             )).values(customer_resident_address))
             session.execute(update(CustomerAddress).where(and_(
-                CustomerAddress.customer_id == customer[0].id,
+                CustomerAddress.customer_id == customer.id,
                 CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE,
             )).values(customer_contact_address))
 
             # Tạo BOOKING, CRM_TRANSACTION_DAILY -> CRM_BOOKING -> BOOKING_CUSTOMER -> BOOKING_BUSSINESS_FORM
-            new_transaction_daily = TransactionDaily(**{
-                "transaction_id": str(uuid.uuid4()),
-                "data": None,
-                "description": "Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
-                "updated_at": now()
-            })
-            session.add(new_transaction_daily)
-            session.commit()
-            session.refresh(new_transaction_daily)
-
-            new_booking = Booking(**{
-                "transaction_id": new_transaction_daily.transaction_id,
-                "created_at": now(),
-                "updated_at": now()
-            })
-            session.add(new_booking)
-            session.commit()
-            session.refresh(new_booking)
-            new_booking_id = new_booking.id
-
+            transaction_id = str(uuid.uuid4())
+            booking_id = str(uuid.uuid4())
             session.add_all([
-                BookingCustomer(**{
-                    "booking_id": new_booking_id,
-                    "customer_id": customer_id
-                }),
-                BookingBusinessForm(**{
-                    "booking_id": new_booking_id,
-                    "business_form_id": "BE_TEST",
-                    "save_flag": 0,
-                    "created_at": now(),
-                    "updated_at": now()
-                })
+                TransactionDaily(
+                    transaction_id=transaction_id,
+                    data=None,
+                    description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
+                    updated_at=now()
+                ),
+                Booking(
+                    id=booking_id,
+                    transaction_id=transaction_id,
+                    created_at=now(),
+                    updated_at=now()
+                ),
+                BookingCustomer(
+                    booking_id=booking_id,
+                    customer_id=customer_id
+                ),
+                BookingBusinessForm(
+                    booking_id=booking_id,
+                    business_form_id="BE_TEST",  # TODO
+                    save_flag=UNSAVED,
+                    created_at=now(),
+                    updated_at=now()
+                )
             ])
 
             session.commit()
@@ -781,7 +740,7 @@ async def repos_save_identity(
                 "hand_side_id": None,
                 "finger_type_id": None,
                 "vector_data": None,
-                "active_flag": 1,
+                "active_flag": ACTIVED,
                 "maker_id": save_by,
                 "maker_at": now(),
                 "updater_id": save_by,
@@ -807,7 +766,7 @@ async def repos_save_identity(
                 "hand_side_id": None,
                 "finger_type_id": None,
                 "vector_data": None,
-                "active_flag": 1,
+                "active_flag": ACTIVED,
                 "maker_id": save_by,
                 "maker_at": now(),
                 "updater_id": save_by,
@@ -823,39 +782,33 @@ async def repos_save_identity(
             ])
 
             # Tạo BOOKING, CRM_TRANSACTION_DAILY -> CRM_BOOKING -> BOOKING_CUSTOMER -> BOOKING_BUSSINESS_FORM
-            new_transaction_daily = TransactionDaily(**{
-                "transaction_id": str(uuid.uuid4()),
-                "data": None,
-                "description": "Tạo CIF -> Thông tin cá nhân -> GTĐD -- Khởi tạo",
-                "created_at": now(),
-                "updated_at": now()
-            })
-            session.add(new_transaction_daily)
-            session.commit()
-            session.refresh(new_transaction_daily)
-
-            new_booking = Booking(**{
-                "transaction_id": new_transaction_daily.transaction_id,
-                "created_at": now(),
-                "updated_at": now()
-            })
-            session.add(new_booking)
-            session.commit()
-            session.refresh(new_booking)
-            new_booking_id = new_booking.id
+            transaction_id = str(uuid.uuid4())
+            booking_id = str(uuid.uuid4())
 
             session.add_all([
-                BookingCustomer(**{
-                    "booking_id": new_booking_id,
-                    "customer_id": customer_id
-                }),
-                BookingBusinessForm(**{
-                    "booking_id": new_booking_id,
-                    "business_form_id": "BE_TEST",
-                    "save_flag": 0,
-                    "created_at": now(),
-                    "updated_at": now()
-                })
+                TransactionDaily(
+                    transaction_id=transaction_id,
+                    data=None,
+                    description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Tạo mới",
+                    updated_at=now()
+                ),
+                Booking(
+                    id=booking_id,
+                    transaction_id=transaction_id,
+                    created_at=now(),
+                    updated_at=now()
+                ),
+                BookingCustomer(
+                    booking_id=booking_id,
+                    customer_id=customer_id
+                ),
+                BookingBusinessForm(
+                    booking_id=booking_id,
+                    business_form_id="BE_TEST",  # TODO
+                    save_flag=UNSAVED,
+                    created_at=now(),
+                    updated_at=now()
+                )
             ])
             session.commit()
         except Exception as ex:

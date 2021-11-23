@@ -131,9 +131,10 @@ def check_exist_by_id(model_id: str, model: Base, session: Session):
     except Exception as ex:
         return True
 
-def check_exist_list_by_id(list: list):
+
+def check_exist_list_by_id(check_list: list, session: Session):
     list_error = []
-    for model_id, model, session, message in list:
+    for model_id, model, message in check_list:
         is_error = check_exist_by_id(model_id, model, session)
         if is_error:
             list_error.append(message)
