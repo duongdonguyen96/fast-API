@@ -16,25 +16,6 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
 
-async def check_cif_number(cif_id: str, session: Session) -> ReposReturn:
-    # TODO: kiểm tra điều kiện để có thể tạo vân tay
-    flag = True
-    customer = session.execute(
-        select(
-            Customer
-        ).filter(and_(
-            Customer.id == cif_id,
-            Customer.complete_flag is True
-        ))
-    ).scalar()
-    if customer:
-        flag = False
-    if flag is False:
-        return ReposReturn(is_error=True, msg='Customer is not create', loc="cif_id")
-
-    return ReposReturn(data=flag)
-
-
 async def repos_save_fingerprint(
         cif_id: str,
         session: Session,
