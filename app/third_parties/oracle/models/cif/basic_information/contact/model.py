@@ -52,12 +52,12 @@ class CustomerAddress(Base):
                                  comment='ID quận/huyện')
     address_ward_id = Column(ForeignKey('crm_address_ward.ward_id'), nullable=False, comment='ID phường/xã')
     address = Column(VARCHAR(255), nullable=False, comment='Địa chỉ đầy đủ khách hàng (Địa chỉ 1)')
-    zip_code = Column(VARCHAR(10), nullable=False, comment='Mã bưu chính')
+    zip_code = Column(VARCHAR(10), comment='Mã bưu chính')
     latitude = Column(VARCHAR(60), comment='Vĩ độ')
     longitude = Column(VARCHAR(60), comment='Kinh độ')
-    address_primary_flag = Column(NUMBER(1, 0, False), nullable=False, comment='Cờ địa chỉ chính')
-    address_domestic_flag = Column(NUMBER(1, 0, False), nullable=False, comment='Cờ check địa chỉ trong/ngoài nước')
-    address_2 = Column(VARCHAR(255), nullable=False, comment='Địa chỉ 2')
+    address_primary_flag = Column(NUMBER(1, 0, False), comment='Cờ địa chỉ chính')
+    address_domestic_flag = Column(NUMBER(1, 0, False), comment='Cờ check địa chỉ trong/ngoài nước')
+    address_2 = Column(VARCHAR(255), comment='Địa chỉ 2')
     address_same_permanent_flag = Column(NUMBER(1, 0, False), server_default=text("""\
 0
 """), comment='Cờ giống địa chỉ thường trú')
