@@ -1,4 +1,11 @@
+from sqlalchemy import desc, select
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerIdentity
+)
+from app.third_parties.oracle.models.master_data.identity import ImageType
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
@@ -177,3 +184,28 @@ async def repos_customer_information(cif_id: str) -> ReposReturn:
             }
         ]
     })
+
+
+async def repos_get_last_identity(cif_id: str, session: Session):
+    identity = session.execute(
+        select(
+            CustomerIdentity
+        ).filter(CustomerIdentity.customer_id == cif_id).order_by(desc(CustomerIdentity.maker_at))
+    ).scalar()
+
+    if not identity:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    return ReposReturn(data=identity)
+
+
+async def repos_get_image_type(session: Session, image_type: str) -> ReposReturn:
+    image_type = session.execute(
+        select(
+            ImageType
+        ).filter(ImageType.code == image_type)
+    ).scalar()
+
+    if not image_type:
+        return ReposReturn(is_error=True, msg='ERROR_IMAGE_TYPE_NOT_EXIST', loc='image_type')
+
+    return ReposReturn(data=image_type)

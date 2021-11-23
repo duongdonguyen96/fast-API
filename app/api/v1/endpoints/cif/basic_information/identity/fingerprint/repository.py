@@ -1,4 +1,4 @@
-from sqlalchemy import and_, desc, select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
@@ -9,68 +9,42 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
 from app.third_parties.oracle.models.master_data.identity import (
-    FingerType, HandSide, ImageType
+    FingerType, HandSide
 )
-from app.utils.constant.cif import HAND_SIDE_LEFT_CODE, IMAGE_TYPE_FINGERPRINT
-from app.utils.error_messages import (
-    ERROR_CAN_NOT_CREATE, ERROR_CIF_ID_NOT_EXIST
-)
+from app.utils.constant.cif import HAND_SIDE_LEFT_CODE
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
 
 async def check_cif_number(cif_id: str, session: Session) -> ReposReturn:
+    # TODO: kiểm tra điều kiện để có thể tạo vân tay
     flag = True
-    query_data = session.execute(  # noqa
+    customer = session.execute(
         select(
             Customer
-        ).filter(Customer.id == cif_id)
-    ).scalar_one()
-    # TODO: kiểm tra điều kiện để có thể tạo vân tay
-    # if query_data.cif_number is not None:
-    #     return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_number")
+        ).filter(and_(
+            Customer.id == cif_id,
+            Customer.complete_flag is True
+        ))
+    ).scalar()
+    if customer:
+        flag = False
+    if flag is False:
+        return ReposReturn(is_error=True, msg='Customer is not create', loc="cif_id")
 
     return ReposReturn(data=flag)
 
 
-async def repos_get_type_id(session: Session) -> ReposReturn:
-    query_data = session.execute(
-        select(
-            ImageType
-        ).filter(ImageType.code == IMAGE_TYPE_FINGERPRINT)
-    ).scalars().first()
-
-    if not query_data:
-        return ReposReturn(is_error=True, msg='ERROR_IMAGE_TYPE_NOT_EXIST', loc='image_type')
-
-    return ReposReturn(data=query_data)
-
-
-async def repos_get_identity_id(cif_id: str, session: Session):
-    query_data = session.execute(
-        select(
-            CustomerIdentity
-        ).filter(CustomerIdentity.customer_id == cif_id).order_by(desc(CustomerIdentity.maker_at))
-    ).scalars().first()
-
-    if query_data is None:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
-
-    return ReposReturn(data=query_data)
-
-
 async def repos_save_fingerprint(
         cif_id: str,
-        oracle_session: Session,
-        list_data_insert: list,
+        session: Session,
+        list_data_inserts: list,
         created_by: str
 ) -> ReposReturn:
 
-    try:
-        data_insert = [CustomerIdentityImage(**data_insert) for data_insert in list_data_insert]
-        oracle_session.bulk_save_objects(data_insert)
-        oracle_session.commit()
-    except Exception as ex:
-        return ReposReturn(is_error=True, msg=ERROR_CAN_NOT_CREATE, loc=f'{ex}')
+    data_insert = [CustomerIdentityImage(**data_insert) for data_insert in list_data_inserts]
+    session.bulk_save_objects(data_insert)
+    session.commit()
 
     return ReposReturn(data={
         "cif_id": cif_id,

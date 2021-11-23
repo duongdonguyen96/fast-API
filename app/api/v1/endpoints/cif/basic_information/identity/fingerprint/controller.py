@@ -1,62 +1,49 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.repository import (
-    check_cif_number, repos_get_data_finger, repos_get_identity_id,
-    repos_get_type_id, repos_save_fingerprint
+    check_cif_number, repos_get_data_finger, repos_save_fingerprint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
     TwoFingerPrintRequest
 )
+from app.api.v1.endpoints.cif.repository import (
+    repos_get_image_type, repos_get_last_identity
+)
 from app.utils.constant.cif import (
-    ACTIVE_FLAG_CREATE_FINGERPRINT, FRONT_FLAG_CREATE_FINGERPRINT
+    ACTIVE_FLAG_CREATE_FINGERPRINT, FRONT_FLAG_CREATE_FINGERPRINT,
+    IMAGE_TYPE_FINGERPRINT
 )
 from app.utils.functions import now
 
 
 class CtrFingerPrint(BaseController):
     async def ctr_save_fingerprint(self, cif_id: str, finger_request: TwoFingerPrintRequest):
-        # TODO: xây dựng hàm kiểm tra điều kiện trước khi tạo vân tay
-        query_data = self.call_repos(await check_cif_number(cif_id, self.oracle_session)) # noqa
+        flag_customer = self.call_repos(await check_cif_number(cif_id, self.oracle_session)) # noqa
 
-        type_id = self.call_repos(await repos_get_type_id(self.oracle_session))
-        identity = self.call_repos(await repos_get_identity_id(cif_id, self.oracle_session))
+        image_type = self.call_repos(await repos_get_image_type(self.oracle_session, IMAGE_TYPE_FINGERPRINT))
+        identity = self.call_repos(await repos_get_last_identity(cif_id, self.oracle_session))
 
-        list_data_insert = []
-        for item in finger_request.fingerprint_1:
-            list_data_insert.append(
-                {
-                    'identity_id': identity.id,
-                    'image_type_id': type_id.code,
-                    'image_url': item.image_url,
-                    'hand_side_id': item.hand_side.id,
-                    'finger_type_id': item.finger_type.id,
-                    'vector_data': None,
-                    'active_flag': ACTIVE_FLAG_CREATE_FINGERPRINT,
-                    'maker_id': self.current_user.user_id,
-                    'maker_at': now(),
-                    'identity_image_front_flag': FRONT_FLAG_CREATE_FINGERPRINT
-                }
-            )
-        for item in finger_request.fingerprint_2:
-            list_data_insert.append(
-                {
-                    'identity_id': identity.id,
-                    'image_type_id': type_id.code,
-                    'image_url': item.image_url,
-                    'hand_side_id': item.hand_side.id,
-                    'finger_type_id': item.finger_type.id,
-                    'vector_data': None,
-                    'active_flag': ACTIVE_FLAG_CREATE_FINGERPRINT,
-                    'maker_id': self.current_user.user_id,
-                    'maker_at': now(),
-                    'identity_image_front_flag': FRONT_FLAG_CREATE_FINGERPRINT
-                }
-            )
+        list_data = []
+        list_data.extend(finger_request.fingerprint_1)
+        list_data.extend(finger_request.fingerprint_2)
+
+        list_data_inserts = [{
+            'identity_id': identity.id,
+            'image_type_id': image_type.code,
+            'image_url': item.image_url,
+            'hand_side_id': item.hand_side.id,
+            'finger_type_id': item.finger_type.id,
+            'vector_data': None,
+            'active_flag': ACTIVE_FLAG_CREATE_FINGERPRINT,
+            'maker_id': self.current_user.user_id,
+            'maker_at': now(),
+            'identity_image_front_flag': FRONT_FLAG_CREATE_FINGERPRINT
+        } for item in list_data]
 
         data = self.call_repos(
             await repos_save_fingerprint(
                 cif_id=cif_id,
-                oracle_session=self.oracle_session,
-                list_data_insert=list_data_insert,
+                session=self.oracle_session,
+                list_data_inserts=list_data_inserts,
                 created_by=self.current_user.full_name_vn
             )
         )
