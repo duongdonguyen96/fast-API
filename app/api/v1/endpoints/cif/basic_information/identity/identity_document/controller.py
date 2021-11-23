@@ -2,7 +2,7 @@ from typing import Union
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import (
-    repos_get_detail, repos_get_list_log, repos_save
+    repos_get_detail, repos_get_list_log, repos_save_identity
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
@@ -26,7 +26,7 @@ class CtrIdentityDocument(BaseController):
         )
         return self.response(data=logs_data)
 
-    async def save(
+    async def save_identity(
             self,
             identity_document_req: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest]
     ):
@@ -35,10 +35,10 @@ class CtrIdentityDocument(BaseController):
             identity_document_req.cif_id = CIF_ID_NEW_TEST
 
         info_save_document = self.call_repos(
-            await repos_save(
+            await repos_save_identity(
                 identity_document_req=identity_document_req,
                 save_by=self.current_user.full_name_vn,
-                oracle_session=self.oracle_session
+                session=self.oracle_session
             )
         )
         return self.response(data=info_save_document)

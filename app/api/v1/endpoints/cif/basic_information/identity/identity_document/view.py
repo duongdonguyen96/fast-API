@@ -95,5 +95,5 @@ async def view_save(
         ),
         current_user=Depends(get_current_user_from_header())
 ):
-    save_info = await CtrIdentityDocument(current_user).save(identity_document_req)
+    save_info = await CtrIdentityDocument(current_user).save_identity(identity_document_req)
     return ResponseData[SaveSuccessResponse](**save_info)

@@ -520,10 +520,10 @@ async def repos_get_list_log(cif_id: str) -> ReposReturn:
     return ReposReturn(data=IDENTITY_LOGS_INFO)
 
 
-async def repos_save(
+async def repos_save_identity(
         identity_document_req: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest],
         save_by: str,
-        oracle_session: Session
+        session: Session
 ):
     cif_number = identity_document_req.cif_id
 
@@ -565,18 +565,18 @@ async def repos_save(
     contact_address_ward_id = identity_document_req.ocr_result.address_information.contact_address.ward.id
 
     list_exist = [
-        (place_of_issue_id, PlaceOfIssue, oracle_session, "place_of_issue_id"),
-        (gender_id, CustomerGender, oracle_session, "gender_id"),
-        (nationality_id, AddressCountry, oracle_session, "nationality_id"),
-        (province_id, AddressProvince, oracle_session, "province_id"),
-        (ethnic_id, Nation, oracle_session, "ethnic_id"),
-        (religion_id, Religion, oracle_session, "religion_id"),
-        (resident_address_province_id, AddressProvince, oracle_session, "resident_address_province_id"),
-        (resident_address_district_id, AddressDistrict, oracle_session, "resident_address_district_id"),
-        (resident_address_ward_id, AddressWard, oracle_session, "resident_address_ward_id"),
-        (contact_address_province_id, AddressProvince, oracle_session, "contact_address_province_id"),
-        (contact_address_district_id, AddressDistrict, oracle_session, "contact_address_district_id"),
-        (contact_address_ward_id, AddressWard, oracle_session, "contact_address_ward_id"),
+        (place_of_issue_id, PlaceOfIssue, session, "place_of_issue_id"),
+        (gender_id, CustomerGender, session, "gender_id"),
+        (nationality_id, AddressCountry, session, "nationality_id"),
+        (province_id, AddressProvince, session, "province_id"),
+        (ethnic_id, Nation, session, "ethnic_id"),
+        (religion_id, Religion, session, "religion_id"),
+        (resident_address_province_id, AddressProvince, session, "resident_address_province_id"),
+        (resident_address_district_id, AddressDistrict, session, "resident_address_district_id"),
+        (resident_address_ward_id, AddressWard, session, "resident_address_ward_id"),
+        (contact_address_province_id, AddressProvince, session, "contact_address_province_id"),
+        (contact_address_district_id, AddressDistrict, session, "contact_address_district_id"),
+        (contact_address_ward_id, AddressWard, session, "contact_address_ward_id"),
     ]
     list_error = check_exist_list_by_id(list_exist)
     if list_error:
@@ -606,7 +606,7 @@ async def repos_save(
     }
 
     # Kiểm tra cif có tồn tại hay không, có thì cập nhật không là tạo mới
-    customer = oracle_session.execute(
+    customer = session.execute(
         select(Customer).filter(Customer.cif_number == cif_number)
     ).first()
 
@@ -644,7 +644,7 @@ async def repos_save(
         "guardian_flag": 0
     }
     try:
-        resident_address = oracle_session.execute(
+        resident_address = session.execute(
             select(AddressType).filter(AddressType.code == RESIDENT_ADDRESS_CODE)
         ).one()
     except:
@@ -659,7 +659,7 @@ async def repos_save(
         "address": resident_address_number_and_street
     }
     try:
-        contact_address = oracle_session.execute(
+        contact_address = session.execute(
             select(AddressType).filter(AddressType.code == CONTACT_ADDRESS_CODE)
         ).one()
     except:
@@ -683,20 +683,20 @@ async def repos_save(
             customer_individual_info.update({"customer_id": customer[0].id})
             customer_resident_address.update({"customer_id": customer[0].id})
             customer_contact_address.update({"customer_id": customer[0].id})
-            oracle_session.execute(update(Customer).where(
+            session.execute(update(Customer).where(
                 Customer.id == customer[0].id
             ).values(**saving_customer))
-            oracle_session.execute(update(CustomerIdentity).where(
+            session.execute(update(CustomerIdentity).where(
                 CustomerIdentity.customer_id == customer[0].id
             ).values(customer_identity))
-            oracle_session.execute(update(CustomerIndividualInfo).where(
+            session.execute(update(CustomerIndividualInfo).where(
                 CustomerIndividualInfo.customer_id == customer[0].id
             ).values(customer_individual_info))
-            oracle_session.execute(update(CustomerAddress).where(and_(
+            session.execute(update(CustomerAddress).where(and_(
                 CustomerAddress.customer_id == customer[0].id,
                 CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE,
             )).values(customer_resident_address))
-            oracle_session.execute(update(CustomerAddress).where(and_(
+            session.execute(update(CustomerAddress).where(and_(
                 CustomerAddress.customer_id == customer[0].id,
                 CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE,
             )).values(customer_contact_address))
@@ -708,21 +708,21 @@ async def repos_save(
                 "description": "Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
                 "updated_at": now()
             })
-            oracle_session.add(new_transaction_daily)
-            oracle_session.commit()
-            oracle_session.refresh(new_transaction_daily)
+            session.add(new_transaction_daily)
+            session.commit()
+            session.refresh(new_transaction_daily)
 
             new_booking = Booking(**{
                 "transaction_id": new_transaction_daily.transaction_id,
                 "created_at": now(),
                 "updated_at": now()
             })
-            oracle_session.add(new_booking)
-            oracle_session.commit()
-            oracle_session.refresh(new_booking)
+            session.add(new_booking)
+            session.commit()
+            session.refresh(new_booking)
             new_booking_id = new_booking.id
 
-            oracle_session.add_all([
+            session.add_all([
                 BookingCustomer(**{
                     "booking_id": new_booking_id,
                     "customer_id": customer_id
@@ -736,10 +736,10 @@ async def repos_save(
                 })
             ])
 
-            oracle_session.commit()
+            session.commit()
         except Exception as ex:
             logger.debug(ex)
-            oracle_session.rollback()
+            session.rollback()
             return ReposReturn(is_error=True, msg="Update customer is not success", loc="cif_number")
 
     # Create
@@ -757,10 +757,10 @@ async def repos_save(
         new_customer = Customer(**saving_customer)
 
         try:
-            oracle_session.begin_nested()
-            oracle_session.add(new_customer)
-            oracle_session.commit()
-            oracle_session.refresh(new_customer)
+            session.begin_nested()
+            session.add(new_customer)
+            session.commit()
+            session.refresh(new_customer)
             customer_id = new_customer.id
 
             customer_individual_info.update({"customer_id": customer_id})
@@ -769,9 +769,9 @@ async def repos_save(
 
             customer_identity.update({"customer_id": customer_id})
             new_identity = CustomerIdentity(**customer_identity)
-            oracle_session.add(new_identity)
-            oracle_session.commit()
-            oracle_session.refresh(new_identity)
+            session.add(new_identity)
+            session.commit()
+            session.refresh(new_identity)
             identity_id = new_identity.id
 
             new_front_side_identity_image = CustomerIdentityImage(**{
@@ -788,9 +788,9 @@ async def repos_save(
                 "updater_at": now(),
                 "identity_image_front_flag": IDENTITY_IMAGE_FLAG_FRONT_SIDE
             })
-            oracle_session.add(new_front_side_identity_image)
-            oracle_session.commit()
-            oracle_session.refresh(new_front_side_identity_image)
+            session.add(new_front_side_identity_image)
+            session.commit()
+            session.refresh(new_front_side_identity_image)
             front_side_identity_image_id = new_front_side_identity_image.id
             front_side_identity_compare_image = {
                 "identity_id": identity_id,
@@ -814,7 +814,7 @@ async def repos_save(
                 "updater_at": now(),
                 "identity_image_front_flag": IDENTITY_IMAGE_FLAG_BACKSIDE
             }
-            oracle_session.add_all([
+            session.add_all([
                 CustomerIndividualInfo(**customer_individual_info),
                 CustomerAddress(**customer_resident_address),
                 CustomerAddress(**customer_contact_address),
@@ -830,21 +830,21 @@ async def repos_save(
                 "created_at": now(),
                 "updated_at": now()
             })
-            oracle_session.add(new_transaction_daily)
-            oracle_session.commit()
-            oracle_session.refresh(new_transaction_daily)
+            session.add(new_transaction_daily)
+            session.commit()
+            session.refresh(new_transaction_daily)
 
             new_booking = Booking(**{
                 "transaction_id": new_transaction_daily.transaction_id,
                 "created_at": now(),
                 "updated_at": now()
             })
-            oracle_session.add(new_booking)
-            oracle_session.commit()
-            oracle_session.refresh(new_booking)
+            session.add(new_booking)
+            session.commit()
+            session.refresh(new_booking)
             new_booking_id = new_booking.id
 
-            oracle_session.add_all([
+            session.add_all([
                 BookingCustomer(**{
                     "booking_id": new_booking_id,
                     "customer_id": customer_id
@@ -857,10 +857,10 @@ async def repos_save(
                     "updated_at": now()
                 })
             ])
-            oracle_session.commit()
+            session.commit()
         except Exception as ex:
             logger.debug(ex)
-            oracle_session.rollback()
+            session.rollback()
             return ReposReturn(is_error=True, msg="Create new customer is not success", loc="cif_number")
 
     return ReposReturn(data={
