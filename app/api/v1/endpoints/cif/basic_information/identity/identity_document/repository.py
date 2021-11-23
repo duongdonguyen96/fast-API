@@ -1,430 +1,191 @@
 from typing import Union
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
 )
+from app.third_parties.oracle.models.cif.basic_information.contact.model import CustomerAddress
+from app.third_parties.oracle.models.cif.basic_information.identity.model import CustomerIdentity, \
+    CustomerIdentityImage, CustomerCompareImage
+from app.third_parties.oracle.models.cif.basic_information.model import Customer
+from app.third_parties.oracle.models.cif.basic_information.personal.model import CustomerIndividualInfo
+from app.third_parties.oracle.models.master_data.address import AddressProvince, AddressCountry, AddressType, \
+    AddressDistrict, AddressWard
+from app.third_parties.oracle.models.master_data.customer import CustomerGender
+from app.third_parties.oracle.models.master_data.identity import CustomerIdentityType, PlaceOfIssue, HandSide, \
+    FingerType, PassportType, PassportCode
+from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
-    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
+    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, RESIDENT_ADDRESS_CODE, CONTACT_ADDRESS_CODE, IDENTITY_DOCUMENT_TYPE_PASSPORT
 )
 from app.utils.error_messages import (
-    ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST
+    ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST, MESSAGE_STATUS
 )
-from app.utils.functions import now
+from app.utils.functions import now, dropdown
 
-IDENTITY_CARD_INFO = {
-    "identity_document_type": {
-        "id": "0",
-        "code": "CMND",
-        "name": "Chứng minh nhân dân"
-    },
-    "frontside_information": {
-        "identity_image_url": "https://example.com/example.jpg",
-        "face_compare_image_url": "https://example.com/example.jpg",
-        "similar_percent": 94
-    },
-    "backside_information": {
-        "identity_image_url": "https://example.com/example.jpg",
-        "fingerprint": [
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYTRAI",
-                    "name": "Tay trái"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYTRAI",
-                    "name": "Tay trái"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYPHAI",
-                    "name": "Tay phải"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYPHAI",
-                    "name": "Tay phải"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            }
-        ],
-        "updated_at": "2021-09-15 15:23:45",
-        "updated_by": "Nguyễn Anh Đào"
-    },
-    "ocr_result": {
-        "identity_document": {
-            "identity_number": "361963424",
-            "issued_date": "2021-02-18",
-            "place_of_issue": {
-                "id": "1",
-                "code": "CT",
-                "name": "Cần Thơ"
-            },
-            "expired_date": "2021-02-18"
+address_information = {
+    "resident_address": {
+        "province": {
+            "id": "",
+            "code": "",
+            "name": ""
         },
-        "basic_information": {
-            "id": "1",
-            "full_name_vn": "Lê Phương Thảo",
-            "gender": {
-                "id": "1",
-                "code": "NU",
-                "name": "Nữ"
-            },
-            "date_of_birth": "1990-08-12",
-            "nationality": {
-                "id": "1",
-                "code": "VN",
-                "name": "Việt Nam"
-            },
-            "province": {
-                "id": "1",
-                "code": "CT",
-                "name": "Cần Thơ"
-            },
-            "ethnic": {
-                "id": "1",
-                "code": "KINH",
-                "name": "Kinh"
-            },
-            "religion": {
-                "id": "1",
-                "code": "KHONG",
-                "name": "Không"
-            },
-            "identity_characteristic": "",
-            "father_full_name_vn": "Lê Tuấn Ngọc",
-            "mother_full_name_vn": "Trần Phương Thảo"
+        "district": {
+            "id": "",
+            "code": "",
+            "name": ""
         },
-        "address_information": {
-            "resident_address": {
-                "province": {
-                    "id": "1",
-                    "code": "CT",
-                    "name": "Cần Thơ"
-                },
-                "district": {
-                    "id": "1",
-                    "code": "PH",
-                    "name": "Phụng Hiệp"
-                },
-                "ward": {
-                    "id": "1",
-                    "code": "TL",
-                    "name": "Tân Long"
-                },
-                "number_and_street": "25 Đường Long Thới-12-54"
-            },
-            "contact_address": {
-                "province": {
-                    "id": "1",
-                    "code": "CT",
-                    "name": "Cần Thơ"
-                },
-                "district": {
-                    "id": "1",
-                    "code": "PH",
-                    "name": "Phụng Hiệp"
-                },
-                "ward": {
-                    "id": "1",
-                    "code": "TL",
-                    "name": "Tân Long"
-                },
-                "number_and_street": "25 Đường Long Thới-12-54"
-            }
-        }
+        "ward": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "number_and_street": ""
+    },
+    "contact_address": {
+        "province": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "district": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "ward": {
+            "id": "",
+            "code": "",
+            "name": ""
+        },
+        "number_and_street": ""
     }
 }
-CITIZEN_CARD_INFO = {
-    "identity_document_type": {
-        "id": "1",
-        "code": "CCCD",
-        "name": "Căn cước công dân"
+identity_document = {
+    "identity_number": "",
+    "issued_date": "2000-01-01",
+    "place_of_issue": {
+        "id": "",
+        "code": "",
+        "name": ""
     },
-    "frontside_information": {
-        "identity_image_url": "https://example.com/example.jpg",
-        "face_compare_image_url": "https://example.com/example.jpg",
-        "similar_percent": 94
+    "expired_date": "2000-01-01",
+    # HC
+    "passport_type": {
+        "id": "",
+        "code": "",
+        "name": ""
     },
-    "backside_information": {
-        "identity_image_url": "https://example.com/example.jpg",
-        "fingerprint": [
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYTRAI",
-                    "name": "Tay trái"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "id": "2",
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYTRAI",
-                    "name": "Tay trái"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "id": "3",
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYPHAI",
-                    "name": "Tay phải"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "id": "4",
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYPHAI",
-                    "name": "Tay phải"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            }
-        ],
-        "updated_at": "2021-09-15 15:23:45",
-        "updated_by": "Nguyễn Anh Đào"
-    },
-    "ocr_result": {
-        "identity_document": {
-            "identity_number": "361963424",
-            "issued_date": "2021-02-18",
-            "place_of_issue": {
-                "id": "2",
-                "code": "HCDS",
-                "name": "Cục hành chính về trật tự xã hội"
-            },
-            "expired_date": "2021-02-07",
-            "mrz_content": "IDVNM~079195236~8~079197258639~<< "
-                           "122909199~X~Nu~23092031~X~VNM<<<<<<<<<<<~4Tran~<<~Minh~<~Huyen~<<<….",
-            "qr_code_content": "079087007923||Nguyễn Thái Anh |27061987|Nam|236/11 Lê Thị Hồng, Phường 17, Gò Vấp, "
-                               "TPHCM | 21022021 "
-        },
-        "basic_information": {
-            "id": "1",
-            "full_name_vn": "Nguyễn Phạm Thông",
-            "gender": {
-                "id": "2",
-                "code": "NAM",
-                "name": "Nam"
-            },
-            "date_of_birth": "1994-02-07",
-            "nationality": {
-                "id": "1",
-                "code": "VN",
-                "name": "Việt Nam"
-            },
-            "province": {
-                "id": "2",
-                "code": "HN",
-                "name": "Hà Nội"
-            },
-            "identity_characteristic": "Sẹo chấm cách 2.5 so với trán"
-        },
-        "address_information": {
-            "resident_address": {
-                "province": {
-                    "id": "1",
-                    "code": "CT",
-                    "name": "Cần Thơ"
-                },
-                "district": {
-                    "id": "1",
-                    "code": "PH",
-                    "name": "Phụng Hiệp"
-                },
-                "ward": {
-                    "id": "1",
-                    "code": "TL",
-                    "name": "Tân Long"
-                },
-                "number_and_street": "25 Đường Long Thới-12-54"
-            },
-            "contact_address": {
-                "province": {
-                    "id": "1",
-                    "code": "CT",
-                    "name": "Cần Thơ"
-                },
-                "district": {
-                    "id": "1",
-                    "code": "PH",
-                    "name": "Phụng Hiệp"
-                },
-                "ward": {
-                    "id": "1",
-                    "code": "TL",
-                    "name": "Tân Long"
-                },
-                "number_and_street": "25 Đường Long Thới-12-54"
-            }
-        }
+    "passport_code": {
+        "id": "",
+        "code": "",
+        "name": ""
     }
 }
-PASSPORT_INFO = {
-    "identity_document_type": {
-        "id": "2",
-        "code": "HC",
-        "name": "Hộ chiếu"
+basic_information = {
+    "id": "",
+    "full_name_vn": "",
+    "gender": {
+        "id": "",
+        "code": "",
+        "name": ""
     },
-    "passport_information": {
-        "identity_image_url": "https://example.com/example.jpg",
-        "face_compare_image_url": "https://example.com/example.jpg",
-        "similar_percent": 94,
+    "date_of_birth": "2000-01-01",
+    "nationality": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "province": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "ethnic": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "religion": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "identity_characteristic": "",
+    "father_full_name_vn": "",
+    "mother_full_name_vn": "",
+    # HC
+    "place_of_birth": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "identity_card_number": ""
+}
+backside_information = {
+    "identity_image_url": "",
+    "fingerprint": [
+        {
+            "image_url": "",
+            "hand_side": {
+                "id": "",
+                "code": "",
+                "name": ""
+            },
+            "finger_type": {
+                "id": "",
+                "code": "",
+                "name": ""
+            }
+        }
+    ],
+    "updated_at": "2000-01-01 00:00:00",
+    "updated_by": ""
+}
+passport_information = {
+        "identity_image_url": "",
+        "face_compare_image_url": "",
+        "similar_percent": 00,
         "fingerprint": [
             {
-                "image_url": "https://example.com/example.jpg",
+                "image_url": "",
                 "hand_side": {
-                    "id": "1",
-                    "code": "TAYTRAI",
-                    "name": "Tay trái"
+                    "id": "",
+                    "code": "",
+                    "name": ""
                 },
                 "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYTRAI",
-                    "name": "Tay trái"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYPHAI",
-                    "name": "Tay phải"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
-                }
-            },
-            {
-                "image_url": "https://example.com/example.jpg",
-                "hand_side": {
-                    "id": "1",
-                    "code": "TAYPHAI",
-                    "name": "Tay phải"
-                },
-                "finger_type": {
-                    "id": "1",
-                    "code": "NGONTRO",
-                    "name": "Ngón trỏ"
+                    "id": "",
+                    "code": "",
+                    "name": ""
                 }
             }
         ]
-    },
-    "ocr_result": {
-        "identity_document": {
-            "identity_number": "361963424",
-            "issued_date": "2021-02-18",
-            "place_of_issue": {
-                "id": "1",
-                "code": "CT",
-                "name": "Cần Thơ"
-            },
-            "expired_date": "2021-02-18",
-            "passport_type": {
-                "id": "1",
-                "code": "P",
-                "name": "P"
-            },
-            "passport_code": {
-                "id": "1",
-                "code": "VNM",
-                "name": "VNM"
-            }
-        },
-        "basic_information": {
-            "full_name_vn": "Lê Phương Thảo",
-            "gender": {
-                "id": "1",
-                "code": "NU",
-                "name": "Nữ"
-            },
-            "date_of_birth": "1990-08-12",
-            "nationality": {
-                "id": "1",
-                "code": "VN",
-                "name": "Việt Nam"
-            },
-            "place_of_birth": {
-                "id": "1",
-                "code": "CT",
-                "name": "Cần Thơ"
-            },
-            "identity_card_number": "123214512321",
-            "mrz_content": "P<VNM~Tran<<Minh<Huyen<<<<<...SoHC~<~X~VNM~29081999~X~Nu~ 29082029~X~079197005852~<~X"
-        }
     }
+identity_info = {
+    "identity_document_type": {
+        "id": "",
+        "code": "",
+        "name": ""
+    },
+    "frontside_information": {
+        "identity_image_url": "",
+        "face_compare_image_url": "",
+        "similar_percent": 00
+    },
+    "backside_information": backside_information,
+    "ocr_result": {
+        "identity_document": identity_document,
+        "basic_information": basic_information,
+        "address_information": address_information
+    },
+    "passport_information": passport_information
 }
+
 IDENTITY_LOGS_INFO = [
     {
         "reference_flag": True,
@@ -477,19 +238,182 @@ IDENTITY_LOGS_INFO = [
 ]
 
 
-async def repos_get_detail(cif_id: str, identity_document_type_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
+async def repos_get_detail(
+        cif_id: str, identity_document_type_id: str, oracle_session: Session
+) -> ReposReturn:
+    if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
+        return ReposReturn(is_error=True, msg=f"{MESSAGE_STATUS[ERROR_IDENTITY_DOCUMENT_NOT_EXIST]} in "
+                                              f"{IDENTITY_DOCUMENT_TYPE}", loc='identity_document_type_id')
+
+    identities = oracle_session.execute(
+        select(
+            Customer,
+            CustomerIdentity,
+            CustomerIndividualInfo,
+            CustomerAddress,
+            CustomerIdentityImage,
+            CustomerIdentityType,
+            CustomerCompareImage,
+            HandSide,
+            FingerType,
+            PlaceOfIssue,
+            CustomerGender,
+            AddressCountry,
+            AddressProvince,
+            AddressDistrict,
+            AddressWard,
+            Nation,
+            Religion,
+            PassportType,
+            PassportCode
+        )
+        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+        .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .outerjoin(CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id)
+        .outerjoin(CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id)
+        .outerjoin(CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
+
+        .outerjoin(HandSide, CustomerIdentityImage.hand_side_id == HandSide.id)
+        .outerjoin(FingerType, CustomerIdentityImage.finger_type_id == FingerType.id)
+        .join(PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id)
+        .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
+        .join(AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id)
+        .join(AddressProvince, CustomerIndividualInfo.place_of_birth_id == AddressProvince.id)
+        .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
+        .join(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
+        .join(Nation, CustomerIndividualInfo.nation_id == Nation.id)
+        .join(Religion, CustomerIndividualInfo.religion_id == Religion.id)
+        .outerjoin(PassportType, CustomerIdentity.passport_type_id == PassportType.id)
+        .outerjoin(PassportCode, CustomerIdentity.passport_code_id == PassportCode.id)
+        .filter(
+            Customer.id == cif_id,
+            CustomerIdentity.identity_type_id == identity_document_type_id
+        )
+        .order_by(CustomerIdentityImage.updater_at)
+    ).all()
+
+    if not identities:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
-    if identity_document_type_id not in IDENTITY_DOCUMENT_TYPE:
-        return ReposReturn(is_error=True, msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type_id')
+    fingerprint_list = []
+    for customer, identity, individual_info, customer_address, identity_image, identity_type, compare_image, \
+        hand_side, finger_type, place_of_issue, gender, country, province, district, ward, nation, religion, \
+        passport_type, passport_code in identities:
+        # Loại giấy tờ định danh
+        identity_info.update({
+            "identity_document_type": dropdown(identity_type),
+        })
+        if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
+        # Mặt trước
+            if identity_image.identity_image_front_flag == 1:
+                identity_info.update({
+                    "frontside_information": {
+                        "identity_image_url": identity_image.image_url,
+                        "face_compare_image_url": compare_image.compare_image_url,
+                        "similar_percent": compare_image.similar_percent
+                    }
+                })
+            # Mặt sau
+            else:
+                if identity_image.hand_side_id and identity_image.finger_type_id:
+                    fingerprint = {
+                        "image_url": identity_image.image_url,
+                        "hand_side": dropdown(hand_side),
+                        "finger_type": dropdown(finger_type)
+                    }
+                    if fingerprint not in fingerprint_list:
+                        fingerprint_list.append(fingerprint)
+                        backside_information.update({
+                            "identity_image_url": identity_image.image_url,
+                            "fingerprint": fingerprint_list,
+                            "updated_at": identity_image.updater_at,
+                            "updated_by": identity_image.updater_id
+                        })
 
-    if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
-        return ReposReturn(data=IDENTITY_CARD_INFO)
-    elif identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
-        return ReposReturn(data=CITIZEN_CARD_INFO)
-    else:
-        return ReposReturn(data=PASSPORT_INFO)
+                backside_information.update({
+                    "identity_image_url": identity_image.image_url,
+                    "fingerprint": fingerprint_list,
+                    "updated_at": identity_image.updater_at,
+                    "updated_by": identity_image.updater_id
+                })
+        else:
+            passport_information.update({
+                "identity_image_url": identity_image.image_url
+            })
+
+        # Phân tích OCR -> Giấy tờ định danh
+
+        identity_document.update({
+            "identity_number": identity.identity_num,
+            "issued_date": identity.issued_date,
+            "place_of_issue": dropdown(place_of_issue),
+            "expired_date": identity.expired_date,
+            "mrz_content": identity.mrz_content,
+            "qr_code_content": identity.qrcode_content,
+        })
+        # HC
+        if identity_document_type_id==IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            identity_document.update({
+                "passport_type": dropdown(passport_type),
+                "passport_code": dropdown(passport_code)
+            })
+
+        # Phân tích OCR -> Thông tin cơ bản
+        basic_information.update({
+            "full_name_vn": customer.full_name_vn,
+            "gender": dropdown(gender),
+            "date_of_birth": individual_info.date_of_birth,
+            "nationality": dropdown(country),
+            "province": dropdown(province),
+            "ethnic": dropdown(nation),
+            "religion": dropdown(religion),
+            "identity_characteristic": individual_info.identifying_characteristics,
+            "father_full_name_vn": individual_info.father_full_name,
+            "mother_full_name_vn": individual_info.mother_full_name,
+            # HC
+            "place_of_birth": dropdown(province),
+            "identity_card_number": identity.identity_number_in_passport,
+            "mrz_content": identity.mrz_content
+        })
+
+        # Phân tích OCR -> Thông tin địa chỉ
+        if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
+            address_information['resident_address'].update({
+                "province": dropdown(province),
+                "district": dropdown(district),
+                "ward": dropdown(ward),
+                "number_and_street": customer_address.address
+            })
+
+        if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
+            address_information['contact_address'].update({
+                "province": dropdown(province),
+                "district": dropdown(district),
+                "ward": dropdown(ward),
+                "number_and_street": customer_address.address
+            })
+
+        # HC
+        if compare_image:
+            passport_information.update({
+                "face_compare_image_url": compare_image.compare_image_url,
+                "similar_percent": compare_image.similar_percent
+            })
+
+        passport_information.update({
+            "identity_image_url": identity_image.image_url,
+            "fingerprint": fingerprint_list
+        })
+
+    identity_info.update({
+        "identity_document": identity_document,
+        "basic_information": basic_information,
+        "address_information": address_information,
+        "passport_information": passport_information
+    })
+
+    return ReposReturn(data=identity_info)
 
 
 async def repos_get_list_log(cif_id: str) -> ReposReturn:

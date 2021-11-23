@@ -15,7 +15,8 @@ class CtrIdentityDocument(BaseController):
         detail_data = self.call_repos(
             await repos_get_detail(
                 cif_id=cif_id,
-                identity_document_type_id=identity_document_type_id
+                identity_document_type_id=identity_document_type_id,
+                oracle_session=self.oracle_session
             )
         )
         return self.response(data=detail_data)
