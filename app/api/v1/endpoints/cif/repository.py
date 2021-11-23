@@ -245,5 +245,3 @@ async def repos_get_image_type(image_type: str, session: Session) -> ReposReturn
         return ReposReturn(is_error=True, msg='ERROR_IMAGE_TYPE_NOT_EXIST', loc='image_type')
 
     return ReposReturn(data=image_type)
-
-
