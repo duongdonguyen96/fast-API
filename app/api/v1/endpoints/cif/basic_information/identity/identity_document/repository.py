@@ -615,26 +615,15 @@ async def repos_save(
         "middle_name": middle_name,
         "last_name": last_name,
         "short_name": make_short_name(full_name),
-        "email": "",  # *
-        "telephone_number": None,  # *
-        "mobile_number": "0909090909",
-        "fax_number": None,  # *
-        "tax_number": None,
-        "self_selected_cif_flag": 1,
-        "legal_agreement_flag": 1,
-        "advertising_marketing_flag": 1,
-        "customer_relationship_flag": 1,
         "active_flag": 1,
         "open_cif_at": now(),
         "open_branch_id": "000",
         "kyc_level_id": "KYC_1",
-        "customer_type_id": "1",
 
         "customer_category_id": "D0682B44BEB3830EE0530100007F1DDC",
         "customer_economic_profession_id": "D0682B44BE6D830EE0530100007F1DDC",
         "nationality_id": nationality_id,
         "customer_classification_id": "1",
-        "customer_professional_id": "1",
         "customer_status_id": "1",
         "channel_id": "1",
         "avatar_url": None,
@@ -676,10 +665,6 @@ async def repos_save(
         "identifying_characteristics": identity_characteristic,
         "father_full_name": father_full_name_vn,
         "mother_full_name": mother_full_name_vn,
-        "title_id": "MR",
-        "resident_status_id": "CU_TRU",
-        "customer_fatca_id": "D0DEC86AE20C610EE0530100007F8604",
-        "marital_status_id": "DOC_THAN",
         "guardian_flag": 0
     }
     try:
@@ -695,14 +680,7 @@ async def repos_save(
         "address_province_id": resident_address_province_id,
         "address_district_id": resident_address_district_id,
         "address_ward_id": resident_address_ward_id,
-        "address": resident_address_number_and_street,
-        "zip_code": "zip_code",
-        "latitude": "",
-        "longitude": "",
-        "address_primary_flag": 1,
-        "address_domestic_flag": 1,
-        "address_2": "add2",
-        "address_same_permanent_flag": 1
+        "address": resident_address_number_and_street
     }
     try:
         contact_address = oracle_session.execute(
@@ -717,14 +695,7 @@ async def repos_save(
         "address_province_id": contact_address_province_id,
         "address_district_id": contact_address_district_id,
         "address_ward_id": contact_address_ward_id,
-        "address": contact_address_number_and_street,
-        "zip_code": "zip_code",
-        "latitude": "",
-        "longitude": "",
-        "address_primary_flag": 1,
-        "address_domestic_flag": 1,
-        "address_2": "add2",
-        "address_same_permanent_flag": 1
+        "address": contact_address_number_and_street
     }
 
     # Update
@@ -797,11 +768,16 @@ async def repos_save(
 
     # Create
     else:
+        self_selected_cif_flag = 0
+
         if not cif_number:
             cif_number = "CIF_THONG_THUONG"
+            self_selected_cif_flag = 1
+
         # Tạo thông tin KH
         saving_customer.update({
-            "cif_number": cif_number
+            "cif_number": cif_number,
+            "self_selected_cif_flag": self_selected_cif_flag
         })
         new_customer = Customer(**saving_customer)
 
