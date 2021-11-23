@@ -60,6 +60,7 @@ class Customer(Base):
                                 nullable=False, comment='Mã Trạng thái khách hàng: đóng băng, mở')
     channel_id = Column(ForeignKey('crm_channel.channel_id'), nullable=False, comment='Mã kênh tạo khách hàng')
     avatar_url = Column(VARCHAR(100), comment='Đường dẫn hình ảnh đại diện')
+    complete_flag = Column(NUMBER(1, 0, False), comment='Tạo CIF thành công')
 
     channel = relationship('Channel')
     customer_category = relationship('CustomerCategory')

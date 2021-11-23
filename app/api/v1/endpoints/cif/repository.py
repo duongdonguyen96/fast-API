@@ -1,12 +1,33 @@
-from typing import List
-
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
+from typing import List
 from app.api.base.repository import ReposReturn
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerIdentity
+)
+from app.third_parties.oracle.models.cif.basic_information.model import (
+    Customer
+)
+from app.third_parties.oracle.models.master_data.identity import ImageType
 from app.third_parties.oracle.models.master_data.others import HrmEmployee
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+
+
+async def repos_get_initializing_customer(cif_id: str, session: Session) -> ReposReturn:
+    customer = session.execute(
+        select(
+            Customer
+        ).filter(
+            Customer.id == cif_id,
+            Customer.complete_flag == 0
+        )
+    ).scalar()
+    if not customer:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    return ReposReturn(data=customer)
 
 
 async def repos_get_hrm_employees(hrm_employee_ids: List[str], session: Session) -> ReposReturn:
@@ -197,3 +218,28 @@ async def repos_customer_information(cif_id: str) -> ReposReturn:
             }
         ]
     })
+
+
+async def repos_get_last_identity(cif_id: str, session: Session):
+    identity = session.execute(
+        select(
+            CustomerIdentity
+        ).filter(CustomerIdentity.customer_id == cif_id).order_by(desc(CustomerIdentity.maker_at))
+    ).scalars().first()
+
+    if not identity:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    return ReposReturn(data=identity)
+
+
+async def repos_get_image_type(image_type: str, session: Session) -> ReposReturn:
+    image_type = session.execute(
+        select(
+            ImageType
+        ).filter(ImageType.code == image_type)
+    ).scalar()
+
+    if not image_type:
+        return ReposReturn(is_error=True, msg='ERROR_IMAGE_TYPE_NOT_EXIST', loc='image_type')
+
+    return ReposReturn(data=image_type)

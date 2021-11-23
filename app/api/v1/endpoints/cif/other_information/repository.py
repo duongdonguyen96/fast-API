@@ -25,11 +25,11 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
     customer_employee_engine = session.execute(
         select(
             Customer, StaffType, HrmEmployee
-        ).join(
+        ).outerjoin(
             CustomerEmployee, Customer.id == CustomerEmployee.customer_id
-        ).join(
+        ).outerjoin(
             StaffType, CustomerEmployee.staff_type_id == StaffType.id
-        ).join(
+        ).outerjoin(
             HrmEmployee, CustomerEmployee.employee_id == HrmEmployee.id
         ).filter(Customer.id == cif_id)
     )
@@ -42,16 +42,17 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
     indirect_sale_staff = None
 
     for _, staff_type, employee in customer_employee:
-        if staff_type.code == STAFF_TYPE_BUSINESS_CODE:
-            sale_staff = {
-                "id": employee.id,
-                "fullname_vn": employee.fullname_vn
-            }
-        else:
-            indirect_sale_staff = {
-                "id": employee.id,
-                "fullname_vn": employee.fullname_vn
-            }
+        if staff_type is not None and employee is not None:
+            if staff_type.code == STAFF_TYPE_BUSINESS_CODE:
+                sale_staff = {
+                    "id": employee.id,
+                    "fullname_vn": employee.fullname_vn
+                }
+            else:
+                indirect_sale_staff = {
+                    "id": employee.id,
+                    "fullname_vn": employee.fullname_vn
+                }
 
     return ReposReturn(data={
         # lấy ra data ở vị trí 0 trong query sau đó lấy ra customer ở vị trí 0
