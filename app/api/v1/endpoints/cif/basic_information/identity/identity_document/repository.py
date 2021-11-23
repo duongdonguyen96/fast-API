@@ -797,7 +797,8 @@ async def repos_save(
 
     # Create
     else:
-
+        if not cif_number:
+            cif_number = "CIF_THONG_THUONG"
         # Tạo thông tin KH
         saving_customer.update({
             "cif_number": cif_number
