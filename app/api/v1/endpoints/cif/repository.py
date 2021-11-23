@@ -209,14 +209,14 @@ async def repos_get_last_identity(cif_id: str, session: Session):
         select(
             CustomerIdentity
         ).filter(CustomerIdentity.customer_id == cif_id).order_by(desc(CustomerIdentity.maker_at))
-    ).scalar()
+    ).scalars().first()
 
     if not identity:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
     return ReposReturn(data=identity)
 
 
-async def repos_get_image_type(session: Session, image_type: str) -> ReposReturn:
+async def repos_get_image_type(image_type: str, session: Session) -> ReposReturn:
     image_type = session.execute(
         select(
             ImageType

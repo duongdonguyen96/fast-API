@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,32 @@ from app.third_parties.oracle.models.master_data.identity import (
 from app.utils.constant.cif import HAND_SIDE_LEFT_CODE
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
+
+
+async def repos_get_crm_hand_side(hand_side_ids: List[str], session: Session):
+    crm_hand_sides = session.execute(
+        select(
+            HandSide
+        ).filter(HandSide.code.in_(hand_side_ids))
+    ).scalars().all()
+
+    if len(crm_hand_sides) != len(hand_side_ids):
+        return ReposReturn(is_error=True, detail="hand side is not exist", loc="hand_side id")
+
+    return ReposReturn(data=crm_hand_sides)
+
+
+async def repos_get_crm_finger_type(finger_type_ids: List[str], session: Session):
+    crm_finger_types = session.execute(
+        select(
+            FingerType
+        ).filter(FingerType.code.in_(finger_type_ids))
+    ).scalars().all()
+
+    if len(crm_finger_types) != len(finger_type_ids):
+        return ReposReturn(is_error=True, detail="finger type is not exist", loc="finger_type id")
+
+    return ReposReturn(data=crm_finger_types)
 
 
 async def repos_save_fingerprint(
