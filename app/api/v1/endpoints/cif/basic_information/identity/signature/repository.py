@@ -1,4 +1,4 @@
-from sqlalchemy import and_, select
+from sqlalchemy import and_, desc, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
@@ -7,9 +7,6 @@ from app.api.v1.endpoints.cif.basic_information.identity.signature.schema import
 )
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity, CustomerIdentityImage
-)
-from app.third_parties.oracle.models.cif.basic_information.model import (
-    Customer
 )
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
@@ -30,11 +27,6 @@ async def repos_save_signature(cif_id: str, signature: SignaturesRequest, create
 
 
 async def repos_get_signature_data(cif_id: str, session: Session) -> ReposReturn:
-    query_cif_id = session.execute(select(Customer).filter(Customer.id == cif_id)).scalar()
-
-    if not query_cif_id:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc=f"{cif_id} is exist")
-
     query_data = session.execute(
         select(
             CustomerIdentity,
@@ -48,20 +40,20 @@ async def repos_get_signature_data(cif_id: str, session: Session) -> ReposReturn
             )
         ).filter(
             CustomerIdentity.customer_id == cif_id
-        )
+        ).order_by(desc(CustomerIdentityImage.maker_at))
     ).all()
 
     if not query_data:
-        return ReposReturn(is_error=True, msg=ERROR_SIGNATURE_IS_NULL, loc=f"cif_id:{cif_id} -> signature")
+        return ReposReturn(is_error=True, msg=ERROR_SIGNATURE_IS_NULL, loc=f"cif_id: {cif_id}")
 
-    date__signature = {}
+    date__signatures = {}
     for _, customer_identity_image in query_data:
         date_str = datetime_to_date(customer_identity_image.maker_at)
 
-        if date_str not in date__signature:
-            date__signature[date_str] = []
+        if date_str not in date__signatures:
+            date__signatures[date_str] = []
 
-        date__signature[date_str].append(
+        date__signatures[date_str].append(
             {
                 'identity_image_id': customer_identity_image.id,
                 'image_url': customer_identity_image.image_url,
@@ -72,6 +64,6 @@ async def repos_get_signature_data(cif_id: str, session: Session) -> ReposReturn
     data_response = [{
         'created_date': data_str,
         'signature': signature
-    } for data_str, signature in date__signature.items()]
+    } for data_str, signature in date__signatures.items()]
 
     return ReposReturn(data=data_response)
