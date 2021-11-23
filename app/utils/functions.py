@@ -130,3 +130,11 @@ def check_exist_by_id(model_id: str, model: Base, session: Session):
         ).one()
     except Exception as ex:
         return True
+
+def check_exist_list_by_id(list: list):
+    list_error = []
+    for model_id, model, session, message in list:
+        is_error = check_exist_by_id(model_id, model, session)
+        if is_error:
+            list_error.append(message)
+    return list_error

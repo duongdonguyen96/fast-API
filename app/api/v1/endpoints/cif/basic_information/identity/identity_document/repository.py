@@ -31,7 +31,7 @@ from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST
 )
 from app.utils.functions import now, date_to_datetime, calculate_age, raise_does_not_exist_string, \
-    check_exist_by_id
+    check_exist_by_id, check_exist_list_by_id
 from app.utils.vietnamese_converted import vietnamese_converted, split_name, make_short_name
 
 IDENTITY_CARD_INFO = {
@@ -564,49 +564,24 @@ async def repos_save(
     contact_address_district_id = identity_document_req.ocr_result.address_information.contact_address.district.id
     contact_address_ward_id = identity_document_req.ocr_result.address_information.contact_address.ward.id
 
-    if check_exist_by_id(place_of_issue_id, PlaceOfIssue, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("place_of_issue_id"), loc="place_of_issue_id")
-
-    if check_exist_by_id(gender_id, CustomerGender, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("gender_id"), loc="gender_id")
-
-    if check_exist_by_id(nationality_id, AddressCountry, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("nationality_id"), loc="nationality_id")
-
-    if check_exist_by_id(province_id, AddressProvince, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("province_id"), loc="province_id")
-
-    if check_exist_by_id(ethnic_id, Nation, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("ethnic_id"), loc="ethnic_id")
-
-    if check_exist_by_id(religion_id, Religion, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("religion_id"), loc="religion_id")
-
-    if check_exist_by_id(resident_address_province_id, AddressProvince, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("resident_address_province_id"),
-                           loc="resident_address_province_id")
-
-    if check_exist_by_id(resident_address_district_id, AddressDistrict, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("resident_address_district_id"),
-                           loc="resident_address_district_id")
-
-    if check_exist_by_id(resident_address_ward_id, AddressWard, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("resident_address_ward_id"),
-                           loc="resident_address_ward_id")
-
-    if check_exist_by_id(contact_address_province_id, AddressProvince, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("contact_address_province_id"),
-                           loc="contact_address_province_id")
-
-    if check_exist_by_id(contact_address_district_id, AddressDistrict, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("contact_address_district_id"),
-                           loc="contact_address_district_id")
-
-    if check_exist_by_id(contact_address_ward_id, AddressWard, oracle_session):
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("contact_address_ward_id"),
-                           loc="contact_address_ward_id")
-
-
+    list_exist = [
+        (place_of_issue_id, PlaceOfIssue, oracle_session, "place_of_issue_id"),
+        (gender_id, CustomerGender, oracle_session, "gender_id"),
+        (nationality_id, AddressCountry, oracle_session, "nationality_id"),
+        (province_id, AddressProvince, oracle_session, "province_id"),
+        (ethnic_id, Nation, oracle_session, "ethnic_id"),
+        (religion_id, Religion, oracle_session, "religion_id"),
+        (resident_address_province_id, AddressProvince, oracle_session, "resident_address_province_id"),
+        (resident_address_district_id, AddressDistrict, oracle_session, "resident_address_district_id"),
+        (resident_address_ward_id, AddressWard, oracle_session, "resident_address_ward_id"),
+        (contact_address_province_id, AddressProvince, oracle_session, "contact_address_province_id"),
+        (contact_address_district_id, AddressDistrict, oracle_session, "contact_address_district_id"),
+        (contact_address_ward_id, AddressWard, oracle_session, "contact_address_ward_id"),
+    ]
+    list_error = check_exist_list_by_id(list_exist)
+    if list_error:
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string(", ".join(list_error)),
+                           loc=", ".join(list_error))
 
     saving_customer = {
         "full_name": full_name,
@@ -630,6 +605,7 @@ async def repos_save(
         "complete_flag": 0
     }
 
+    # Kiểm tra cif có tồn tại hay không, có thì cập nhật không là tạo mới
     customer = oracle_session.execute(
         select(Customer).filter(Customer.cif_number == cif_number)
     ).first()
@@ -672,7 +648,7 @@ async def repos_save(
             select(AddressType).filter(AddressType.code == RESIDENT_ADDRESS_CODE)
         ).one()
     except:
-        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Resident Address"), loc="resident_addess")
+        return ReposReturn(is_error=True, msg=raise_does_not_exist_string("Resident Address"), loc="resident_address")
     customer_resident_address = {
         "customer_id": "",
         "address_type_id": resident_address[0].id,
