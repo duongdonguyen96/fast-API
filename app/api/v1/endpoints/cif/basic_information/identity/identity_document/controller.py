@@ -78,7 +78,6 @@ class CtrIdentityDocument(BaseController):
         if not split_name(full_name_vn):
             return self.response_exception(msg="Invalid name length (length <= 1)", loc="full_name_vn")
 
-
         info_save_document = self.call_repos(
             await repos_save_identity(
                 identity_document_req=identity_document_req,
