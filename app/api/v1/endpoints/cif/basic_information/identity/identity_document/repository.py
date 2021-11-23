@@ -578,7 +578,7 @@ async def repos_save_identity(
         "updater_at": now(),
         "updater_id": save_by
     }
-    under_15_year_old_flag = True if calculate_age(date.today(), date_of_birth) < 15 else False
+    under_15_year_old_flag = True if calculate_age(date_of_birth) < 15 else False
     customer_individual_info = {
         "gender_id": gender_id,
         "place_of_birth_id": province_id,

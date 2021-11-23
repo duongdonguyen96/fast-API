@@ -114,7 +114,7 @@ def process_generate_uuid(d):
         d.update({"uuid": generate_uuid()})
 
 
-def calculate_age(end_date: date, birth_date: date) -> float:
+def calculate_age(birth_date: date, end_date: date = date.today()) -> float:
     age_number = (end_date - birth_date) // timedelta(days=365.2425)
     return age_number
 
