@@ -41,7 +41,7 @@ class CustomerIdentityImage(Base):
 sys_guid()
 """), comment='(PK) Id Hình ảnh định danh')
     identity_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id Giấy tờ định danh')
-    identity_type_id = Column(VARCHAR(36), nullable=False, comment='(KF) Id Loại giấy tờ định danh')
+    image_type_id = Column(VARCHAR(36), nullable=False, comment='(KF) Id Loại giấy tờ định danh')
     image_url = Column(VARCHAR(200), nullable=False, comment='Đường dẫn hình')
     hand_side_id = Column(VARCHAR(36),
                           comment='(FK) Id Loại bàn tay (trái phải). NotNull nếu Loại giấy tờ định danh là Vân tay')
