@@ -1,5 +1,5 @@
-from sqlalchemy import and_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.personal.schema import (
@@ -41,6 +41,9 @@ async def repos_save_personal(cif_id: str, personal: PersonalRequest, created_by
 
 async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
 
+    Country = aliased(AddressCountry)
+    National = aliased(AddressCountry)
+
     query_data = session.execute(
         select(
             Customer,
@@ -48,7 +51,8 @@ async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
             CustomerGender,
             CustomerTitle,
             AddressProvince,
-            AddressCountry,
+            Country,
+            National,
             MaritalStatus,
             ResidentStatus
         ).join(
@@ -60,7 +64,9 @@ async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
         ).join(
             AddressProvince, CustomerIndividualInfo.place_of_birth_id == AddressProvince.id
         ).join(
-            AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id
+            Country, CustomerIndividualInfo.country_of_birth_id == Country.id
+        ).join(
+            National, Customer.nationality_id == National.id
         ).join(
             MaritalStatus, CustomerIndividualInfo.marital_status_id == MaritalStatus.id
         ).join(
@@ -71,22 +77,6 @@ async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
     if not query_data:
         return ReposReturn(is_error=True, msg='cif_id not have customer individual info', loc='cif_id')
 
-    # lấy dữ liệu quốc gia
-    query_data_national = session.execute(
-        select(
-            AddressCountry
-        ).join(
-            Customer, and_(
-                AddressCountry.id == Customer.nationality_id,
-                Customer.id == cif_id
-            )
-        ).filter(AddressCountry.id == Customer.nationality_id)
-    ).scalars().first()
-
-    if not query_data_national:
-        return ReposReturn(is_error=True, msg='ERROR_NATIONAL_NOT_EXIST', detail='cif_id not national', loc="cif_id")
-
-    # lấy dữ liệu contact_type từ bảng contact_type_dât theo cif_id
     query_data_contact = session.execute(
         select(
             CustomerContactTypeData,
@@ -110,8 +100,10 @@ async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
             data_contact['mobile_number_flag'] = customer_contact_type_data.active_flag
 
     data_response = {}
+
     for customer, customer_individual_info, customer_gender, customer_title, address_province, address_country, \
-            marital_status, resident_status in query_data:
+            address_country_national, marital_status, resident_status in query_data:
+
         data_response = {
             "full_name_vn": customer.full_name_vn,
             "gender": dropdown(customer_gender),
@@ -120,7 +112,7 @@ async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
             "under_15_year_old_flag": customer_individual_info.under_15_year_old_flag,
             "place_of_birth": dropdown(address_province),
             "country_of_birth": dropdown(address_country),
-            "nationality": dropdown(query_data_national),
+            "nationality": dropdown(address_country_national),
             "tax_number": customer.tax_number,
             "resident_status": dropdown(resident_status),
             "mobile_number": customer.mobile_number,
