@@ -15,10 +15,9 @@ class SignaturesRequest(BaseSchema):
 
 
 class SignaturesResponse(BaseSchema):
-    created_date: date = Field(..., description='Ngày tạo')
-    identity_image_transaction_1: str = Field(..., description='Hình ảnh định danh chữ ký khách hàng')
-    identity_image_transaction_2: str = Field(..., description='Hình ảnh định danh chữ ký khách hàng')
-    checked_flag: bool = Field(..., description='Trạng thái hoạt động')
+    identity_image_id: str = Field(..., description='Mã hình ảnh chữ ký của khách hàng')
+    image_url: str = Field(..., description='Hình ảnh chữ ký của khách hàng')
+    active_flag: bool = Field(..., description='Trạng thái hoạt động')
 
 
 class CompareSignaturesResponse(BaseSchema):
@@ -27,5 +26,5 @@ class CompareSignaturesResponse(BaseSchema):
 
 
 class SignaturesSuccessResponse(BaseSchema):
-    customer_signatures: List[SignaturesResponse] = Field(..., description='Mẫu chữ ký')
-    compare_signature: CompareSignaturesResponse = Field(..., description='Chữ ký kiểm tra sự tương đồng')
+    created_date: date = Field(..., description='Ngày tạo')
+    signature: List[SignaturesResponse] = Field(..., description='Danh sách ảnh khuôn mặt')

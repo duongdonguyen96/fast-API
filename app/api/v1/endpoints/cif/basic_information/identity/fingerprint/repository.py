@@ -7,9 +7,6 @@ from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity, CustomerIdentityImage
 )
-from app.third_parties.oracle.models.cif.basic_information.model import (
-    Customer
-)
 from app.third_parties.oracle.models.master_data.identity import (
     FingerType, HandSide
 )
@@ -65,24 +62,22 @@ async def repos_save_fingerprint(
 async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
     query_data = session.execute(
         select(
-            Customer,
-            CustomerIdentity,
             CustomerIdentityImage,
             HandSide,
             FingerType
         ).join(
-            CustomerIdentity, Customer.id == CustomerIdentity.customer_id
-        ).join(
-            CustomerIdentityImage, and_(
-                CustomerIdentity.id == CustomerIdentityImage.identity_id,
-                CustomerIdentityImage.finger_type_id.isnot(None),
-                CustomerIdentityImage.hand_side_id.isnot(None)
+            CustomerIdentity, and_(
+                CustomerIdentityImage.identity_id == CustomerIdentity.id,
+                CustomerIdentity.customer_id == cif_id
             )
         ).join(
             HandSide, CustomerIdentityImage.hand_side_id == HandSide.id
         ).join(
             FingerType, CustomerIdentityImage.finger_type_id == FingerType.id
-        ).filter(Customer.id == cif_id).order_by(CustomerIdentityImage.finger_type_id)
+        ).filter(
+            CustomerIdentityImage.finger_type_id.isnot(None),
+            CustomerIdentityImage.hand_side_id.isnot(None)
+        ).order_by(CustomerIdentityImage.finger_type_id)
     ).all()
 
     if not query_data:
@@ -91,7 +86,7 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
     fingerprint_1 = []
     fingerprint_2 = []
 
-    for _, _, customer_identity_image, hand_side, finger_print in query_data:
+    for customer_identity_image, hand_side, finger_print in query_data:
         fingerprint = {
             'image_url': customer_identity_image.image_url,
             'hand_side': dropdown(hand_side),

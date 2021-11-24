@@ -183,18 +183,48 @@ class Position(Base):
     order_no = Column(NUMBER(4, 2, True), comment='Sắp xếp')
 
 
-class Sla(Base):
-    __tablename__ = 'crm_sla'
-    __table_args__ = {'comment': 'SLA'}
+class MaritalStatus(Base):
+    __tablename__ = 'crm_marital_status'
 
-    id = Column('sla_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='Mã Giai đoạn xử lý')
-    code = Column('sla_code', VARCHAR(20), comment='Mã code Giai đoạn xử lý')
-    name = Column('sla_name', VARCHAR(50), comment='Tên Giai đoạn xử lý')
-    deadline = Column('sla_deadline', NUMBER(10, 0, False), comment='deadline')
-    active_flag = Column(NUMBER(1, 0, False), comment='trạng thái')
-    created_at = Column(DateTime, comment='ngày tạo')
-    updated_at = Column(DateTime, comment='ngày cập nhật')
+    id = Column('marital_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='ID tình trạng hôn nhân')
+    code = Column('marital_status_code', VARCHAR(50), nullable=False, comment='Mã tình trạng hôn nhân')
+    name = Column('marital_status_name', VARCHAR(255), nullable=False, comment='Tên tình trạng hôn nhân')
+    active_flag = Column('marital_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
+    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
+
+
+class Nation(Base):
+    __tablename__ = 'crm_nation'
+
+    id = Column('nation_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID dân tộc')
+    code = Column('nation_code', VARCHAR(50), nullable=False, comment='Mã dân tộc')
+    name = Column('nation_name', VARCHAR(255), nullable=False, comment='Tên dân tộc')
+    active_flag = Column('nation_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái')
+    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
+
+
+class Religion(Base):
+    __tablename__ = 'crm_religion'
+
+    id = Column('religion_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID tôn giáo')
+    code = Column('religion_code', VARCHAR(50), nullable=False, comment='Mã tôn giáo')
+    name = Column('religion_name', VARCHAR(255), nullable=False, comment='Tên tôn giáo')
+    active_flag = Column('religion_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
+    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
+
+
+class HrmEmployee(Base):
+    __tablename__ = 'hrm_employee'
+    __table_args__ = {'comment': 'Thông tin nhân viên lấy từ hệ thống HR'}
+
+    id = Column(VARCHAR(36), primary_key=True, comment='Mã nhân viên')
+    fullname_vn = Column(VARCHAR(255), nullable=False, comment='Tên nhân viên')
+    user_name = Column(VARCHAR(255), nullable=False, comment='Tài khoản AD nhân viên')
+    email = Column(VARCHAR(255), nullable=False, comment='Email nội bộ')
+    job_title = Column(VARCHAR(255), nullable=False, comment='Chức danh')
+    department_id = Column(VARCHAR(36), nullable=False, comment='Mã phòng ban')
+    active = Column(NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động (Có/không)')
 
 
 class StaffType(Base):
@@ -209,19 +239,44 @@ class StaffType(Base):
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
 
 
-class StageStatus(Base):
-    __tablename__ = 'crm_stage_status'
-    __table_args__ = {'comment': 'Trạng thái xử lý'}
+class Sla(Base):
+    __tablename__ = 'crm_sla'
+    __table_args__ = {'comment': 'SLA'}
 
-    id = Column('stage_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='Mã trạng thái của bước thực hiện')
-    code = Column('stage_status_code', VARCHAR(50), comment='Tên trạng thái của bước thực hiện')
-    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'),
-                              comment='Mã trạng thái của bước thực hiện kiểu chữ (vd: KHOI_TAO) ')
-    name = Column('stage_status_name', VARCHAR(250),
-                  comment='Mã loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
-    created_at = Column(DateTime, comment='Ngày tạo trạng thái của bước thực hiện')
-    updated_at = Column(DateTime, comment='Ngày cập nhật trạng thái của bước thực hiện')
+    id = Column('sla_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã Giai đoạn xử lý')
+    code = Column('sla_code', VARCHAR(20), comment='Mã code Giai đoạn xử lý')
+    name = Column('sla_name', VARCHAR(50), comment='Tên Giai đoạn xử lý')
+    deadline = Column('sla_deadline', NUMBER(10, 0, False), comment='deadline')
+    active_flag = Column(NUMBER(1, 0, False), comment='trạng thái')
+    created_at = Column(DateTime, comment='ngày tạo')
+    updated_at = Column(DateTime, comment='ngày cập nhật')
+
+
+class Phase(Base):
+    __tablename__ = 'crm_phase'
+
+    id = Column('phase_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='ID Giai đoạn xử lý')
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
+                              comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
+    code = Column('phase_code', VARCHAR(50), nullable=False, comment='Mã code Giai đoạn xử lý')
+    name = Column('phase_name', VARCHAR(255), nullable=False, comment='Tên Giai đoạn xử lý')
+
+    business_type = relationship('BusinessType')
+    stage = relationship('Stage', secondary='crm_stage_phase')
+
+
+class Lane(Base):
+    __tablename__ = 'crm_lane'
+
+    id = Column('lane_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID Luồng xử lý')
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
+                              comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
+    code = Column('lane_code', VARCHAR(50), nullable=False, comment='Mã Luồng xử lý')
+    name = Column('lane_name', VARCHAR(255), nullable=False, comment='Tên Luồng xử lý')
+    created_at = Column(DateTime, nullable=False, server_default=text("sysdate "), comment='Ngày tạo')
+    updated_at = Column(DateTime, comment='Ngày cập nhật')
 
     business_type = relationship('BusinessType')
 
@@ -251,18 +306,35 @@ class Stage(Base):
     status = relationship('StageStatus')
 
 
-class Lane(Base):
-    __tablename__ = 'crm_lane'
+class StageStatus(Base):
+    __tablename__ = 'crm_stage_status'
+    __table_args__ = {'comment': 'Trạng thái xử lý'}
 
-    id = Column('lane_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID Luồng xử lý')
-    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
-                              comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
-    code = Column('lane_code', VARCHAR(50), nullable=False, comment='Mã Luồng xử lý')
-    name = Column('lane_name', VARCHAR(255), nullable=False, comment='Tên Luồng xử lý')
-    created_at = Column(DateTime, nullable=False, server_default=text("sysdate "), comment='Ngày tạo')
-    updated_at = Column(DateTime, comment='Ngày cập nhật')
+    id = Column('stage_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã trạng thái của bước thực hiện')
+    code = Column('stage_status_code', VARCHAR(50), comment='Tên trạng thái của bước thực hiện')
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'),
+                              comment='Mã trạng thái của bước thực hiện kiểu chữ (vd: KHOI_TAO) ')
+    name = Column('stage_status_name', VARCHAR(250),
+                  comment='Mã loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
+    created_at = Column(DateTime, comment='Ngày tạo trạng thái của bước thực hiện')
+    updated_at = Column(DateTime, comment='Ngày cập nhật trạng thái của bước thực hiện')
 
     business_type = relationship('BusinessType')
+
+
+class StageRole(Base):
+    __tablename__ = 'crm_stage_role'
+    __table_args__ = {'comment': 'Quyền xử lý Bước'}
+
+    id = Column('stage_role_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã quyền thực hiện bước')
+    stage_id = Column(ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện')
+    code = Column('stage_role_code', VARCHAR(50), comment='Mã quyền thưc hiện bước kiểu text ( vd: NHAP, DUYET)')
+    name = Column('stage_role_name', VARCHAR(250), comment='Tên quyền thực hiện bước')
+    created_at = Column(DateTime, comment='Ngày tạo bước thực hiện')
+
+    stage = relationship('Stage')
 
 
 class TransactionStageLane(Base):
@@ -310,25 +382,59 @@ class TransactionStageStatus(Base):
     name = Column('transaction_stage_status_name', VARCHAR(200), comment='Tên trạng thái của bước thực hiện')
 
 
-class MaritalStatus(Base):
-    __tablename__ = 'crm_marital_status'
+class TransactionJob(Base):
+    __tablename__ = 'crm_transaction_job'
 
-    id = Column('marital_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='ID tình trạng hôn nhân')
-    code = Column('marital_status_code', VARCHAR(50), nullable=False, comment='Mã tình trạng hôn nhân')
-    name = Column('marital_status_name', VARCHAR(255), nullable=False, comment='Tên tình trạng hôn nhân')
-    active_flag = Column('marital_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
-    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
+    transaction_id = Column(VARCHAR(36), primary_key=True)
+    booking_id = Column(VARCHAR(36), nullable=False)
+    business_job_id = Column(VARCHAR(36), nullable=False)
+    complete_flag = Column(NUMBER(1, 0, False), nullable=False)
+    error_code = Column(VARCHAR(20), nullable=False)
+    error_desc = Column(VARCHAR(500), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime)
 
 
-class Nation(Base):
-    __tablename__ = 'crm_nation'
+class SlaTransaction(Base):
+    __tablename__ = 'crm_sla_transaction'
+    __table_args__ = {'comment': 'giao dịch SLA'}
 
-    id = Column('nation_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID dân tộc')
-    code = Column('nation_code', VARCHAR(50), nullable=False, comment='Mã dân tộc')
-    name = Column('nation_name', VARCHAR(255), nullable=False, comment='Tên dân tộc')
-    active_flag = Column('nation_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái')
-    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
+    id = Column('sla_transaction_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã giao dịch SLA')
+    parent_id = Column('sla_parent_transaction_id', VARCHAR(36), comment='Mã id cha')
+    sla_id = Column(ForeignKey('crm_sla.sla_id'), comment='Mã SLA')
+    sla_name = Column(VARCHAR(50), comment='Tên giao dịch SLA')
+    sla_deadline = Column(NUMBER(10, 0, False), comment='dealine')
+    active_flag = Column(NUMBER(1, 0, False), comment='trạng thái')
+    created_at = Column(DateTime, comment='ngày tạo')
+
+    sla = relationship('Sla')
+
+
+class TransactionStage(Base):
+    __tablename__ = 'crm_transaction_stage'
+    __table_args__ = {'comment': 'Giai đoạn giao dịch'}
+
+    id = Column('transaction_stage_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã bước  giao dịch')
+    status_id = Column('transaction_stage_status_id',
+                       ForeignKey('crm_transaction_stage_status.transaction_stage_status_id'),
+                       comment='Mã trạng thái của  giao dịch')
+    lane_id = Column('transaction_stage_lane_id', ForeignKey('crm_transaction_stage_lane.transaction_stage_lane_id'),
+                     comment='Mã thông tin đơn vị và phòng ban thực hiện')
+    phase_id = Column('transaction_stage_phase_id',
+                      ForeignKey('crm_transaction_stage_phase.transaction_stage_phase_id'),
+                      comment='Mã giai đoạn')
+    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), comment='Tên bước hiện')
+    sla_transaction_id = Column(VARCHAR(36), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
+    transaction_stage_phase_code = Column(VARCHAR(10), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
+    transaction_stage_phase_name = Column(VARCHAR(200), comment='Tên bước hiện')
+    responsible_flag = Column(NUMBER(1, 0, False), comment='Cờ người chịu trách nhiệm của bước thực hiện')
+
+    business_type = relationship('BusinessType')
+    lane = relationship('TransactionStageLane')
+    phase = relationship('TransactionStagePhase')
+    status = relationship('TransactionStageStatus')
 
 
 t_crm_stage_phase = Table(
@@ -342,53 +448,16 @@ t_crm_stage_phase = Table(
   3. Ebank'''
 )
 
+t_crm_stage_lane = Table(
+    'crm_stage_lane', metadata,
+    Column('lane_id', ForeignKey('crm_lane.lane_id'), comment='Mã luồng xử lý của bước thực hiện'),
+    Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước  thực hiện'),
+    Column('department_id', VARCHAR(36), nullable=False, comment='ID Phòng ban'),
+    Column('branch_id', VARCHAR(20), nullable=False, comment='ID Chi nhánh'),
+    comment='''Luồng xử lý
 
-class Phase(Base):
-    __tablename__ = 'crm_phase'
-
-    id = Column('phase_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='ID Giai đoạn xử lý')
-    business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
-                              comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
-    code = Column('phase_code', VARCHAR(50), nullable=False, comment='Mã code Giai đoạn xử lý')
-    name = Column('phase_name', VARCHAR(255), nullable=False, comment='Tên Giai đoạn xử lý')
-
-    business_type = relationship('BusinessType')
-    stage = relationship('Stage', secondary='crm_stage_phase')
-
-
-class Religion(Base):
-    __tablename__ = 'crm_religion'
-
-    id = Column('religion_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID tôn giáo')
-    code = Column('religion_code', VARCHAR(50), nullable=False, comment='Mã tôn giáo')
-    name = Column('religion_name', VARCHAR(255), nullable=False, comment='Tên tôn giáo')
-    active_flag = Column('religion_active_flag', NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
-    order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
-
-
-class StageRole(Base):
-    __tablename__ = 'crm_stage_role'
-    __table_args__ = {'comment': 'Quyền xử lý Bước'}
-
-    id = Column('stage_role_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='Mã quyền thực hiện bước')
-    stage_id = Column(ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện')
-    code = Column('stage_role_code', VARCHAR(50), comment='Mã quyền thưc hiện bước kiểu text ( vd: NHAP, DUYET)')
-    name = Column('stage_role_name', VARCHAR(250), comment='Tên quyền thực hiện bước')
-    created_at = Column(DateTime, comment='Ngày tạo bước thực hiện')
-
-    stage = relationship('Stage')
-
-
-class HrmEmployee(Base):
-    __tablename__ = 'hrm_employee'
-    __table_args__ = {'comment': 'Thông tin nhân viên lấy từ hệ thống HR'}
-
-    id = Column(VARCHAR(36), primary_key=True, comment='Mã nhân viên')
-    fullname_vn = Column(VARCHAR(255), nullable=False, comment='Tên nhân viên')
-    user_name = Column(VARCHAR(255), nullable=False, comment='Tài khoản AD nhân viên')
-    email = Column(VARCHAR(255), nullable=False, comment='Email nội bộ')
-    job_title = Column(VARCHAR(255), nullable=False, comment='Chức danh')
-    department_id = Column(VARCHAR(36), nullable=False, comment='Mã phòng ban')
-    active = Column(NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động (Có/không)')
+  1. Phòng A
+  2. Phòng B
+  3. Khối A
+  '''
+)

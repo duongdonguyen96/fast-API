@@ -52,6 +52,6 @@ class CtrSignature(BaseController):
         return self.response(data=data)
 
     async def ctr_get_signature(self, cif_id: str):
-        signature_data = self.call_repos(await repos_get_signature_data(cif_id))
+        signature_data = self.call_repos(await repos_get_signature_data(cif_id=cif_id, session=self.oracle_session))
 
         return self.response(data=signature_data)
