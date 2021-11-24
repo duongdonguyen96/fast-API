@@ -16,7 +16,7 @@ class SubIdentityOCRResultResponse(BaseSchema):
     symbol: str = Field(None, description="Ký hiệu")
     full_name_vn: str = Field(..., description="Họ và tên")
     date_of_birth: date = Field(..., description="Ngày sinh")
-    province: DropdownResponse = Field(..., description="Quốc gia")
+    passport_number: str = Field(..., description="Số hộ chiếu")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     issued_date: date = Field(..., description="Ngày cấp")
