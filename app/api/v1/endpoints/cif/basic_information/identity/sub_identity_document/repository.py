@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerSubIdentity
+    CustomerIdentityImage, CustomerSubIdentity
 )
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
@@ -79,19 +79,21 @@ async def repos_get_detail_sub_identity(cif_id: str, session: Session):
         select(
             CustomerSubIdentity,
             CustomerSubIdentityType,
-            PlaceOfIssue
+            PlaceOfIssue,
+            CustomerIdentityImage
         )
         .join(CustomerSubIdentityType, CustomerSubIdentity.sub_identity_type_id == CustomerSubIdentityType.id)
         .join(PlaceOfIssue, CustomerSubIdentity.place_of_issue_id == PlaceOfIssue.id)
+        .join(CustomerIdentityImage, CustomerSubIdentity.id == CustomerIdentityImage.identity_id)
         .filter(CustomerSubIdentity.customer_id == cif_id)
     ).all()
     data = []
-    for sub_identity, sub_identity_type, place_of_issue in sub_identities:
+    for sub_identity, sub_identity_type, place_of_issue, customer_identity_image in sub_identities:
         data.append({
             "id": sub_identity.id,
             "name": sub_identity.name,
             "sub_identity_document_type": dropdown(sub_identity_type),
-            "sub_identity_document_image_url": "http://example.com/example.jpg",
+            "sub_identity_document_image_url": customer_identity_image.image_url,
             "ocr_result": {
                 "sub_identity_number": sub_identity.number,
                 "symbol": sub_identity.symbol,
