@@ -2,11 +2,11 @@ from sqlalchemy import delete, select
 
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerSubIdentity
+    CustomerIdentityImage, CustomerSubIdentity
 )
-from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.constant.cif import CIF_ID_TEST, IMAGE_TYPE_SUB_IDENTITY
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+from app.utils.functions import generate_uuid, now
 
 SUB_IDENTITY_INFO = [
     {
@@ -87,9 +87,12 @@ async def repos_save_sub_identity(customer, requests, saved_by, session):
     ).scalars().all()
 
     sub_identity_list = []
-
+    sub_identity_image_list = []
     for sub_identity in requests:
+        sub_identity_id = generate_uuid()
+        # Tạo giấy tờ định danh phụ
         sub_identity_list.append(CustomerSubIdentity(
+            id=sub_identity_id,
             sub_identity_type_id=sub_identity.sub_identity_document_type.id,
             name=sub_identity.name,
             number=sub_identity.ocr_result.sub_identity_number,
@@ -107,11 +110,28 @@ async def repos_save_sub_identity(customer, requests, saved_by, session):
             updater_id=saved_by
         ))
 
+        # Tạo hình ảnh giấy tờ định danh phụ
+        sub_identity_image_list.append(CustomerIdentityImage(
+            identity_id=sub_identity_id,
+            image_type_id=IMAGE_TYPE_SUB_IDENTITY,
+            image_url=sub_identity.sub_identity_document_image_url,
+            maker_id=saved_by,
+            maker_at=now(),
+            updater_id=saved_by,
+            updater_at=now()
+        ))
+
     if not sub_identities:
         session.bulk_save_objects(sub_identity_list)
+        session.bulk_save_objects(sub_identity_image_list)
     else:
+        # Lấy id của GTĐD đã tồn tại trong DB
+        sub_identities = session.execute(select(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id)).scalars().all()
+        sub_identity_ids = [sub_identity.id for sub_identity in sub_identities]
+        session.execute(delete(CustomerIdentityImage).filter(CustomerIdentityImage.identity_id.in_(sub_identity_ids)))
         session.execute(delete(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id))
         session.bulk_save_objects(sub_identity_list)
+        session.bulk_save_objects(sub_identity_image_list)
 
     session.commit()
 

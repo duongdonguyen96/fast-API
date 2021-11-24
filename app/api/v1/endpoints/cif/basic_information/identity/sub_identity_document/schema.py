@@ -55,5 +55,6 @@ class SubIdentityOCRResultRequest(SubIdentityOCRResultResponse):
 # Request Body Lưu GTĐD phụ
 class SubIdentityDocumentRequest(BaseSchema):
     name: str = Field(..., description="Tên GTĐD phụ")
+    sub_identity_document_image_url: str = Field(..., description="I. Thông tin giấy tờ")
     sub_identity_document_type: DropdownRequest = Field(..., description="Loại GTĐD phụ")
     ocr_result: SubIdentityOCRResultRequest = Field(..., description="II. Phân tích OCR")
