@@ -31,7 +31,7 @@ async def view_save(
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    save_info = await CtrSubIdentityDocument(current_user).save(
+    save_info = await CtrSubIdentityDocument(current_user).save_sub_identity(
         requests=requests,
         cif_id=cif_id
     )

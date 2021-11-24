@@ -16,7 +16,7 @@ class SubIdentityOCRResultResponse(BaseSchema):
     symbol: str = Field(None, description="Ký hiệu")
     full_name_vn: str = Field(..., description="Họ và tên")
     date_of_birth: date = Field(..., description="Ngày sinh")
-    province: DropdownResponse = Field(..., description="Quốc gia")
+    passport_number: str = Field(..., description="Số hộ chiếu")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     issued_date: date = Field(..., description="Ngày cấp")
@@ -49,11 +49,11 @@ class LogResponse(BaseSchema):
 ########################################################################################################################
 # Request Body Lưu GTĐD phụ -> Phân tích OCR
 class SubIdentityOCRResultRequest(SubIdentityOCRResultResponse):
-    province: DropdownRequest = Field(..., description="Quốc gia")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
 
 
 # Request Body Lưu GTĐD phụ
-class SubIdentityDocumentRequest(SubIdentityDetailResponse):
+class SubIdentityDocumentRequest(BaseSchema):
+    name: str = Field(..., description="Tên GTĐD phụ")
     sub_identity_document_type: DropdownRequest = Field(..., description="Loại GTĐD phụ")
     ocr_result: SubIdentityOCRResultRequest = Field(..., description="II. Phân tích OCR")

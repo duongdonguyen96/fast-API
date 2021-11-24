@@ -1,4 +1,9 @@
+from sqlalchemy import delete, select
+
 from app.api.base.repository import ReposReturn
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerSubIdentity
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
@@ -71,11 +76,49 @@ async def repos_get_detail(cif_id: str):
     return ReposReturn(data=SUB_IDENTITY_INFO)
 
 
-async def repos_save(cif_id, requests, created_by):
+async def repos_save_sub_identity(customer, requests, saved_by, session):
+
+    sub_identities = session.execute(
+        select(
+            CustomerSubIdentity
+        ).filter(
+            CustomerSubIdentity.customer_id == customer.id
+        )
+    ).scalars().all()
+
+    sub_identity_list = []
+
+    for sub_identity in requests:
+        sub_identity_list.append(CustomerSubIdentity(
+            sub_identity_type_id=sub_identity.sub_identity_document_type.id,
+            name=sub_identity.name,
+            number=sub_identity.ocr_result.sub_identity_number,
+            symbol=sub_identity.ocr_result.symbol,
+            full_name=sub_identity.ocr_result.full_name_vn,
+            date_of_birth=sub_identity.ocr_result.date_of_birth,
+            passport_number=sub_identity.ocr_result.passport_number,
+            issued_date=sub_identity.ocr_result.issued_date,
+            sub_identity_expired_date=sub_identity.ocr_result.expired_date,
+            place_of_issue_id=sub_identity.ocr_result.place_of_issue.id,
+            customer_id=customer.id,
+            maker_at=now(),
+            maker_id=saved_by,
+            updater_at=now(),
+            updater_id=saved_by
+        ))
+
+    if not sub_identities:
+        session.bulk_save_objects(sub_identity_list)
+    else:
+        session.execute(delete(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id))
+        session.bulk_save_objects(sub_identity_list)
+
+    session.commit()
+
     return ReposReturn(data={
-        "cif_id": cif_id,
+        "cif_id": customer.id,
         "created_at": now(),
-        "created_by": created_by
+        "created_by": saved_by
     })
 
 
