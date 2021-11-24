@@ -1,7 +1,8 @@
+from typing import List
+
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from typing import List
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity
@@ -11,10 +12,8 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 )
 from app.third_parties.oracle.models.master_data.identity import ImageType
 from app.third_parties.oracle.models.master_data.others import HrmEmployee
-from app.utils.constant.cif import CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE, \
-    CONTACT_ADDRESS_CODE
+from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown
 
 
 async def repos_get_initializing_customer(cif_id: str, session: Session) -> ReposReturn:

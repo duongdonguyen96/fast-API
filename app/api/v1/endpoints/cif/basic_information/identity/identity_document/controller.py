@@ -2,7 +2,7 @@ from typing import Union
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import (
-    repos_get_list_log, repos_save, repos_get_detail_identity
+    repos_get_detail_identity, repos_get_list_log, repos_save
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest

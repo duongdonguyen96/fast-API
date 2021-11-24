@@ -1,30 +1,41 @@
 from typing import Union
 
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
 )
-from app.third_parties.oracle.models.cif.basic_information.contact.model import CustomerAddress
-from app.third_parties.oracle.models.cif.basic_information.identity.model import CustomerIdentity, \
-    CustomerIdentityImage, CustomerCompareImage
-from app.third_parties.oracle.models.cif.basic_information.model import Customer
-from app.third_parties.oracle.models.cif.basic_information.personal.model import CustomerIndividualInfo
-from app.third_parties.oracle.models.master_data.address import AddressProvince, AddressCountry, AddressDistrict, \
-    AddressWard
+from app.third_parties.oracle.models.cif.basic_information.contact.model import (
+    CustomerAddress
+)
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerCompareImage, CustomerIdentity, CustomerIdentityImage
+)
+from app.third_parties.oracle.models.cif.basic_information.model import (
+    Customer
+)
+from app.third_parties.oracle.models.cif.basic_information.personal.model import (
+    CustomerIndividualInfo
+)
+from app.third_parties.oracle.models.master_data.address import (
+    AddressCountry, AddressDistrict, AddressProvince, AddressWard
+)
 from app.third_parties.oracle.models.master_data.customer import CustomerGender
-from app.third_parties.oracle.models.master_data.identity import CustomerIdentityType, PlaceOfIssue, HandSide, \
-    FingerType, PassportType, PassportCode
+from app.third_parties.oracle.models.master_data.identity import (
+    CustomerIdentityType, FingerType, HandSide, PassportCode, PassportType,
+    PlaceOfIssue
+)
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CIF_ID_TEST, IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE, CONTACT_ADDRESS_CODE
+    CIF_ID_TEST, CONTACT_ADDRESS_CODE, IDENTITY_DOCUMENT_TYPE,
+    IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_IDENTITY_DOCUMENT_NOT_EXIST
 )
-from app.utils.functions import now, dropdown
+from app.utils.functions import dropdown, now
 
 IDENTITY_LOGS_INFO = [
     {

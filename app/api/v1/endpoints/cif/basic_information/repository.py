@@ -84,4 +84,3 @@ async def repos_detail_relationship(cif_id: str, cif_number_need_to_find: str):
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
     return ReposReturn(data=DETAIL_RELATIONSHIP_DATA)
-
