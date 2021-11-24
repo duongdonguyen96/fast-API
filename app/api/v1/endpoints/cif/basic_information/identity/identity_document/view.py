@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -39,15 +39,11 @@ router = APIRouter()
 )
 async def view_detail(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        identity_document_type_id: str = Query(None, description='Code loại giấy tờ định danh'),
         current_user=Depends(get_current_user_from_header())
 ):
     ctr_identity_document = CtrIdentityDocument(current_user)
 
-    detail_info = await ctr_identity_document.detail_identity(
-        cif_id=cif_id,
-        identity_document_type_id=identity_document_type_id
-    )
+    identity_document_type_id, detail_info = await ctr_identity_document.detail_identity(cif_id=cif_id)
 
     if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
         return ResponseData[IdentityCardDetailResponse](**detail_info)

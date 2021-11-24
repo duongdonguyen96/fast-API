@@ -66,8 +66,8 @@ class OCRResultIdentityCardRequest(BaseSchema):  # noqa
 class IdentityCardSaveRequest(BaseSchema):
     cif_id: str = Field(None, description="ID định danh CIF")
     identity_document_type: DropdownRequest = Field(..., description="Loại giấy tờ định danh")
-    frontside_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
-    backside_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
+    front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
+    back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
     ocr_result: OCRResultIdentityCardRequest = Field(..., description="Phân tích OCR")
 
 
@@ -106,8 +106,8 @@ class OCRResultCitizenCardRequest(BaseSchema):  # noqa
 class CitizenCardSaveRequest(BaseSchema):
     cif_id: str = Field(None, description="ID định danh CIF")  # noqa
     identity_document_type: DropdownRequest = Field(..., description="Loại giấy tờ định danh")
-    frontside_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
-    backside_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
+    front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
+    back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
     ocr_result: OCRResultCitizenCardRequest = Field(..., description="Phân tích OCR")
 
 
