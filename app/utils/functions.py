@@ -78,7 +78,7 @@ def generate_uuid() -> str:
     """
     :return: str
     """
-    return str(uuid.uuid4())
+    return uuid.uuid4().hex.upper()
 
 
 def set_id_after_inserted(schema, db_model):
