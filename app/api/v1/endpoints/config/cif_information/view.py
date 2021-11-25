@@ -31,7 +31,7 @@ async def view_customer_classification_info(
 @router.get(
     path="/customer-economic-profession/",
     name="Customer Economic Profession",
-    description="Lấy dữ liệu config mã ngành kinh tế",
+    description="Lấy dữ liệu mã ngành kinh tế",
     responses=swagger_response(
         response_model=ResponseData[List[DropdownResponse]],
         success_status_code=status.HTTP_200_OK
@@ -47,7 +47,7 @@ async def view_customer_economic_profession_info(
 @router.get(
     path="/kyc-level/",
     name="KYC Level",
-    description="Lấy dữ liệu config KYC level",
+    description="Lấy dữ liệu KYC level",
     responses=swagger_response(
         response_model=ResponseData[List[DropdownResponse]],
         success_status_code=status.HTTP_200_OK
