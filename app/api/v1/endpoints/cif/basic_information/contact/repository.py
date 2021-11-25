@@ -1,7 +1,19 @@
+from loguru import logger
+from sqlalchemy import and_, select, update
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
-from app.utils.constant.cif import CIF_ID_TEST
+from app.third_parties.oracle.models.cif.basic_information.contact.model import (
+    CustomerAddress, CustomerProfessional
+)
+from app.third_parties.oracle.models.cif.basic_information.model import (
+    Customer
+)
+from app.utils.constant.cif import (
+    CIF_ID_TEST, CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
+)
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+from app.utils.functions import generate_uuid, now
 
 DOMESTIC_CONTACT_INFORMATION_DETAIL = {
     "resident_address": {
@@ -206,11 +218,64 @@ async def repos_get_detail_contact_information(cif_id: str) -> ReposReturn:
 
 
 async def repos_save_contact_information(
-        cif_id: str,
-        created_by
+    cif_id: str,
+    created_by,
+    resident_address,
+    contact_address,
+    career_information,
+    session: Session
 ) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+
+    try:
+        # Nếu thông tin có trước ->  cập nhật
+        is_exist_customer_address = session.execute(select(CustomerAddress).filter(CustomerAddress.customer_id == cif_id)).all()
+        if is_exist_customer_address:
+            customer_professional_id = session.execute(
+                select(Customer.customer_professional_id).filter(
+                    Customer.id == cif_id
+                )
+            ).scalars().first()
+
+            session.execute(
+                update(CustomerAddress).where(and_(
+                    CustomerAddress.customer_id == cif_id,
+                    CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE
+                )).values(**resident_address)
+            )
+            session.execute(
+                update(CustomerAddress).where(and_(
+                    CustomerAddress.customer_id == cif_id,
+                    CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE
+                )).values(**contact_address)
+            )
+            session.execute(
+                update(CustomerProfessional).where(and_(
+                    CustomerProfessional.id == customer_professional_id,
+                )).values(**career_information)
+            )
+        # Nếu thông tin chưa có -> Tạo mới
+        else:
+            # Tạo thông tin nghề nghiệp khách hàng
+            customer_professional_id = generate_uuid()
+            career_information.update({
+                "id": customer_professional_id
+            })
+            session.add_all([
+                CustomerAddress(**resident_address),
+                CustomerAddress(**contact_address),
+                CustomerProfessional(**career_information)
+            ])
+
+            # Cập nhật lại thông tin nghề nghiệp khách hàng
+            session.execute(
+                update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
+            )
+
+        session.commit()
+    except Exception as ex:
+        logger.debug(ex)
+        session.rollback()
+        return ReposReturn(is_error=True, msg="Save not success")
 
     return ReposReturn(data={
         "cif_id": cif_id,
