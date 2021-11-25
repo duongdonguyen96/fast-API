@@ -4,9 +4,12 @@ from sqlalchemy.orm import Session
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.master_data.address import AddressCountry
 from app.third_parties.oracle.models.master_data.customer import (
-    CustomerGender, CustomerTitle
+    CustomerGender, CustomerRelationshipType, CustomerTitle
 )
-from app.third_parties.oracle.models.master_data.others import Nation, Religion
+from app.third_parties.oracle.models.master_data.others import (
+    AverageIncomeAmount, Career, MaritalStatus, Nation, Religion,
+    ResidentStatus
+)
 
 
 async def repos_get_gender(session: Session) -> ReposReturn:
@@ -87,3 +90,83 @@ async def repos_get_honorific(session: Session) -> ReposReturn:
         })
 
     return ReposReturn(data=list_honorific_config)
+
+
+async def repos_get_resident_status(session: Session) -> ReposReturn:
+
+    list_resident_status = session.execute(select(ResidentStatus)).scalars().all()
+    if not list_resident_status:
+        return ReposReturn(is_error=True, msg="resident_status doesn't have data", loc='config')
+    list_resident_status_config = []
+    for resident_status in list_resident_status:
+        list_resident_status_config.append({
+            "id": resident_status.id,
+            "code": resident_status.code,
+            "name": resident_status.name
+        })
+
+    return ReposReturn(data=list_resident_status_config)
+
+
+async def repos_get_marital_status(session: Session) -> ReposReturn:
+
+    list_marital_status = session.execute(select(MaritalStatus)).scalars().all()
+    if not list_marital_status:
+        return ReposReturn(is_error=True, msg="marital_status doesn't have data", loc='config')
+    list_marital_status_config = []
+    for resident_status in list_marital_status:
+        list_marital_status_config.append({
+            "id": resident_status.id,
+            "code": resident_status.code,
+            "name": resident_status.name
+        })
+
+    return ReposReturn(data=list_marital_status_config)
+
+
+async def repos_get_career(session: Session) -> ReposReturn:
+
+    careers = session.execute(select(Career)).scalars().all()
+    if not careers:
+        return ReposReturn(is_error=True, msg="career doesn't have data", loc='config')
+    list_career_config = []
+    for career in careers:
+        list_career_config.append({
+            "id": career.id,
+            "code": career.code,
+            "name": career.name
+        })
+
+    return ReposReturn(data=list_career_config)
+
+
+async def repos_get_average_income_amount(session: Session) -> ReposReturn:
+
+    average_income_amounts = session.execute(select(AverageIncomeAmount)).scalars().all()
+    if not average_income_amounts:
+        return ReposReturn(is_error=True, msg="average_income_amount doesn't have data", loc='config')
+    list_average_income_amount_config = []
+    for average_income_amount in average_income_amounts:
+        list_average_income_amount_config.append({
+            "id": average_income_amount.id,
+            "code": average_income_amount.code,
+            "name": average_income_amount.name
+        })
+
+    return ReposReturn(data=list_average_income_amount_config)
+
+
+async def repos_get_customer_relationship(session: Session) -> ReposReturn:
+
+    customer_relationships = session.execute(select(CustomerRelationshipType)).scalars().all()
+    if not customer_relationships:
+        return ReposReturn(is_error=True, msg="customer_relationship doesn't have data", loc='config')
+    list_customer_relationship_config = []
+    for customer_relationship in customer_relationships:
+        list_customer_relationship_config.append({
+            "id": customer_relationship.id,
+            "code": customer_relationship.code,
+            "name": customer_relationship.name
+        })
+
+    return ReposReturn(data=list_customer_relationship_config)
