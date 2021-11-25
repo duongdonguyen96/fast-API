@@ -15,7 +15,7 @@ from app.api.v1.schemas.utils import SaveSuccessResponse
 router = APIRouter()
 
 
-@router.post(
+@router.put(
     path="/",
     name="2. Thông tin cá nhân",
     description="Tạo dữ liệu tab `THÔNG TIN CÁ NHÂN` của khách hàng",
