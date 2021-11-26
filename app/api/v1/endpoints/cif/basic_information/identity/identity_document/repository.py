@@ -94,8 +94,7 @@ IDENTITY_LOGS_INFO = [
 # Chi tiết A. Giấy tờ định danh
 ########################################################################################################################
 async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposReturn:
-    place_of_birth = aliased(AddressProvince)
-    province = aliased(AddressProvince)
+    place_of_birth = aliased(AddressProvince, name='PlaceOfBirth')
 
     identities = session.execute(
         select(
@@ -112,7 +111,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
             CustomerGender,
             AddressCountry,
             place_of_birth,
-            province,
+            AddressProvince,
             AddressDistrict,
             AddressWard,
             Nation,
@@ -133,7 +132,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
         .join(AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id)
         .join(place_of_birth, CustomerIndividualInfo.place_of_birth_id == place_of_birth.id)
-        .join(province, CustomerAddress.address_province_id == province.id)
+        .join(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
         .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
         .join(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
         .join(Nation, CustomerIndividualInfo.nation_id == Nation.id)
@@ -204,8 +203,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         for row in identities:
             if row.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE:
                 resident_address = {
-                    # "province": dropdown(row.province),
-                    "province": dropdown(row[13]),
+                    "province": dropdown(row.AddressProvince),
                     "district": dropdown(row.AddressDistrict),
                     "ward": dropdown(row.AddressWard),
                     "number_and_street": row.CustomerAddress.address
@@ -216,8 +214,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         for row in identities:
             if row.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
                 contact_address = {
-                    # "province": dropdown(row.province),
-                    "province": dropdown(row[13]),
+                    "province": dropdown(row.AddressProvince),
                     "district": dropdown(row.AddressDistrict),
                     "ward": dropdown(row.AddressWard),
                     "number_and_street": row.CustomerAddress.address
@@ -245,8 +242,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
                     "gender": dropdown(first_row.CustomerGender),
                     "date_of_birth": first_row.CustomerIndividualInfo.date_of_birth,
                     "nationality": dropdown(first_row.AddressCountry),
-                    # "province": dropdown(first_row.place_of_birth),
-                    "province": dropdown(first_row[12]),
+                    "province": dropdown(first_row.PlaceOfBirth),
                     "ethnic": dropdown(first_row.Nation),
                     "religion": dropdown(first_row.Religion),
                     "identity_characteristic": first_row.CustomerIndividualInfo.identifying_characteristics,
@@ -272,8 +268,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
                     "gender": dropdown(first_row.CustomerGender),
                     "date_of_birth": first_row.CustomerIndividualInfo.date_of_birth,
                     "nationality": dropdown(first_row.AddressCountry),
-                    # "province": dropdown(first_row.place_of_birth),
-                    "province": dropdown(first_row[12]),
+                    "province": dropdown(first_row.PlaceOfBirth),
                     "identity_characteristic": first_row.CustomerIndividualInfo.identifying_characteristics,
                 }
             })
