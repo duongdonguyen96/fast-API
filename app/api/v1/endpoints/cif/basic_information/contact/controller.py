@@ -44,7 +44,7 @@ class CtrContactInformation(BaseController):
         resident_address_foreign_address_province_id = contact_information_save_request.resident_address.foreign_address.province.id
         resident_address_foreign_address_state_id = contact_information_save_request.resident_address.foreign_address.state.id
         resident_address_foreign_address_address_1 = contact_information_save_request.resident_address.foreign_address.address_1
-        resident_address_foreign_address_2 = contact_information_save_request.resident_address.foreign_address.address_2
+        resident_address_foreign_address_address_2 = contact_information_save_request.resident_address.foreign_address.address_2
         resident_address_foreign_zip_code = contact_information_save_request.resident_address.foreign_address.zip_code
 
         # Địa chỉ liên lạc
@@ -97,7 +97,14 @@ class CtrContactInformation(BaseController):
                 "address_province_id": resident_address_domestic_address_province_id,
                 "address_district_id": resident_address_domestic_address_district_id,
                 "address_ward_id": resident_address_domestic_address_ward_id,
-                "address": resident_address_domestic_number_and_street
+                "address": resident_address_domestic_number_and_street,
+                "zip_code": None,
+                "latitude": None,
+                "longitude": None,
+                "address_primary_flag": None,
+                "address_domestic_flag": resident_address_domestic_flag,
+                "address_2": None,
+                "address_same_permanent_flag": None
             })
             ############################################################################################################
             # Địa chỉ liên lạc
@@ -105,6 +112,11 @@ class CtrContactInformation(BaseController):
             # Nếu giống địa chỉ thường trú
             if contact_address_resident_address_flag:
                 contact_address.update(resident_address)
+                # Giống địa chỉ thường trú nhưng vẫn là tạm trú
+                contact_address.update({
+                    "address_same_permanent_flag": True,
+                    "address_type_id": CONTACT_ADDRESS_CODE
+                })
             # Nếu khác địa chỉ thường trú
             else:
                 list_require.extend([
@@ -118,7 +130,14 @@ class CtrContactInformation(BaseController):
                     "address_province_id": contact_address_province_id,
                     "address_district_id": contact_address_district_id,
                     "address_ward_id": contact_address_ward_id,
-                    "address": contact_address_number_and_street
+                    "address": contact_address_number_and_street,
+                    "zip_code": None,
+                    "latitude": None,
+                    "longitude": None,
+                    "address_primary_flag": None,
+                    "address_domestic_flag": resident_address_domestic_flag,
+                    "address_2": None,
+                    "address_same_permanent_flag": False
                 })
             ############################################################################################################
 
@@ -144,18 +163,29 @@ class CtrContactInformation(BaseController):
                 "address_country_id": resident_address_foreign_address_country_id,
                 "address_province_id": resident_address_foreign_address_state_id,
                 "address_district_id": resident_address_foreign_address_province_id,
-                # "address_ward_id": None,
-                "address_ward_id": "09871",
+                "address_ward_id": None,
                 "address": resident_address_foreign_address_address_1,
-                "address_2": resident_address_foreign_address_2,
-                "zip_code": resident_address_foreign_zip_code
+                "zip_code": resident_address_foreign_zip_code,
+                "latitude": None,
+                "longitude": None,
+                "address_primary_flag": None,
+                "address_domestic_flag": resident_address_domestic_flag,
+                "address_2": resident_address_foreign_address_address_2,
+                "address_same_permanent_flag": None
             })
             contact_address.update({
                 "address_country_id": ADDRESS_COUNTRY_CODE_VN,
                 "address_province_id": contact_address_province_id,
                 "address_district_id": contact_address_district_id,
                 "address_ward_id": contact_address_ward_id,
-                "address": contact_address_number_and_street
+                "address": contact_address_number_and_street,
+                "zip_code": None,
+                "latitude": None,
+                "longitude": None,
+                "address_primary_flag": None,
+                "address_domestic_flag": resident_address_domestic_flag,
+                "address_2": None,
+                "address_same_permanent_flag": None
             })
             list_not_null.extend([
                 (contact_address_number_and_street, None, "contact_address -> number_and_street"),

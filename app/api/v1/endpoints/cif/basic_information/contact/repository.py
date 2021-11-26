@@ -228,10 +228,11 @@ async def repos_save_contact_information(
 
     try:
         # Nếu thông tin có trước ->  cập nhật
+        print(contact_address)
         is_exist_customer_address = session.execute(select(CustomerAddress).filter(CustomerAddress.customer_id == cif_id)).all()
         if is_exist_customer_address:
-            customer_professional_id = session.execute(
-                select(Customer.customer_professional_id).filter(
+            customer_professional = session.execute(
+                select(Customer).filter(
                     Customer.id == cif_id
                 )
             ).scalars().first()
@@ -250,8 +251,12 @@ async def repos_save_contact_information(
             )
             session.execute(
                 update(CustomerProfessional).where(and_(
-                    CustomerProfessional.id == customer_professional_id,
+                    CustomerProfessional.id == customer_professional.id,
                 )).values(**career_information)
+            )
+            # Cập nhật lại thông tin nghề nghiệp khách hàng
+            session.execute(
+                update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional.id)
             )
         # Nếu thông tin chưa có -> Tạo mới
         else:
