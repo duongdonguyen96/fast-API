@@ -64,11 +64,7 @@ FOREIGN_CONTACT_INFORMATION_DETAIL = {
                 "code": "CALI",
                 "name": "California"
             },
-            "zip_code": {
-                "id": "1",
-                "code": "90001",
-                "name": "90001"
-            }
+            "zip_code": None
         }
     },
     "contact_address": {
@@ -163,11 +159,7 @@ async def repos_get_detail_contact_information(cif_id: str, session: Session) ->
                     "code": None,
                     "name": None
                 },
-                "zip_code": {
-                    "id": None,
-                    "code": None,
-                    "name": None
-                }
+                "zip_code": None
             }
         },
         "contact_address": {
@@ -290,6 +282,7 @@ async def repos_get_detail_contact_information(cif_id: str, session: Session) ->
         "company_position": dropdown(company_position),
         "company_address": customer_professional.company_address
     })
+    print(domestic_contact_information_detail)
     return ReposReturn(data=domestic_contact_information_detail)
 
 
