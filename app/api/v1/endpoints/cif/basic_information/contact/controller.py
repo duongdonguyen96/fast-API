@@ -119,7 +119,8 @@ class CtrContactInformation(BaseController):
                 # Giống địa chỉ thường trú nhưng vẫn là tạm trú
                 contact_address.update({
                     "address_same_permanent_flag": True,
-                    "address_type_id": CONTACT_ADDRESS_CODE
+                    "address_type_id": CONTACT_ADDRESS_CODE,
+                    "address_domestic_flag": True  # Địa chỉ liên lạc là địa chỉ trong nước
                 })
             # Nếu khác địa chỉ thường trú
             else:
@@ -145,7 +146,7 @@ class CtrContactInformation(BaseController):
                     "latitude": None,
                     "longitude": None,
                     "address_primary_flag": None,
-                    "address_domestic_flag": resident_address_domestic_flag,
+                    "address_domestic_flag": True,  # Địa chỉ liên lạc là địa chỉ trong nước
                     "address_2": None,
                     "address_same_permanent_flag": False
                 })
@@ -193,7 +194,7 @@ class CtrContactInformation(BaseController):
                 "latitude": None,
                 "longitude": None,
                 "address_primary_flag": None,
-                "address_domestic_flag": resident_address_domestic_flag,
+                "address_domestic_flag": True,  # Địa chỉ liên lạc là địa chỉ trong nước
                 "address_2": None,
                 "address_same_permanent_flag": None
             })
