@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -17,6 +17,9 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schem
     PassportDetailResponse
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
+from app.utils.constant.cif import (
+    IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
+)
 
 router = APIRouter()
 
@@ -36,19 +39,18 @@ router = APIRouter()
 )
 async def view_detail(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        identity_document_type_id: str = Query(None, description='Code loại giấy tờ định danh'),
         current_user=Depends(get_current_user_from_header())
 ):
     ctr_identity_document = CtrIdentityDocument(current_user)
 
-    detail_info = await ctr_identity_document.detail(
-        cif_id=cif_id,
-        identity_document_type_id=identity_document_type_id
-    )
+    identity_document_type_id, detail_info = await ctr_identity_document.detail_identity(cif_id=cif_id)
 
-    return ResponseData[Union[IdentityCardDetailResponse, CitizenCardDetailResponse, PassportDetailResponse]](
-        **detail_info
-    )
+    if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
+        return ResponseData[IdentityCardDetailResponse](**detail_info)
+    if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
+        return ResponseData[CitizenCardDetailResponse](**detail_info)
+    else:
+        return ResponseData[PassportDetailResponse](**detail_info)
 
 
 @router.get(

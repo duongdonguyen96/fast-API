@@ -17,6 +17,9 @@ ERROR_IDENTITY_DOCUMENT_NOT_EXIST = "ERROR_IDENTITY_DOCUMENT_NOT_EXIST"
 
 ERROR_CAN_NOT_CREATE = "CAN_NOT_CREATE"
 
+ERROR_IMAGE_TYPE_NOT_EXIST = 'IMAGE_TYPE_NOT_EXIST'
+ERROR_SIGNATURE_IS_NULL = "ERROR_SIGNATURE_IS_NULL"
+
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -34,5 +37,7 @@ MESSAGE_STATUS = {
 
     ERROR_CIF_ID_NOT_EXIST: "CIF id is not exist",
     ERROR_IDENTITY_DOCUMENT_NOT_EXIST: "Identity Document is not exist",
-    ERROR_CAN_NOT_CREATE: 'Can not create'
+    ERROR_CAN_NOT_CREATE: 'Can not create',
+    ERROR_IMAGE_TYPE_NOT_EXIST: 'Image type is not exist',
+    ERROR_SIGNATURE_IS_NULL: "Signature can not be empty"
 }

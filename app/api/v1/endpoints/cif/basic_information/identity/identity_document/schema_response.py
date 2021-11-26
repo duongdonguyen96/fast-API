@@ -71,8 +71,8 @@ class OCRResultIdentityCardResponse(BaseSchema):  # noqa
 # RESPONSE CMND
 class IdentityCardDetailResponse(BaseSchema):
     identity_document_type: DropdownResponse = Field(..., description="Loại giấy tờ định danh")
-    frontside_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
-    backside_information: BackSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt sau")
+    front_side_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
+    back_side_information: BackSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt sau")
     ocr_result: OCRResultIdentityCardResponse = Field(..., description="Phân tích OCR")
 
 
@@ -110,8 +110,8 @@ class OCRResultCitizenCardResponse(BaseSchema):  # noqa
 # RESPONSE CCCD
 class CitizenCardDetailResponse(BaseSchema):
     identity_document_type: DropdownResponse = Field(..., description="Loại giấy tờ định danh")
-    frontside_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
-    backside_information: BackSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt sau")
+    front_side_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
+    back_side_information: BackSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt sau")
     ocr_result: OCRResultCitizenCardResponse = Field(..., description="Phân tích OCR")
 
 

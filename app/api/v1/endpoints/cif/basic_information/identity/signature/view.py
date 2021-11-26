@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, Path
 from starlette import status
 
@@ -25,11 +27,11 @@ router = APIRouter()
     ),
 )
 async def view_create_signature(
-        signature: SignaturesRequest,
+        signatures: SignaturesRequest,
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    signature_data_request = await CtrSignature(current_user).ctr_save_signature(cif_id, signature)
+    signature_data_request = await CtrSignature(current_user).ctr_save_signature(cif_id, signatures)
     return ResponseData[SaveSuccessResponse](**signature_data_request)
 
 
@@ -38,7 +40,7 @@ async def view_create_signature(
     name="1. GTĐD - D. Chữ ký",
     description="Lấy dữ liệu tab `CHỮ KÝ` của khách hàng",
     responses=swagger_response(
-        response_model=ResponseData[SignaturesSuccessResponse],
+        response_model=ResponseData[List[SignaturesSuccessResponse]],
         success_status_code=status.HTTP_200_OK
     )
 )
@@ -47,4 +49,4 @@ async def view_retrieve_signature(
         current_user=Depends(get_current_user_from_header())
 ):
     signature_data = await CtrSignature(current_user).ctr_get_signature(cif_id)
-    return ResponseData[SignaturesSuccessResponse](**signature_data)
+    return ResponseData[List[SignaturesSuccessResponse]](**signature_data)

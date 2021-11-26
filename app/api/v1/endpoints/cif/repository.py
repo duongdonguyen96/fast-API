@@ -1,28 +1,34 @@
 import uuid
-
-from loguru import logger
-from sqlalchemy import desc, select, update, and_
-from sqlalchemy.orm import Session
-
 from typing import List
 
+from loguru import logger
+from sqlalchemy import and_, desc, select, update
+from sqlalchemy.orm import Session
 from sqlalchemy.sql.functions import now
 
 from app.api.base.repository import ReposReturn
-from app.third_parties.oracle.models.cif.basic_information.contact.model import CustomerAddress
+from app.third_parties.oracle.models.cif.basic_information.contact.model import (
+    CustomerAddress
+)
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerIdentity, CustomerIdentityImage, CustomerCompareImage
+    CustomerCompareImage, CustomerIdentity, CustomerIdentityImage
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
-from app.third_parties.oracle.models.cif.basic_information.personal.model import CustomerIndividualInfo
-from app.third_parties.oracle.models.cif.form.model import TransactionDaily, Booking, BookingBusinessForm, \
-    BookingCustomer
+from app.third_parties.oracle.models.cif.basic_information.personal.model import (
+    CustomerIndividualInfo
+)
+from app.third_parties.oracle.models.cif.form.model import (
+    Booking, BookingBusinessForm, BookingCustomer, TransactionDaily
+)
 from app.third_parties.oracle.models.master_data.identity import ImageType
 from app.third_parties.oracle.models.master_data.others import HrmEmployee
-from app.utils.constant.cif import CIF_ID_TEST, RESIDENT_ADDRESS_CODE, CONTACT_ADDRESS_CODE, UNSAVED, \
-    IMAGE_TYPE_CODE_IDENTITY, ACTIVED, IDENTITY_IMAGE_FLAG_FRONT_SIDE, IDENTITY_IMAGE_FLAG_BACKSIDE
+from app.utils.constant.cif import (
+    ACTIVED, CIF_ID_TEST, CONTACT_ADDRESS_CODE, IDENTITY_IMAGE_FLAG_BACKSIDE,
+    IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
+    RESIDENT_ADDRESS_CODE, UNSAVED
+)
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
 
@@ -333,9 +339,9 @@ async def repos_create_basic_information_identity(
         customer_resident_address,
         customer_contact_address,
         customer_identity,
-        frontside_information_identity_image_url,
-        frontside_information_compare_image_url,
-        backside_information_identity_image_url,
+        front_side_information_identity_image_url,
+        front_side_information_compare_image_url,
+        back_side_information_identity_image_url,
         save_by,
         session
 ):
@@ -372,7 +378,7 @@ async def repos_create_basic_information_identity(
         new_front_side_identity_image = CustomerIdentityImage(**{
             "identity_id": identity_id,
             "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
-            "image_url": frontside_information_identity_image_url,
+            "image_url": front_side_information_identity_image_url,
             "hand_side_id": None,
             "finger_type_id": None,
             "vector_data": None,
@@ -390,15 +396,15 @@ async def repos_create_basic_information_identity(
         front_side_identity_compare_image = {
             "identity_id": identity_id,
             "identity_image_id": front_side_identity_image_id,
-            "compare_image_url": frontside_information_compare_image_url,
+            "compare_image_url": front_side_information_compare_image_url,
             "similar_percent": 00,
             "maker_id": save_by,
             "maker_at": now()
         }
-        backside_information_identity = {
+        back_side_information_identity = {
             "identity_id": identity_id,
             "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
-            "image_url": backside_information_identity_image_url,
+            "image_url": back_side_information_identity_image_url,
             "hand_side_id": None,
             "finger_type_id": None,
             "vector_data": None,
@@ -414,7 +420,7 @@ async def repos_create_basic_information_identity(
             CustomerAddress(**customer_resident_address),
             CustomerAddress(**customer_contact_address),
             CustomerCompareImage(**front_side_identity_compare_image),
-            CustomerIdentityImage(**backside_information_identity)
+            CustomerIdentityImage(**back_side_information_identity)
         ])
 
         # Tạo BOOKING, CRM_TRANSACTION_DAILY -> CRM_BOOKING -> BOOKING_CUSTOMER -> BOOKING_BUSSINESS_FORM
