@@ -64,7 +64,7 @@ class OCRResultIdentityCardRequest(BaseSchema):  # noqa
 
 # REQUEST CMND
 class IdentityCardSaveRequest(BaseSchema):
-    cif_id: str = Field(None, description="ID định danh CIF")
+    cif_id: str = Field(None, description="ID định danh CIF", max_length=7, min_length=7)
     identity_document_type: DropdownRequest = Field(..., description="Loại giấy tờ định danh")
     front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
     back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
@@ -104,7 +104,7 @@ class OCRResultCitizenCardRequest(BaseSchema):  # noqa
 
 # REQUEST CCCD
 class CitizenCardSaveRequest(BaseSchema):
-    cif_id: str = Field(None, description="ID định danh CIF")  # noqa
+    cif_id: str = Field(None, description="ID định danh CIF", max_length=7, min_length=7)  # noqa
     identity_document_type: DropdownRequest = Field(..., description="Loại giấy tờ định danh")
     front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
     back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
@@ -150,7 +150,7 @@ class OCRResultPassportRequest(BaseSchema):
 
 # REQUEST HC
 class PassportSaveRequest(BaseSchema):
-    cif_id: str = Field(None, description="ID định danh CIF")
+    cif_id: str = Field(None, description="ID định danh CIF", max_length=7, min_length=7)
     identity_document_type: DropdownRequest = Field(..., description="Loại giấy tờ định danh")
     passport_information: InformationPassportRequest = Field(..., description="Thông tin hộ chiếu")
     ocr_result: OCRResultPassportRequest = Field(..., description="Phân tích OCR")
