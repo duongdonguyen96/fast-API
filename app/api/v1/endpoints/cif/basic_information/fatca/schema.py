@@ -12,7 +12,7 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
 class CategoryDropdownRequest(DropdownRequest):
-    active_flag: bool = Field(False, description='`False`: Có. `True`: Không')
+    select_flag: bool = Field(False, description='`False`: Có. `True`: Không')
 
 
 class DocumentsRequest(BaseSchema):
@@ -40,7 +40,7 @@ class FatcaRequest(BaseSchema):
 ########################################################################################################################
 
 class CategoryDropdownResponse(DropdownResponse):
-    active_flag: bool = Field(False, description='`False`: Có. `True`: Không')
+    select_flag: bool = Field(False, description='`False`: Có. `True`: Không')
 
 
 class DocumentsResponse(BaseSchema):

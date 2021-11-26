@@ -44,7 +44,7 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
         "id": category.id,
         "code": category.code,
         "name": category.name,
-        "active_flag": fatca.value
+        "select_flag": fatca.value
     } for fatca, category in query_data_fatca]
 
     query_data_documents = session.execute(
