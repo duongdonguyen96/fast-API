@@ -466,7 +466,9 @@ async def repos_save_identity(
             save_by,
             session
         )
-
-    return ReposReturn(data={
-        "cif_id": customer_id
-    })
+    if customer_id:
+        return ReposReturn(data={
+            "cif_id": customer_id
+        })
+    else:
+        return ReposReturn(is_error=True, msg="Create new customer is not success", loc="cif_number")

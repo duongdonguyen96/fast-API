@@ -457,4 +457,4 @@ async def repos_create_basic_information_identity(
     except Exception as ex:
         logger.debug(ex)
         session.rollback()
-        return ReposReturn(is_error=True, msg="Create new customer is not success", loc="cif_number")
+        return False
