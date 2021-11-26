@@ -5,12 +5,19 @@ from app.api.v1.endpoints.cif.basic_information.contact.repository import (
 from app.api.v1.endpoints.cif.basic_information.contact.schema import (
     ContactInformationSaveRequest
 )
+from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
 
 
 class CtrContactInformation(BaseController):
     async def detail_contact_information(self, cif_id: str):
+        # check cif đang tạo
+        self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
+
         contact_information_detail_data = self.call_repos(
-            await repos_get_detail_contact_information(cif_id=cif_id)
+            await repos_get_detail_contact_information(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
         )
         return self.response(data=contact_information_detail_data)
 
