@@ -227,7 +227,7 @@ async def repos_save_contact_information(
 ) -> ReposReturn:
 
     try:
-        # Nếu thông tin có trước ->  cập nhật
+        # Nếu thông tin chưa có -> Tạo mới
         is_exist_customer_address = session.execute(select(CustomerAddress).filter(CustomerAddress.customer_id == cif_id)).all()
         is_exist_customer_professional = session.execute(
             select(CustomerProfessional)
@@ -236,7 +236,25 @@ async def repos_save_contact_information(
                 Customer.id == cif_id
             ))
         ).all()
-        if is_exist_customer_address and is_exist_customer_professional:
+        if (not is_exist_customer_address) and (not is_exist_customer_professional):
+            # Tạo thông tin nghề nghiệp khách hàng
+            customer_professional_id = generate_uuid()
+            career_information.update({
+                "id": customer_professional_id
+            })
+            session.add_all([
+                CustomerAddress(**resident_address),
+                CustomerAddress(**contact_address),
+                CustomerProfessional(**career_information)
+            ])
+
+            # Cập nhật lại thông tin nghề nghiệp khách hàng
+            session.execute(
+                update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
+            )
+
+        # Nếu thông tin có trước ->  cập nhật
+        else:
             customer_professional = session.execute(
                 select(Customer).filter(
                     Customer.id == cif_id
@@ -264,24 +282,6 @@ async def repos_save_contact_information(
             session.execute(
                 update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional.id)
             )
-        # Nếu thông tin chưa có -> Tạo mới
-        else:
-            # Tạo thông tin nghề nghiệp khách hàng
-            customer_professional_id = generate_uuid()
-            career_information.update({
-                "id": customer_professional_id
-            })
-            session.add_all([
-                CustomerAddress(**resident_address),
-                CustomerAddress(**contact_address),
-                CustomerProfessional(**career_information)
-            ])
-
-            # Cập nhật lại thông tin nghề nghiệp khách hàng
-            session.execute(
-                update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
-            )
-
         session.commit()
     except Exception as ex:
         logger.debug(ex)

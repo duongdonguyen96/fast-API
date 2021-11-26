@@ -108,7 +108,7 @@ class CtrContactInformation(BaseController):
                 "address_primary_flag": None,
                 "address_domestic_flag": resident_address_domestic_flag,
                 "address_2": None,
-                "address_same_permanent_flag": None
+                "address_same_permanent_flag": False
             })
             ############################################################################################################
             # Địa chỉ liên lạc
@@ -154,6 +154,11 @@ class CtrContactInformation(BaseController):
 
         # Nếu là địa chỉ nước ngoài
         else:
+            # Không được giống địa chỉ thường trú
+            if contact_address_resident_address_flag:
+                return self.response_exception(msg="resident_address_flag is not True",
+                                               loc="contact_address -> resident_address_flag")
+
             list_require = [
                 (resident_address_foreign_address_country_id, AddressCountry,
                  "resident_address -> foreign_address -> country -> id"),
@@ -181,7 +186,7 @@ class CtrContactInformation(BaseController):
                 "address_primary_flag": None,
                 "address_domestic_flag": resident_address_domestic_flag,
                 "address_2": resident_address_foreign_address_address_2,
-                "address_same_permanent_flag": None
+                "address_same_permanent_flag": False
             })
             contact_address.update({
                 # Với địa chỉ thường trú nước ngoài, địa chỉ tạm trú phải lấy ở VN
@@ -196,7 +201,7 @@ class CtrContactInformation(BaseController):
                 "address_primary_flag": None,
                 "address_domestic_flag": True,  # Địa chỉ liên lạc là địa chỉ trong nước
                 "address_2": None,
-                "address_same_permanent_flag": None
+                "address_same_permanent_flag": False
             })
             list_not_null.extend([
                 (contact_address_number_and_street, None, "contact_address -> number_and_street"),
