@@ -17,7 +17,10 @@ class CustomerFatca(Base):
                                comment='ID danh mục FATCA')
     value = Column('fatca_value', VARCHAR(10), nullable=False, comment='Giá trị chọn FATCA (có/không)')
 
+    customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
+
     fatca_category = relationship('FatcaCategory')
+    customer = relationship('Customer')
 
 
 class CustomerFatcaDocument(Base):
@@ -25,7 +28,7 @@ class CustomerFatcaDocument(Base):
 
     id = Column('cust_fatca_doc_id', VARCHAR(36), primary_key=True, unique=True, server_default=text("sys_guid() "),
                 comment='ID biểu mẫu đính kèm FATCA')
-    customer_fatca_id = Column(ForeignKey('crm_cust_fatca.cust_fatca_id'), nullable=False,
+    customer_fatca_id = Column('cust_fatca_id', ForeignKey('crm_cust_fatca.cust_fatca_id'), nullable=False,
                                comment='ID FATCA - khách hàng')
     document_language_type = Column(VARCHAR(3), nullable=False,
                                     comment='Loại ngôn ngữ biểu mẫu ( Tiếng việt/ Song ngữ)')

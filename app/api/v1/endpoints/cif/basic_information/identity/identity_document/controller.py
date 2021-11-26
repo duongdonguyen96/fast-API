@@ -2,7 +2,7 @@ from typing import Union
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import (
-    repos_get_detail, repos_get_list_log, repos_save
+    repos_get_detail_identity, repos_get_list_log, repos_save
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
@@ -11,14 +11,14 @@ from app.utils.constant.cif import CIF_ID_NEW_TEST
 
 
 class CtrIdentityDocument(BaseController):
-    async def detail(self, cif_id: str, identity_document_type_id: str):
+    async def detail_identity(self, cif_id: str):
         detail_data = self.call_repos(
-            await repos_get_detail(
+            await repos_get_detail_identity(
                 cif_id=cif_id,
-                identity_document_type_id=identity_document_type_id
+                session=self.oracle_session
             )
         )
-        return self.response(data=detail_data)
+        return detail_data['identity_document_type']['code'], self.response(data=detail_data)
 
     async def get_list_log(self, cif_id: str):
         logs_data = self.call_repos(
