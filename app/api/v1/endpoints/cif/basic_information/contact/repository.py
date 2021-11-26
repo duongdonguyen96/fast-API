@@ -278,10 +278,6 @@ async def repos_save_contact_information(
                     CustomerProfessional.id == customer_professional.id,
                 )).values(**career_information)
             )
-            # Cập nhật lại thông tin nghề nghiệp khách hàng
-            session.execute(
-                update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional.id)
-            )
         session.commit()
     except Exception as ex:
         logger.debug(ex)
