@@ -25,7 +25,7 @@ class ForeignAddressResponse(BaseSchema):
     address_2: Optional[str] = Field(..., description="Địa chỉ 2")
     province: OptionalDropdownResponse = Field(..., description="Thành phố")
     state: OptionalDropdownResponse = Field(..., description="Tỉnh/Bang")
-    zip_code: OptionalDropdownResponse = Field(..., description="Mã bưu chính")
+    zip_code: Optional[str] = Field(..., description="Mã bưu chính")
 
 
 class ResidentAddressContactInformationResponse(BaseSchema):
@@ -75,7 +75,7 @@ class ForeignAddressRequest(BaseSchema):
     address_2: Optional[str] = Field(..., description="Địa chỉ 2")
     province: OpionalDropdownRequest = Field(..., description="Thành phố")
     state: OpionalDropdownRequest = Field(..., description="Tỉnh/Bang")
-    zip_code: OpionalDropdownRequest = Field(..., description="Mã bưu chính")
+    zip_code: Optional[str] = Field(..., description="Mã bưu chính")
 
 
 class ResidentAddressContactInformationRequest(BaseSchema):
