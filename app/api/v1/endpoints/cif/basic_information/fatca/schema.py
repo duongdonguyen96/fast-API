@@ -12,17 +12,19 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
 class CategoryDropdownRequest(DropdownRequest):
-    active_flag: bool = Field(False, description='`False`: Có. `True`: Không')
+    select_flag: bool = Field(False, description='`False`: Có. `True`: Không')
 
 
 class DocumentsRequest(BaseSchema):
     id: str = Field(..., description='Mã biểu mẫu')
     url: str = Field(..., description='Đường dẫn biểu mẫu')
     version: str = Field(..., description='Phiên bản biểu mẫu')
-    content_type: str = Field(..., description='Loại biểu mẫu')
-    size: str = Field(..., description='Kích thước biểu mẫu')
-    folder_name: str = Field(..., description='Thư mục biểu mẫu')
-    note: str = Field(..., description='Mô tả biểu mẫu')
+    name: str = Field(..., description='Tên biểu mẫu')
+    active_flag: bool = Field(..., description='Trạng thái hoạt động')
+    # content_type: str = Field(..., description='Loại biểu mẫu') # TODO: chưa có chỗ lưu
+    # size: str = Field(..., description='Kích thước biểu mẫu') # TODO: chưa có chỗ lưu
+    # folder_name: str = Field(..., description='Thư mục biểu mẫu') # TODO: chưa có chỗ lưu
+    # note: str = Field(..., description='Mô tả biểu mẫu') # TODO: chưa có chỗ lưu
 
 
 class DocumentsListRequest(BaseSchema):
@@ -32,7 +34,7 @@ class DocumentsListRequest(BaseSchema):
 
 class FatcaRequest(BaseSchema):
     fatca_information: List[CategoryDropdownRequest] = Field(..., description='Danh mục `FATCA`')
-    document_information: List[DocumentsListRequest] = Field(..., description='Danh sách biểu mẫu `FATCA`')
+    documents_information: List[DocumentsListRequest] = Field(..., description='Danh sách biểu mẫu `FATCA`')
 
 
 ########################################################################################################################

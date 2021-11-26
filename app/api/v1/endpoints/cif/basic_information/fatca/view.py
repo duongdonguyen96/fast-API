@@ -30,7 +30,7 @@ async def view_save(
         current_user=Depends(get_current_user_from_header())
 ):
     fatca_data = await CtrFatca(current_user).ctr_save_fatca(cif_id, fatca)
-    return ResponseData[SaveSuccessResponse](**fatca_data)
+    return ResponseData(**fatca_data)
 
 
 @router.get(
