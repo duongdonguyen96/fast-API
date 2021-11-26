@@ -5,7 +5,9 @@ from app.api.v1.endpoints.cif.other_information.repository import (
 from app.api.v1.endpoints.cif.other_information.schema import (
     OtherInformationUpdateRequest
 )
-from app.api.v1.endpoints.cif.repository import repos_get_hrm_employees, repos_get_initializing_customer
+from app.api.v1.endpoints.cif.repository import (
+    repos_get_hrm_employees, repos_get_initializing_customer
+)
 
 
 class CtrOtherInfo(BaseController):
