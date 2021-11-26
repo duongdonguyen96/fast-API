@@ -161,12 +161,12 @@ async def repos_get_customer_relationship(session: Session) -> ReposReturn:
     customer_relationships = session.execute(select(CustomerRelationshipType)).scalars().all()
     if not customer_relationships:
         return ReposReturn(is_error=True, msg="customer_relationship doesn't have data", loc='config')
-    list_customer_relationship_config = []
-    for customer_relationship in customer_relationships:
-        list_customer_relationship_config.append({
+    list_customer_relationship_config = [
+        {
             "id": customer_relationship.id,
             "code": customer_relationship.code,
             "name": customer_relationship.name
-        })
+        }for customer_relationship in customer_relationships
+    ]
 
     return ReposReturn(data=list_customer_relationship_config)

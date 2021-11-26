@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.master_data.others import (
-    Position, StaffType
+    HrmEmployee, Position, StaffType
 )
 
 
@@ -37,3 +37,35 @@ async def repos_get_position(session: Session) -> ReposReturn:
     ]
 
     return ReposReturn(data=list_position_config)
+
+
+async def repos_get_sale_staff(session: Session) -> ReposReturn:
+
+    sale_staffs = session.execute(select(HrmEmployee)).scalars().all()
+    if not sale_staffs:
+        return ReposReturn(is_error=True, msg="sale_staff doesn't have data", loc='config')
+    list_sale_staff_config = [
+        {
+            "id": sale_staff.id,
+            "fullname_vn": sale_staff.fullname_vn
+
+        } for sale_staff in sale_staffs
+    ]
+
+    return ReposReturn(data=list_sale_staff_config)
+
+
+async def repos_get_indirect_sale_staff(session: Session) -> ReposReturn:
+
+    indirect_sale_staffs = session.execute(select(HrmEmployee)).scalars().all()
+    if not indirect_sale_staffs:
+        return ReposReturn(is_error=True, msg="sale_staff doesn't have data", loc='config')
+    list_inderect_sale_staff_config = [
+        {
+            "id": indirect_sale_staff.id,
+            "fullname_vn": indirect_sale_staff.fullname_vn
+
+        } for indirect_sale_staff in indirect_sale_staffs
+    ]
+
+    return ReposReturn(data=list_inderect_sale_staff_config)
