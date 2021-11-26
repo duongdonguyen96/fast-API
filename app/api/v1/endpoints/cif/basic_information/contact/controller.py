@@ -189,7 +189,8 @@ class CtrContactInformation(BaseController):
             })
             list_not_null.extend([
                 (contact_address_number_and_street, None, "contact_address -> number_and_street"),
-                (resident_address_foreign_address_address_1, None, "resident_address -> foreign_address -> address_1")
+                (resident_address_foreign_address_address_1, None, "resident_address -> foreign_address -> address_1"),
+                (resident_address_foreign_zip_code, None, "resident_address -> foreign_address -> zip_code")
             ])
 
         ################################################################################################################
@@ -220,11 +221,11 @@ class CtrContactInformation(BaseController):
 
         # Kiểm tra những field truyền vào không được null
         if list_not_null_error:
-            return self.response_exception(msg=", ".join(list_not_null_error) + " is not null")
+            return self.response_exception(msg=", ".join(list_not_null_error) + " is NOT NULL")
 
         # Kiểm tra những field truyền vào không có trong DB
         if list_exist_error:
-            return self.response_exception(msg=", ".join(list_exist_error) + " is not exist")
+            return self.response_exception(msg=", ".join(list_exist_error) + " is NOT EXIST")
 
         contact_information_detail_data = self.call_repos(
             await repos_save_contact_information(
