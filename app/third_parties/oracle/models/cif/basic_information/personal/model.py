@@ -28,7 +28,6 @@ class CustomerIndividualInfo(Base):
     country_of_birth_id = Column(ForeignKey('crm_address_country.country_id'), nullable=False,
                                  comment='Mã quốc gia sinh')
     resident_status_id = Column(ForeignKey('crm_resident_status.resident_status_id'), comment='Mã tình trạng cư trú')
-    customer_fatca_id = Column(ForeignKey('crm_cust_fatca.cust_fatca_id'), comment='Mã MAPPING KH - FATCA')
     religion_id = Column(ForeignKey('crm_religion.religion_id'), nullable=False, comment='Mã tôn giáo')
     nation_id = Column(ForeignKey('crm_nation.nation_id'), nullable=False, comment='Mã dân tộc')
     marital_status_id = Column(ForeignKey('crm_marital_status.marital_status_id'), comment='Mã tình trạng hôn nhân')
@@ -40,7 +39,6 @@ class CustomerIndividualInfo(Base):
     mother_full_name = Column(VARCHAR(100), comment='Họ tên Mẹ')
 
     country_of_birth = relationship('AddressCountry')
-    customer_fatca = relationship('CustomerFatca')
     customer_gender = relationship('CustomerGender')
     marital_status = relationship('MaritalStatus')
     nation = relationship('Nation')
