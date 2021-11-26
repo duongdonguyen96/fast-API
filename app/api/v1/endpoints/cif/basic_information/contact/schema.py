@@ -88,7 +88,7 @@ class ResidentAddressContactInformationRequest(BaseSchema):
 
 
 class ContactAddressRequest(DomesticAddressRequest):
-    resident_address_flag: Optional[bool] = Field(..., description="Cờ giống địa chỉ thường trú")
+    resident_address_flag: bool = Field(..., description="Cờ giống địa chỉ thường trú")
     country: OpionalDropdownRequest = Field(None, description="Quốc gia")
 
 
