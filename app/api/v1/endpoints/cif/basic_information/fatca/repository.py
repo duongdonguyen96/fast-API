@@ -1,8 +1,17 @@
+from sqlalchemy import and_, select
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.fatca.schema import (
     FatcaRequest
 )
-from app.utils.constant.cif import CIF_ID_TEST
+from app.third_parties.oracle.models.cif.basic_information.fatca.model import (
+    CustomerFatca, CustomerFatcaDocument
+)
+from app.third_parties.oracle.models.master_data.others import FatcaCategory
+from app.utils.constant.cif import (
+    CIF_ID_TEST, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VN
+)
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
@@ -18,130 +27,83 @@ async def repos_save_fatca(cif_id: str, fatca: FatcaRequest, created_by: str) ->
     })
 
 
-async def repos_get_fatca_data(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
+    query_data_fatca = session.execute(
+        select(
+            CustomerFatca,
+            FatcaCategory
+        ).join(
+            FatcaCategory, CustomerFatca.fatca_category_id == FatcaCategory.id,
+        ).filter(CustomerFatca.customer_id == cif_id)
+    ).all()
+
+    if not query_data_fatca:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    fatca_information = [{
+        "id": category.id,
+        "code": category.code,
+        "name": category.name,
+        "active_flag": fatca.value
+    } for fatca, category in query_data_fatca]
+
+    query_data_documents = session.execute(
+        select(
+            CustomerFatcaDocument
+        ).join(
+            CustomerFatca, and_(
+                CustomerFatcaDocument.customer_fatca_id == CustomerFatca.id,
+                CustomerFatca.customer_id == cif_id
+            )
+        )
+    ).scalars().all()
+
+    documents_en = []
+    documents_vn = []
+
+    for document in query_data_documents:
+        documents = {
+            "id": document.id,
+            "name": document.document_name,
+            "url": document.document_url,
+            "active_flag": document.active_flag,
+            "version": document.document_version,
+            "content_type": "Word",  # TODO
+            "size": "1MB",  # TODO
+            "folder_name": "Khởi tạo CIF",  # TODO
+            "created_by": "Nguyễn Phúc",  # TODO
+            "created_at": document.created_at,
+            "updated_by": "Trần Bình Liên",  # TODO
+            "updated_at": "2020-12-30 06:07:08",  # TODO
+            "note": "Tài liệu quan trọng"  # TODO
+        }
+
+        if document.document_language_type == LANGUAGE_TYPE_VN:
+            documents_vn.append(documents)
+        if document.document_language_type == LANGUAGE_TYPE_EN:
+            documents_en.append(documents)
+
+    document_information = [
+        # TODO : xét cứng dữ liệu language -> chưa thấy table lưu
+        {
+            "language_type": {
+                "id": "1",
+                "code": "VN",
+                "name": "vn"
+            },
+            "documents": documents_vn
+        },
+        {
+            "language_type": {
+                "id": "2",
+                "code": "EN",
+                "name": "en"
+            },
+            "documents": documents_en
+        }
+    ]
 
     return ReposReturn(data={
-        "fatca_information": [
-            {
-                "id": "1",
-                "code": "code",
-                "name": "Quý khác là công dân Hoa Kỳ hoặc thường trú hợp pháp tại Hoa Kỳ(có thẻ xanh)",
-                "active_flag": True
-            },
-            {
-                "id": "2",
-                "code": "code",
-                "name": "Quý khách có sinh ra tại Hoa Kỳ không",
-                "active_flag": False
-            },
-            {
-                "id": "3",
-                "code": "code",
-                "name": "Quý khách có thư ủy quyền hoặc ủy quyền cho "
-                        "một cá nhân/tổ chức có địa chỉ tại Hoa Kỳ không",
-                "active_flag": True
-            },
-            {
-                "id": "4",
-                "code": "code",
-                "name": "Quý khách có lệnh chuyển tiền tới tài khoản tại Hoa Kỳ "
-                        "hoặc khoản tiền nhận được thường xuyên từ một địa chỉ Hoa Kỳ không",
-                "active_flag": True
-            },
-            {
-                "id": "5",
-                "code": "code",
-                "name": "Quý khách có địa chỉ thư tín (bao gồm hộp thư bưu điện)"
-                        " hoặc nơi cư trú hiện tại ở Hoa Kỳ hoặc số điện thoại Hoa Kỳ",
-                "active_flag": True
-            },
-            {
-                "id": "6",
-                "code": "code",
-                "name": "Quý khách có địa chỉ “nhờ chuyển thư” hoặc “giữ thư” tại Hoa Kỳ",
-                "active_flag": False
-            }
-        ],
-        "document_information": [
-            {
-                "language_type": {
-                    "id": "1",
-                    "code": "VN",
-                    "name": "vn"
-                },
-                "documents": [
-                    {
-                        "id": "1",
-                        "name": "W-8BEN",
-                        "url": "url-w8ben",
-                        "active_flag": True,
-                        "version": "1.0",
-                        "content_type": "Word",
-                        "size": "1MB",
-                        "folder_name": "Khởi tạo CIF",
-                        "created_by": "Nguyễn Phúc",
-                        "created_at": "2020-12-29 06:07:08",
-                        "updated_by": "Trần Bình Liên",
-                        "updated_at": "2020-12-30 06:07:08",
-                        "note": "Tài liệu quan trọng"
-                    },
-                    {
-                        "id": "2",
-                        "name": "W-8BEN",
-                        "url": "url-w8ben",
-                        "active_flag": True,
-                        "version": "1.0",
-                        "content_type": "Word",
-                        "size": "1MB",
-                        "folder_name": "Khởi tạo CIF",
-                        "created_by": "Nguyễn Phúc",
-                        "created_at": "2020-12-28 06:07:08",
-                        "updated_by": "Trần Bình Liên",
-                        "updated_at": "2020-12-29 06:07:08",
-                        "note": "Tài liệu quan trọng"
-                    }
-                ]
-            },
-            {
-                "language_type": {
-                    "id": "2",
-                    "code": "EN",
-                    "name": "en"
-                },
-                "documents": [
-                    {
-                        "id": "3",
-                        "name": "W-8BEN",
-                        "url": "url-w8ben",
-                        "active_flag": True,
-                        "version": "1.0",
-                        "content_type": "Word",
-                        "size": "1MB",
-                        "folder_name": "Khởi tạo CIF",
-                        "created_by": "Nguyễn Phúc",
-                        "created_at": "2020-12-27 06:07:08",
-                        "updated_by": "Trần Bình Liên",
-                        "updated_at": "2020-12-28 06:07:08",
-                        "note": "import document"
-                    },
-                    {
-                        "id": "4",
-                        "name": "W-8BEN",
-                        "url": "url-w8ben",
-                        "active_flag": True,
-                        "version": "1.0",
-                        "content_type": "Word",
-                        "size": "1MB",
-                        "folder_name": "Khởi tạo CIF",
-                        "created_by": "Nguyễn Phúc",
-                        "created_at": "2020-12-26 06:07:08",
-                        "updated_by": "Trần Bình Liên",
-                        "updated_at": "2020-12-27 06:07:08",
-                        "note": "import document"
-                    }
-                ]
-            }
-        ]
+        "fatca_information": fatca_information,
+        "document_information": document_information
     })

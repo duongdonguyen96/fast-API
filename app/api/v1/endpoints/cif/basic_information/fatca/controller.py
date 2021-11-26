@@ -19,6 +19,6 @@ class CtrFatca(BaseController):
         return self.response(data=fatca_data)
 
     async def ctr_get_fatca(self, cif_id: str):
-        fatca_data = self.call_repos(await repos_get_fatca_data(cif_id))
+        fatca_data = self.call_repos(await repos_get_fatca_data(cif_id=cif_id, session=self.oracle_session))
 
         return self.response(data=fatca_data)
