@@ -90,6 +90,10 @@ class CtrContactInformation(BaseController):
                  "resident_address -> domestic_address -> ward -> id")
             ]
             list_not_null.extend(list_require)
+            list_not_null.append(
+                (resident_address_domestic_number_and_street, None,
+                 "resident_address -> domestic_address -> number_and_street")
+            )
             list_exist.extend(list_require)
 
             resident_address.update({
@@ -119,12 +123,18 @@ class CtrContactInformation(BaseController):
                 })
             # Nếu khác địa chỉ thường trú
             else:
-                list_require.extend([
+                list_require = [
                     (contact_address_country_id, AddressCountry, "contact_address -> country -> id"),
                     (contact_address_province_id, AddressProvince, "contact_address -> province -> id"),
                     (contact_address_district_id, AddressDistrict, "contact_address -> district -> id"),
                     (contact_address_ward_id, AddressWard, "contact_address -> ward -> id")
-                ])
+                ]
+                list_exist.extend(list_require)
+                list_not_null.extend(list_require)
+                list_not_null.append(
+                    (contact_address_number_and_street, None,
+                     "contact_address -> number_and_street")
+                )
                 contact_address.update({
                     "address_country_id": contact_address_country_id,
                     "address_province_id": contact_address_province_id,
@@ -152,7 +162,6 @@ class CtrContactInformation(BaseController):
                 # Tỉnh/Bang nước ngoài là Tỉnh/TP VN
                 (resident_address_foreign_address_state_id, AddressProvince,
                  "resident_address -> foreign_address -> state -> id"),
-                (contact_address_country_id, AddressCountry, "contact_address -> country -> id"),
                 (contact_address_province_id, AddressProvince, "contact_address -> province -> id"),
                 (contact_address_district_id, AddressDistrict, "contact_address -> district -> id"),
                 (contact_address_ward_id, AddressWard, "contact_address -> ward -> id")
@@ -174,6 +183,7 @@ class CtrContactInformation(BaseController):
                 "address_same_permanent_flag": None
             })
             contact_address.update({
+                # Với địa chỉ thường trú nước ngoài, địa chỉ tạm trú phải lấy ở VN
                 "address_country_id": ADDRESS_COUNTRY_CODE_VN,
                 "address_province_id": contact_address_province_id,
                 "address_district_id": contact_address_district_id,
