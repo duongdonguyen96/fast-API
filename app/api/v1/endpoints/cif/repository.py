@@ -1,7 +1,8 @@
+from typing import List
+
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from typing import List
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity
