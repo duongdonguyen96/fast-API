@@ -2,13 +2,9 @@ import uuid
 from datetime import date, datetime, timedelta
 from typing import Callable, Dict
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.settings.config import (
     DATE_INPUT_OUTPUT_FORMAT, DATETIME_INPUT_OUTPUT_FORMAT
 )
-from app.third_parties.oracle.base import Base
 
 
 def dropdown(data) -> dict:
@@ -117,25 +113,3 @@ def process_generate_uuid(d):
 def calculate_age(birth_date: date, end_date: date = date.today()) -> float:
     age_number = (end_date - birth_date) // timedelta(days=365.2425)
     return age_number
-
-
-def raise_does_not_exist_string(object_str) -> str:
-    return f"{object_str} does not exist"
-
-
-def check_exist_by_id(model_id: str, model: Base, session: Session):
-    try:
-        session.execute(
-            select(model).filter(model.id == model_id)
-        ).one()
-    except Exception as ex:
-        return True
-
-
-def check_exist_list_by_id(check_list: list, session: Session):
-    list_error = []
-    for model_id, model, message in check_list:
-        is_error = check_exist_by_id(model_id, model, session)
-        if is_error:
-            list_error.append(message)
-    return list_error
