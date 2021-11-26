@@ -228,9 +228,15 @@ async def repos_save_contact_information(
 
     try:
         # Nếu thông tin có trước ->  cập nhật
-        print(contact_address)
         is_exist_customer_address = session.execute(select(CustomerAddress).filter(CustomerAddress.customer_id == cif_id)).all()
-        if is_exist_customer_address:
+        is_exist_customer_professional = session.execute(
+            select(CustomerProfessional)
+            .join(Customer, and_(
+                Customer.customer_professional_id == CustomerProfessional.id,
+                Customer.id == cif_id
+            ))
+        ).all()
+        if is_exist_customer_address and is_exist_customer_professional:
             customer_professional = session.execute(
                 select(Customer).filter(
                     Customer.id == cif_id
