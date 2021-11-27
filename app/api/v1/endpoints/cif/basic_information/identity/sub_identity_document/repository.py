@@ -1,3 +1,4 @@
+from loguru import logger
 from sqlalchemy import delete, select
 
 from app.api.base.repository import ReposReturn
@@ -121,19 +122,29 @@ async def repos_save_sub_identity(customer, requests, saved_by, session):
             updater_at=now()
         ))
 
-    if not sub_identities:
-        session.bulk_save_objects(sub_identity_list)
-        session.bulk_save_objects(sub_identity_image_list)
-    else:
-        # Lấy id của GTĐD đã tồn tại trong DB
-        sub_identities = session.execute(select(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id)).scalars().all()
-        sub_identity_ids = [sub_identity.id for sub_identity in sub_identities]
-        session.execute(delete(CustomerIdentityImage).filter(CustomerIdentityImage.identity_id.in_(sub_identity_ids)))
-        session.execute(delete(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id))
-        session.bulk_save_objects(sub_identity_list)
-        session.bulk_save_objects(sub_identity_image_list)
-
-    session.commit()
+    session.autoflush = False
+    try:
+        if not sub_identities:
+            session.bulk_save_objects(sub_identity_list)
+            session.flush()
+            session.bulk_save_objects(sub_identity_image_list)
+            session.flush()
+        else:
+            # Lấy id của GTĐD đã tồn tại trong DB
+            sub_identities = session.execute(select(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id)).scalars().all()
+            sub_identity_ids = [sub_identity.id for sub_identity in sub_identities]
+            session.execute(delete(CustomerIdentityImage).filter(CustomerIdentityImage.identity_id.in_(sub_identity_ids)))
+            session.flush()
+            session.execute(delete(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id))
+            session.flush()
+            session.bulk_save_objects(sub_identity_list)
+            session.flush()
+            session.bulk_save_objects(sub_identity_image_list)
+            session.flush()
+        session.commit()
+    except Exception as ex:
+        logger.debug(ex)
+        return ReposReturn(is_error=True, msg="Save Sub Identity is not success")
 
     return ReposReturn(data={
         "cif_id": customer.id,
