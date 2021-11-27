@@ -131,9 +131,13 @@ async def repos_save_sub_identity(customer, requests, saved_by, session):
             session.flush()
         else:
             # Lấy id của GTĐD đã tồn tại trong DB
-            sub_identities = session.execute(select(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id)).scalars().all()
+            sub_identities = session.execute(select(CustomerSubIdentity).filter(
+                CustomerSubIdentity.customer_id == customer.id)
+            ).scalars().all()
             sub_identity_ids = [sub_identity.id for sub_identity in sub_identities]
-            session.execute(delete(CustomerIdentityImage).filter(CustomerIdentityImage.identity_id.in_(sub_identity_ids)))
+            session.execute(delete(CustomerIdentityImage).filter(
+                CustomerIdentityImage.identity_id.in_(sub_identity_ids)
+            ))
             session.flush()
             session.execute(delete(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id))
             session.flush()
