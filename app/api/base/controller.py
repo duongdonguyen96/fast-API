@@ -8,7 +8,9 @@ from app.api.base.except_custom import ExceptionHandle
 from app.api.base.repository import ReposReturn
 from app.api.base.schema import Error
 from app.api.base.validator import ValidatorReturn
-from app.api.v1.endpoints.repository import repos_get_model_object_by_id
+from app.api.v1.endpoints.repository import (
+    repos_get_model_object_by_id_or_code
+)
 from app.third_parties.oracle.base import Base, SessionLocal
 
 
@@ -54,8 +56,20 @@ class BaseController:
 
     async def get_model_object_by_id(self, model_id: str, model: Base, loc: str):
         return self.call_repos(
-            await repos_get_model_object_by_id(
+            await repos_get_model_object_by_id_or_code(
                 model_id=model_id,
+                model_code=None,
+                model=model,
+                loc=loc,
+                session=self.oracle_session
+            )
+        )
+
+    async def get_model_object_by_code(self, model_code: str, model: Base, loc: str):
+        return self.call_repos(
+            await repos_get_model_object_by_id_or_code(
+                model_id=None,
+                model_code=model_code,
                 model=model,
                 loc=loc,
                 session=self.oracle_session
