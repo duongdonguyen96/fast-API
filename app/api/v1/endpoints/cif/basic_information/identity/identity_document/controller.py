@@ -71,6 +71,7 @@ class CtrIdentityDocument(BaseController):
         customer_individual_info: Optional[CustomerIndividualInfo] = None
         customer_resident_address: Optional[CustomerAddress] = None
         customer_contact_address: Optional[CustomerAddress] = None
+
         is_create = True
         if cif_id:
             customer = await self.get_model_object_by_id(model_id=cif_id, model=Customer, loc='cif_id')

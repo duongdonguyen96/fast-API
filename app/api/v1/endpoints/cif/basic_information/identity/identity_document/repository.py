@@ -424,6 +424,7 @@ async def repos_save_identity(
                 updated_at=now()
             )
         ])
+
     # Update
     else:
         # Cập nhật 1 cif_number đã tồn tại
@@ -435,6 +436,7 @@ async def repos_save_identity(
         session.execute(update(Customer).where(
             Customer.id == customer_id
         ).values(**saving_customer))
+        # TODO: cần check lại tạo một dòng hay tạo mới nhiều dòng customer_identity
         session.execute(update(CustomerIdentity).where(
             CustomerIdentity.customer_id == customer_id
         ).values(saving_customer_identity))
@@ -450,34 +452,17 @@ async def repos_save_identity(
             CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE,
         )).values(saving_customer_contact_address))
 
-        # Tạo BOOKING, CRM_TRANSACTION_DAILY -> CRM_BOOKING -> BOOKING_CUSTOMER -> BOOKING_BUSSINESS_FORM
+        # TODO cập nhật lại transaction_id trong Booking
+        # lưu log trong CRM_TRANSACTION_DAILY
         transaction_id = generate_uuid()
-        booking_id = generate_uuid()
-        session.add_all([
+        session.add(
             TransactionDaily(
                 transaction_id=transaction_id,
                 data=None,
                 description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
                 updated_at=now()
-            ),
-            Booking(
-                id=booking_id,
-                transaction_id=transaction_id,
-                created_at=now(),
-                updated_at=now()
-            ),
-            BookingCustomer(
-                booking_id=booking_id,
-                customer_id=customer_id
-            ),
-            BookingBusinessForm(
-                booking_id=booking_id,
-                business_form_id="BE_TEST",  # TODO
-                save_flag=False,
-                created_at=now(),
-                updated_at=now()
             )
-        ])
+        )
 
     return ReposReturn(data={
         "cif_id": customer_id
