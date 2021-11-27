@@ -13,7 +13,9 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.master_data.identity import ImageType
 from app.third_parties.oracle.models.master_data.others import HrmEmployee
 from app.utils.constant.cif import CIF_ID_TEST
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.error_messages import (
+    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST
+)
 
 
 async def repos_get_initializing_customer(cif_id: str, session: Session) -> ReposReturn:
@@ -233,6 +235,7 @@ async def repos_get_last_identity(cif_id: str, session: Session):
     return ReposReturn(data=identity)
 
 
+# TODO: replace with self.get_model_object_by_code
 async def repos_get_image_type(image_type: str, session: Session) -> ReposReturn:
     image_type = session.execute(
         select(
@@ -244,3 +247,17 @@ async def repos_get_image_type(image_type: str, session: Session) -> ReposReturn
         return ReposReturn(is_error=True, msg='ERROR_IMAGE_TYPE_NOT_EXIST', loc='image_type')
 
     return ReposReturn(data=image_type)
+
+
+async def repos_check_not_exist_cif_number(cif_number: str, session: Session) -> ReposReturn:
+    # TODO: call to core
+    cif_number = session.execute(
+        select(
+            Customer.cif_number
+        ).filter(Customer.cif_number == cif_number)
+    ).scalars().first()
+
+    if cif_number:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc="cif_number")
+
+    return ReposReturn(data='Cif number is not exist')
