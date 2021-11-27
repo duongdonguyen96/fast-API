@@ -13,6 +13,7 @@ class CustomerIdentity(Base):
                 comment='Id Giấy tờ định danh')
     identity_type_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id Loại giấy tờ định danh ')
     customer_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id Khách hàng')
+    # TODO: fix it
     identity_num = Column(VARCHAR(50), nullable=False, comment='Số Giấy tờ định danh')
     issued_date = Column(DateTime, nullable=False, comment='Ngày cấp')
     expired_date = Column(DateTime, nullable=False, comment='Ngày hết hạn')
