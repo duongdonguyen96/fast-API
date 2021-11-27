@@ -227,7 +227,8 @@ async def repos_save_contact_information(
 ) -> ReposReturn:
 
     try:
-        # Nếu thông tin chưa có -> Tạo mới
+        session.autoflush = False
+
         is_exist_customer_address = session.execute(select(CustomerAddress).filter(CustomerAddress.customer_id == cif_id)).all()
         is_exist_customer_professional = session.execute(
             select(CustomerProfessional)
@@ -236,6 +237,7 @@ async def repos_save_contact_information(
                 Customer.id == cif_id
             ))
         ).all()
+        # Nếu thông tin chưa có -> Tạo mới
         if (not is_exist_customer_address) and (not is_exist_customer_professional):
             # Tạo thông tin nghề nghiệp khách hàng
             customer_professional_id = generate_uuid()
@@ -247,11 +249,13 @@ async def repos_save_contact_information(
                 CustomerAddress(**contact_address),
                 CustomerProfessional(**career_information)
             ])
+            session.flush()
 
             # Cập nhật lại thông tin nghề nghiệp khách hàng
             session.execute(
                 update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
             )
+            session.flush()
 
         # Nếu thông tin có trước ->  cập nhật
         else:
@@ -267,17 +271,23 @@ async def repos_save_contact_information(
                     CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE
                 )).values(**resident_address)
             )
+            session.flush()
+
             session.execute(
                 update(CustomerAddress).where(and_(
                     CustomerAddress.customer_id == cif_id,
                     CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE
                 )).values(**contact_address)
             )
+            session.flush()
+
             session.execute(
                 update(CustomerProfessional).where(and_(
                     CustomerProfessional.id == customer_professional.id,
                 )).values(**career_information)
             )
+            session.flush()
+
         session.commit()
     except Exception as ex:
         logger.debug(ex)
