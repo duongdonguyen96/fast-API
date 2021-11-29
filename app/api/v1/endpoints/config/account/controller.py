@@ -9,7 +9,7 @@ class CtrConfigAccount(BaseController):
     async def ctr_account_type_info(self):
         account_type_info = self.call_repos(
             await repos_get_data_model_config(
-                session=self.oracle_session, model=AccountType, country_id=None, province_id=None, district_id=None
+                session=self.oracle_session, model=AccountType
             )
         )
         return self.response(account_type_info)
@@ -17,7 +17,7 @@ class CtrConfigAccount(BaseController):
     async def ctr_account_class_info(self):
         account_class_info = self.call_repos(
             await repos_get_data_model_config(
-                session=self.oracle_session, model=AccountClass, country_id=None, province_id=None, district_id=None
+                session=self.oracle_session, model=AccountClass
             )
         )
         return self.response(account_class_info)

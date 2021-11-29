@@ -11,10 +11,7 @@ class CtrCifInfo(BaseController):
         customer_classification_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerClassification,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerClassification
             )
         )
         return self.response(customer_classification_info)
@@ -23,10 +20,7 @@ class CtrCifInfo(BaseController):
         customer_economic_profession_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerEconomicProfession,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerEconomicProfession
             )
         )
         return self.response(customer_economic_profession_info)
@@ -35,10 +29,7 @@ class CtrCifInfo(BaseController):
         kyc_level_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=KYCLevel,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=KYCLevel
             )
         )
         return self.response(kyc_level_info)

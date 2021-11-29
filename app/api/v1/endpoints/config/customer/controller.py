@@ -10,10 +10,7 @@ class CtrConfigCustomer(BaseController):
         customer_type_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerType
             )
         )
         return self.response(customer_type_info)
@@ -22,10 +19,7 @@ class CtrConfigCustomer(BaseController):
         customer_contact_type_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerContactType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerContactType
             )
         )
         return self.response(customer_contact_type_info)

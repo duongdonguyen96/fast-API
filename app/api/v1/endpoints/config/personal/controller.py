@@ -15,10 +15,7 @@ class CtrConfigPersonal(BaseController):
         gender_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerGender,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerGender
             )
         )
         return self.response(gender_info)
@@ -27,10 +24,7 @@ class CtrConfigPersonal(BaseController):
         nationality_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=AddressCountry,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=AddressCountry
             )
         )
         return self.response(nationality_info)
@@ -39,10 +33,7 @@ class CtrConfigPersonal(BaseController):
         ethnic_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=Nation,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=Nation
             )
         )
         return self.response(ethnic_info)
@@ -51,10 +42,7 @@ class CtrConfigPersonal(BaseController):
         religion_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=Religion,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=Religion
             )
         )
         return self.response(religion_info)
@@ -63,10 +51,7 @@ class CtrConfigPersonal(BaseController):
         honorific_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerTitle,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerTitle
             )
         )
         return self.response(honorific_info)
@@ -75,10 +60,7 @@ class CtrConfigPersonal(BaseController):
         resident_status_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=ResidentStatus,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=ResidentStatus
             )
         )
         return self.response(resident_status_info)
@@ -87,10 +69,7 @@ class CtrConfigPersonal(BaseController):
         marital_status_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=MaritalStatus,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=MaritalStatus
             )
         )
         return self.response(marital_status_info)
@@ -99,10 +78,7 @@ class CtrConfigPersonal(BaseController):
         career_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=Career,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=Career
             )
         )
         return self.response(career_info)
@@ -111,10 +87,7 @@ class CtrConfigPersonal(BaseController):
         average_income_amount_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=AverageIncomeAmount,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=AverageIncomeAmount
             )
         )
         return self.response(average_income_amount_info)
@@ -123,10 +96,7 @@ class CtrConfigPersonal(BaseController):
         customer_relationship_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerRelationshipType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerRelationshipType
             )
         )
         return self.response(customer_relationship_info)

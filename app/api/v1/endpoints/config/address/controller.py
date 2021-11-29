@@ -12,8 +12,6 @@ class CtrAddress(BaseController):
                 session=self.oracle_session,
                 model=AddressProvince,
                 country_id=country_id,
-                province_id=None,
-                district_id=None
             )
         )
         return self.response(provinces_info)
@@ -23,9 +21,7 @@ class CtrAddress(BaseController):
             await repos_get_data_model_config(
                 session=self.oracle_session,
                 model=AddressDistrict,
-                country_id=None,
-                province_id=province_id,
-                district_id=None
+                province_id=province_id
             )
         )
         return self.response(districts_info)
@@ -35,8 +31,6 @@ class CtrAddress(BaseController):
             await repos_get_data_model_config(
                 session=self.oracle_session,
                 model=AddressWard,
-                country_id=None,
-                province_id=None,
                 district_id=district_id
             )
         )
@@ -47,9 +41,7 @@ class CtrAddress(BaseController):
             await repos_get_data_model_config(
                 session=self.oracle_session,
                 model=AddressProvince,
-                country_id=country_id,
-                province_id=None,
-                district_id=None
+                country_id=country_id
             )
         )
         return self.response(place_of_issues_info)
@@ -58,10 +50,7 @@ class CtrAddress(BaseController):
         country_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=AddressCountry,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=AddressCountry
             )
         )
         return self.response(country_info)

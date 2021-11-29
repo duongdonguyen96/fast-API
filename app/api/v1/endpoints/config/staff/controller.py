@@ -13,10 +13,7 @@ class CtrConfigStaff(BaseController):
         staff_type_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=StaffType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=StaffType
             )
         )
         return self.response(staff_type_info)
@@ -25,10 +22,7 @@ class CtrConfigStaff(BaseController):
         position_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=Position,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=Position
             )
         )
         return self.response(position_info)

@@ -10,10 +10,7 @@ class CtrConfigIdentityDocument(BaseController):
         identity_type_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerIdentityType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerIdentityType
             )
         )
         return self.response(identity_type_info)
@@ -22,10 +19,7 @@ class CtrConfigIdentityDocument(BaseController):
         sub_identity_type_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=CustomerSubIdentityType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=CustomerSubIdentityType
             )
         )
         return self.response(sub_identity_type_info)

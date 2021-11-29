@@ -10,10 +10,7 @@ class CtrConfigHand(BaseController):
         hand_side_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=HandSide,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=HandSide
             )
         )
         return self.response(hand_side_info)
@@ -22,10 +19,7 @@ class CtrConfigHand(BaseController):
         finger_printer_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=FingerType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=FingerType
             )
         )
         return self.response(finger_printer_info)

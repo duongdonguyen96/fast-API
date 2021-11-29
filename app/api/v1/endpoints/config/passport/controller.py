@@ -10,10 +10,7 @@ class CtrConfigPassport(BaseController):
         passport_type_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=PassportType,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=PassportType
             )
         )
         return self.response(passport_type_info)
@@ -22,10 +19,7 @@ class CtrConfigPassport(BaseController):
         passport_code_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=PassportCode,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=PassportCode
             )
         )
         return self.response(passport_code_info)

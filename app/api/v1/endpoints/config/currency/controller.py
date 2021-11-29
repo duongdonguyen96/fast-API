@@ -8,10 +8,7 @@ class CtrConfigCurrency(BaseController):
         currency_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=Currency,
-                country_id=None,
-                province_id=None,
-                district_id=None
+                model=Currency
             )
         )
         return self.response(currency_info)

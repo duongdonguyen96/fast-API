@@ -36,8 +36,8 @@ async def repos_get_model_object_by_id_or_code(model_id: Optional[str], model_co
     return ReposReturn(data=obj)
 
 
-async def repos_get_data_model_config(session: Session, model: Base, country_id: Optional[str],
-                                      province_id: Optional[str], district_id: Optional[str],):
+async def repos_get_data_model_config(session: Session, model: Base, country_id: Optional[str] = None,
+                                      province_id: Optional[str] = None, district_id: Optional[str] = None):
     list_data_engine = select(model)
     if hasattr(model, "country_id"):
         list_data_engine = list_data_engine.filter(model.country_id == country_id)
