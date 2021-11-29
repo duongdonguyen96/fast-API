@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -34,6 +34,34 @@ async def repos_get_model_object_by_id_or_code(model_id: Optional[str], model_co
         )
 
     return ReposReturn(data=obj)
+
+
+async def repos_get_model_objects_by_ids(model_ids: List[str], model: Base, loc: str, session: Session) -> ReposReturn:
+    """
+    Get model objects by ids
+    Chỉ cần truyền vào list id -> hàm sẽ tự chuyển về set(model_ids)
+    :param model_ids: danh sách các id cần lấy ra model object
+    :param model: model trong DB
+    :param loc: vị trí lỗi
+    :param session: phiên làm việc với DB bên controller
+    :return:
+    """
+    model_ids = set(model_ids)
+
+    statement = select(model).filter(model.id.in_(model_ids))
+
+    if hasattr(model, 'active_flag'):
+        statement = statement.filter(model.active_flag == 1)
+
+    objs = session.execute(statement).scalars().all()
+    if len(objs) != len(model_ids):
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_ID_NOT_EXIST,
+            loc=f'{str(model.tablename)}_id' if not loc else loc
+        )
+
+    return ReposReturn(data=objs)
 
 
 async def repos_get_data_model_config(session: Session, model: Base, country_id: Optional[str] = None,
