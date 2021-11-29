@@ -24,7 +24,7 @@ class Customer(Base):
     full_name = Column(VARCHAR(105), nullable=False, comment='Tên đầy đủ không dấu')
     full_name_vn = Column(VARCHAR(105), nullable=False, comment='Tên đầy đủ có dấu')
     first_name = Column(VARCHAR(105), nullable=False, comment='Tên')
-    middle_name = Column(VARCHAR(105), nullable=False, comment='Tên lót')
+    middle_name = Column(VARCHAR(105), comment='Tên lót')
     last_name = Column(VARCHAR(105), nullable=False, comment='Họ')
     short_name = Column(VARCHAR(105), nullable=False, comment='Tên viết tắt')
     email = Column(VARCHAR(100), comment='Email')

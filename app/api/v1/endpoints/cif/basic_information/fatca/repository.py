@@ -28,59 +28,58 @@ async def repos_save_fatca(cif_id: str, fatca: FatcaRequest, created_by: str) ->
 
 
 async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
+
     query_data_fatca = session.execute(
         select(
             CustomerFatca,
-            FatcaCategory
+            FatcaCategory,
+            CustomerFatcaDocument
         ).join(
-            FatcaCategory, CustomerFatca.fatca_category_id == FatcaCategory.id,
-        ).filter(CustomerFatca.customer_id == cif_id)
+            FatcaCategory, and_(
+                CustomerFatca.fatca_category_id == FatcaCategory.id,
+                CustomerFatca.customer_id == cif_id
+            )
+        ).outerjoin(
+            CustomerFatcaDocument, and_(
+                CustomerFatca.id == CustomerFatcaDocument.customer_fatca_id,
+                CustomerFatca.customer_id == cif_id
+            )
+        )
     ).all()
 
     if not query_data_fatca:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
-    fatca_information = [{
-        "id": category.id,
-        "code": category.code,
-        "name": category.name,
-        "select_flag": fatca.value
-    } for fatca, category in query_data_fatca]
-
-    query_data_documents = session.execute(
-        select(
-            CustomerFatcaDocument
-        ).join(
-            CustomerFatca, and_(
-                CustomerFatcaDocument.customer_fatca_id == CustomerFatca.id,
-                CustomerFatca.customer_id == cif_id
-            )
-        )
-    ).scalars().all()
-
+    fatca_information = []
     documents_en = []
     documents_vn = []
 
-    for document in query_data_documents:
+    for customer_fatca, fatca_category, customer_fatca_document in query_data_fatca:
+        fatca_information.append({
+            "id": fatca_category.id,
+            "code": fatca_category.code,
+            "name": fatca_category.name,
+            "select_flag": customer_fatca.value
+        })
         documents = {
-            "id": document.id,
-            "name": document.document_name,
-            "url": document.document_url,
-            "active_flag": document.active_flag,
-            "version": document.document_version,
+            "id": customer_fatca_document.id,
+            "name": customer_fatca_document.document_name,
+            "url": customer_fatca_document.document_url,
+            "active_flag": customer_fatca_document.active_flag,
+            "version": customer_fatca_document.document_version,
             "content_type": "Word",  # TODO
             "size": "1MB",  # TODO
             "folder_name": "Khởi tạo CIF",  # TODO
             "created_by": "Nguyễn Phúc",  # TODO
-            "created_at": document.created_at,
+            "created_at": customer_fatca_document.created_at,
             "updated_by": "Trần Bình Liên",  # TODO
             "updated_at": "2020-12-30 06:07:08",  # TODO
             "note": "Tài liệu quan trọng"  # TODO
         }
 
-        if document.document_language_type == LANGUAGE_TYPE_VN:
+        if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VN:
             documents_vn.append(documents)
-        if document.document_language_type == LANGUAGE_TYPE_EN:
+        if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
             documents_en.append(documents)
 
     document_information = [

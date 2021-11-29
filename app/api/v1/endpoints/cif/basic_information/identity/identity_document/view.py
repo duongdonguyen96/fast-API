@@ -92,10 +92,10 @@ router_special = APIRouter()
     tags=['[CIF] I. TTCN']
 )
 async def view_save(
-        identity_document_req: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest] = Body(
+        identity_document_request: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest] = Body(
             ...
         ),
         current_user=Depends(get_current_user_from_header())
 ):
-    save_info = await CtrIdentityDocument(current_user).save(identity_document_req)
+    save_info = await CtrIdentityDocument(current_user).save_identity(identity_document_request)
     return ResponseData[SaveSuccessResponse](**save_info)
