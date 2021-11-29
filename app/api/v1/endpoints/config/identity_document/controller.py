@@ -1,14 +1,31 @@
 from app.api.base.controller import BaseController
-from app.api.v1.endpoints.config.identity_document.repository import (
-    repos_get_identity_document, repos_get_sub_identity_document
+from app.api.v1.endpoints.repository import repos_get_data_model_config
+from app.third_parties.oracle.models.master_data.identity import (
+    CustomerIdentityType, CustomerSubIdentityType
 )
 
 
 class CtrConfigIdentityDocument(BaseController):
     async def ctr_identity_type_info(self):
-        identity_type_info = self.call_repos(await repos_get_identity_document(self.oracle_session))
+        identity_type_info = self.call_repos(
+            await repos_get_data_model_config(
+                session=self.oracle_session,
+                model=CustomerIdentityType,
+                country_id=None,
+                province_id=None,
+                district_id=None
+            )
+        )
         return self.response(identity_type_info)
 
     async def ctr_sub_identity_type_info(self):
-        sub_identity_type_info = self.call_repos(await repos_get_sub_identity_document(self.oracle_session))
+        sub_identity_type_info = self.call_repos(
+            await repos_get_data_model_config(
+                session=self.oracle_session,
+                model=CustomerSubIdentityType,
+                country_id=None,
+                province_id=None,
+                district_id=None
+            )
+        )
         return self.response(sub_identity_type_info)
