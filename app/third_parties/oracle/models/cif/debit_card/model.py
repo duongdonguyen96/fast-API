@@ -22,8 +22,8 @@ class CardDeliveryAddress(Base):
     __tablename__ = 'crm_card_delivery_address'
     __table_args__ = {'comment': 'Địa chỉ giao nhận thẻ'}
 
-    card_delivery_address_id = Column(VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                                      comment='Mã địa chỉ giao nhận thẻv(PK)')
+    id = Column('card_delivery_address_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã địa chỉ giao nhận thẻv(PK)')
     branch_id = Column(VARCHAR(36), nullable=False, comment='Mã đơn vị (FK)')
     province_id = Column(ForeignKey('crm_address_province.province_id'), nullable=False, comment='Mã tỉnh (FK)')
     district_id = Column(ForeignKey('crm_address_district.district_id'), nullable=False,

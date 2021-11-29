@@ -50,7 +50,7 @@ class CustomerAddress(Base):
                                  comment='ID tỉnh/thành')
     address_district_id = Column(ForeignKey('crm_address_district.district_id'), nullable=False,
                                  comment='ID quận/huyện')
-    address_ward_id = Column(ForeignKey('crm_address_ward.ward_id'), nullable=False, comment='ID phường/xã')
+    address_ward_id = Column(ForeignKey('crm_address_ward.ward_id'), comment='ID phường/xã')
     address = Column(VARCHAR(255), nullable=False, comment='Địa chỉ đầy đủ khách hàng (Địa chỉ 1)')
     zip_code = Column(VARCHAR(10), comment='Mã bưu chính')
     latitude = Column(VARCHAR(60), comment='Vĩ độ')
