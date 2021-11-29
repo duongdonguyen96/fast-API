@@ -28,7 +28,6 @@ async def repos_save_fatca(cif_id: str, fatca: FatcaRequest, created_by: str) ->
 
 
 async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
-
     query_data_fatca = session.execute(
         select(
             CustomerFatca,
@@ -50,17 +49,20 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
     if not query_data_fatca:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
-    fatca_information = []
+    fatca_information = {}
     documents_en = []
     documents_vn = []
 
     for customer_fatca, fatca_category, customer_fatca_document in query_data_fatca:
-        fatca_information.append({
-            "id": fatca_category.id,
-            "code": fatca_category.code,
-            "name": fatca_category.name,
-            "select_flag": customer_fatca.value
-        })
+        if fatca_category.id not in fatca_information:
+            fatca_information[fatca_category.id] = []
+            fatca_information[fatca_category.id].append({
+                "id": fatca_category.id,
+                "code": fatca_category.code,
+                "name": fatca_category.name,
+                "select_flag": customer_fatca.value
+            })
+
         documents = {
             "id": customer_fatca_document.id,
             "name": customer_fatca_document.document_name,
@@ -102,7 +104,11 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
         }
     ]
 
+    fatca_response = []
+    for ids, fatca in fatca_information.items():
+        fatca_response.extend(fatca)
+
     return ReposReturn(data={
-        "fatca_information": fatca_information,
+        "fatca_information": fatca_response,
         "document_information": document_information
     })
