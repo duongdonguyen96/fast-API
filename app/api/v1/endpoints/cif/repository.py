@@ -21,6 +21,7 @@ from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST
 )
+from app.utils.functions import dropdown
 
 
 async def repos_get_initializing_customer(cif_id: str, session: Session) -> ReposReturn:
@@ -64,7 +65,10 @@ async def repos_get_cif_info(cif_id: str, session: Session) -> ReposReturn:
         .join(CustomerClassification, Customer.customer_classification_id == CustomerClassification.id)
         .join(CustomerEconomicProfession, Customer.customer_economic_profession_id == CustomerEconomicProfession.id)
         .join(KYCLevel, Customer.kyc_level_id == KYCLevel.id)
-        .filter(Customer.id == cif_id)
+        .filter(
+            Customer.id == cif_id,
+            Customer.active_flag == 1
+        )
     ).first()
     if not customer_info:
         return ReposReturn(
@@ -76,21 +80,9 @@ async def repos_get_cif_info(cif_id: str, session: Session) -> ReposReturn:
     return ReposReturn(data={
         "self_selected_cif_flag": self_selected_cif_flag,
         "cif_number": cif_number,
-        "customer_classification": {
-            "id": customer_classification.id,
-            "code": customer_classification.code,
-            "name": customer_classification.name
-        },
-        "customer_economic_profession": {
-            "id": customer_economic_profession.id,
-            "code": customer_economic_profession.code,
-            "name": customer_economic_profession.name
-        },
-        "kyc_level": {
-            "id": kyc_level.id,
-            "code": kyc_level.code,
-            "name": kyc_level.name
-        }
+        "customer_classification": dropdown(customer_classification),
+        "customer_economic_profession": dropdown(customer_economic_profession),
+        "kyc_level": dropdown(kyc_level)
     })
 
 
