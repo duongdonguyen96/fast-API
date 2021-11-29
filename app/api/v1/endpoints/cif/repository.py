@@ -10,8 +10,13 @@ from app.third_parties.oracle.models.cif.basic_information.identity.model import
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
+from app.third_parties.oracle.models.master_data.customer import (
+    CustomerClassification, CustomerEconomicProfession
+)
 from app.third_parties.oracle.models.master_data.identity import ImageType
-from app.third_parties.oracle.models.master_data.others import HrmEmployee
+from app.third_parties.oracle.models.master_data.others import (
+    HrmEmployee, KYCLevel
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST
@@ -47,30 +52,46 @@ async def repos_get_hrm_employees(hrm_employee_ids: List[str], session: Session)
     return ReposReturn(data=hrm_employees)
 
 
-async def repos_get_cif_info(cif_id: str) -> ReposReturn:
-    if cif_id == CIF_ID_TEST:
-        return ReposReturn(data={
-            "self_selected_cif_flag": True,
-            "cif_number": "123456789",
-            "customer_classification": {
-                "id": "fd01b796-5ad1-4161-8e2c-2abe41390deb",
-                "code": "CN",
-                "name": "Cá nhân"
-            },
-            "customer_economic_profession": {
-                "id": "b860d25e-0db2-496b-8bb7-76d6838d191a",
-                "code": "KT1",
-                "name": "Mã ngành KT"
-            },
-            "kyc_level": {
-                "id": "24152d4a-13c8-4720-a92d-2f2e784af6af",
-                "code": "LV1",
-                "name": "Level 1"
-            }
-        }
+async def repos_get_cif_info(cif_id: str, session: Session) -> ReposReturn:
+    customer_info = session.execute(
+        select(
+            Customer.cif_number,
+            Customer.self_selected_cif_flag,
+            CustomerClassification,
+            CustomerEconomicProfession,
+            CustomerEconomicProfession
         )
-    else:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+        .join(CustomerClassification, Customer.customer_classification_id == CustomerClassification.id)
+        .join(CustomerEconomicProfession, Customer.customer_economic_profession_id == CustomerEconomicProfession.id)
+        .join(KYCLevel, Customer.kyc_level_id == KYCLevel.id)
+        .filter(Customer.id == cif_id)
+    ).first()
+    if not customer_info:
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_CIF_ID_NOT_EXIST,
+            loc='cif_id'
+        )
+    cif_number, self_selected_cif_flag, customer_classification, customer_economic_profession, kyc_level = customer_info
+    return ReposReturn(data={
+        "self_selected_cif_flag": self_selected_cif_flag,
+        "cif_number": cif_number,
+        "customer_classification": {
+            "id": customer_classification.id,
+            "code": customer_classification.code,
+            "name": customer_classification.name
+        },
+        "customer_economic_profession": {
+            "id": customer_economic_profession.id,
+            "code": customer_economic_profession.code,
+            "name": customer_economic_profession.name
+        },
+        "kyc_level": {
+            "id": kyc_level.id,
+            "code": kyc_level.code,
+            "name": kyc_level.name
+        }
+    })
 
 
 async def repos_profile_history(cif_id: str) -> ReposReturn:

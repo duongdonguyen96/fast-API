@@ -6,7 +6,11 @@ from app.api.v1.endpoints.cif.repository import (
 
 class CtrCustomer(BaseController):
     async def ctr_cif_info(self, cif_id: str):
-        cif_info = self.call_repos(await repos_get_cif_info(cif_id))
+        cif_info = self.call_repos(
+            await repos_get_cif_info(
+                cif_id,
+                session=self.oracle_session
+            ))
         return self.response(cif_info)
 
     async def ctr_profile_history(self, cif_id: str):
