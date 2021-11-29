@@ -44,7 +44,8 @@ async def repos_get_hrm_employees(hrm_employee_ids: List[str], session: Session)
         select(
             HrmEmployee
         ).filter(
-            HrmEmployee.id.in_(hrm_employee_ids)
+            HrmEmployee.id.in_(hrm_employee_ids),
+            HrmEmployee.active == 1
         )
     ).scalars().all()
     if len(hrm_employees) != len(hrm_employee_ids):
