@@ -18,7 +18,7 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
 
-async def repos_get_contact_type_data(cif_id: str, session: Session):
+async def repos_get_contact_type_data(cif_id: str, session: Session) -> ReposReturn:
     contact_type_data = session.execute(
         select(
             CustomerContactTypeData
@@ -26,6 +26,24 @@ async def repos_get_contact_type_data(cif_id: str, session: Session):
     ).scalars().all()
 
     return ReposReturn(data=contact_type_data)
+
+
+async def repos_get_customer_individual_info(cif_id: str, session: Session) -> ReposReturn:
+    customer_individual_info = session.execute(
+        select(
+            CustomerIndividualInfo
+        ).filter(CustomerIndividualInfo.customer_id == cif_id)
+    ).scalar()
+
+    if not customer_individual_info:
+        return ReposReturn(
+            is_error=True,
+            msg='Customer Individual info not cid_id',
+            detail='CIF_ID_NOT_EXIT',
+            loc='cif_id'
+        )
+
+    return ReposReturn(data=customer_individual_info)
 
 
 @auto_commit
@@ -38,7 +56,6 @@ async def repos_save_personal(
         session: Session,
         created_by: str
 ) -> ReposReturn:
-
     session.execute(
         update(
             Customer,
