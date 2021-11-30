@@ -1,9 +1,18 @@
+from typing import List
+
 from loguru import logger
 from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import (
+    SubIdentityDocumentRequest
+)
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentityImage, CustomerSubIdentity
+)
+from app.third_parties.oracle.models.cif.basic_information.model import (
+    Customer
 )
 from app.utils.constant.cif import CIF_ID_TEST, IMAGE_TYPE_CODE_SUB_IDENTITY
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
@@ -78,7 +87,12 @@ async def repos_get_detail(cif_id: str):
 
 
 @auto_commit
-async def repos_save_sub_identity(customer, requests, saved_by, session):
+async def repos_save_sub_identity(
+        customer: Customer,
+        sub_identity_requests: List[SubIdentityDocumentRequest],
+        saved_by: str,
+        session: Session
+):
 
     sub_identities = session.execute(
         select(
@@ -90,7 +104,7 @@ async def repos_save_sub_identity(customer, requests, saved_by, session):
 
     sub_identity_list = []
     sub_identity_image_list = []
-    for sub_identity in requests:
+    for sub_identity in sub_identity_requests:
         sub_identity_id = generate_uuid()
         # Tạo giấy tờ định danh phụ
         sub_identity_list.append(CustomerSubIdentity(

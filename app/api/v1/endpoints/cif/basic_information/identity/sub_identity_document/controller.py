@@ -30,13 +30,13 @@ class CtrSubIdentityDocument(BaseController):
 
     async def save_sub_identity(
             self, cif_id: str,
-            requests: List[SubIdentityDocumentRequest]
+            sub_identity_requests: List[SubIdentityDocumentRequest]
     ):
         # check cif đang tạo
         customer = self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
         sub_identity_type_ids = []
         place_of_issue_ids = []
-        for sub_identity in requests:
+        for sub_identity in sub_identity_requests:
             sub_identity_type_ids.append(sub_identity.sub_identity_document_type.id)
             place_of_issue_ids.append(sub_identity.ocr_result.place_of_issue.id)
 
@@ -48,8 +48,8 @@ class CtrSubIdentityDocument(BaseController):
 
         info_save_document = self.call_repos(
             await repos_save_sub_identity(
-                customer,
-                requests=requests,
+                customer=customer,
+                sub_identity_requests=sub_identity_requests,
                 saved_by=self.current_user.full_name_vn,
                 session=self.oracle_session
             )
