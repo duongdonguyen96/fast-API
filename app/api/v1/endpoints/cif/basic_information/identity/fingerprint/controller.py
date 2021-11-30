@@ -1,14 +1,15 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.repository import (
-    repos_get_data_finger, repos_get_finger_types, repos_get_hand_sides,
-    repos_save_fingerprint
+    repos_get_data_finger, repos_save_fingerprint
 )
 from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema import (
     TwoFingerPrintRequest
 )
 from app.api.v1.endpoints.cif.repository import (
-    repos_get_image_type, repos_get_initializing_customer,
-    repos_get_last_identity
+    repos_get_initializing_customer, repos_get_last_identity
+)
+from app.third_parties.oracle.models.master_data.identity import (
+    FingerType, HandSide
 )
 from app.utils.constant.cif import (
     ACTIVE_FLAG_CREATE_FINGERPRINT, FRONT_FLAG_CREATE_FINGERPRINT,
@@ -33,19 +34,15 @@ class CtrFingerPrint(BaseController):
             hand_side_ids.append(item.hand_side.id)
             finger_type_ids.append(item.finger_type.id)
 
-        hand_side_ids = list(set(hand_side_ids))
-        finger_type_ids = list(set(finger_type_ids))
-
         # check exits hand_side_ids, finger_type_ids
-        self.call_repos(await repos_get_hand_sides(hand_side_ids=hand_side_ids, session=self.oracle_session))
-        self.call_repos(await repos_get_finger_types(finger_type_ids=finger_type_ids, session=self.oracle_session))
+        await self.get_model_objects_by_ids(model_ids=hand_side_ids, model=HandSide, loc='hand_side -> id')
+        await self.get_model_objects_by_ids(model_ids=finger_type_ids, model=FingerType, loc='finger_type -> id')
 
-        image_type = self.call_repos(await repos_get_image_type(IMAGE_TYPE_FINGERPRINT, session=self.oracle_session))
         identity = self.call_repos(await repos_get_last_identity(cif_id, self.oracle_session))
 
         list_data_insert = [{
             'identity_id': identity.id,
-            'image_type_id': image_type.code,
+            'image_type_id': IMAGE_TYPE_FINGERPRINT,
             'image_url': item.image_url,
             'hand_side_id': item.hand_side.id,
             'finger_type_id': item.finger_type.id,

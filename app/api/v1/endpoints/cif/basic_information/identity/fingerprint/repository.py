@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
@@ -7,41 +5,12 @@ from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity, CustomerIdentityImage
 )
-from app.third_parties.oracle.models.cif.basic_information.model import (
-    Customer
-)
 from app.third_parties.oracle.models.master_data.identity import (
     FingerType, HandSide
 )
 from app.utils.constant.cif import HAND_SIDE_LEFT_CODE
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
-
-
-async def repos_get_hand_sides(hand_side_ids: List[str], session: Session):
-    crm_hand_sides = session.execute(
-        select(
-            HandSide
-        ).filter(HandSide.code.in_(hand_side_ids))
-    ).scalars().all()
-
-    if len(crm_hand_sides) != len(hand_side_ids):
-        return ReposReturn(is_error=True, detail="hand side is not exist", loc="hand_side id")
-
-    return ReposReturn(data=crm_hand_sides)
-
-
-async def repos_get_finger_types(finger_type_ids: List[str], session: Session):
-    crm_finger_types = session.execute(
-        select(
-            FingerType
-        ).filter(FingerType.code.in_(finger_type_ids))
-    ).scalars().all()
-
-    if len(crm_finger_types) != len(finger_type_ids):
-        return ReposReturn(is_error=True, detail="finger type is not exist", loc="finger_type id")
-
-    return ReposReturn(data=crm_finger_types)
 
 
 async def repos_save_fingerprint(
@@ -65,24 +34,22 @@ async def repos_save_fingerprint(
 async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
     query_data = session.execute(
         select(
-            Customer,
-            CustomerIdentity,
             CustomerIdentityImage,
             HandSide,
             FingerType
         ).join(
-            CustomerIdentity, Customer.id == CustomerIdentity.customer_id
-        ).join(
-            CustomerIdentityImage, and_(
-                CustomerIdentity.id == CustomerIdentityImage.identity_id,
-                CustomerIdentityImage.finger_type_id.isnot(None),
-                CustomerIdentityImage.hand_side_id.isnot(None)
+            CustomerIdentity, and_(
+                CustomerIdentityImage.identity_id == CustomerIdentity.id,
+                CustomerIdentity.customer_id == cif_id
             )
         ).join(
             HandSide, CustomerIdentityImage.hand_side_id == HandSide.id
         ).join(
             FingerType, CustomerIdentityImage.finger_type_id == FingerType.id
-        ).filter(Customer.id == cif_id).order_by(CustomerIdentityImage.finger_type_id)
+        ).filter(
+            CustomerIdentityImage.finger_type_id.isnot(None),
+            CustomerIdentityImage.hand_side_id.isnot(None)
+        ).order_by(CustomerIdentityImage.finger_type_id)
     ).all()
 
     if not query_data:
@@ -91,7 +58,7 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
     fingerprint_1 = []
     fingerprint_2 = []
 
-    for _, _, customer_identity_image, hand_side, finger_print in query_data:
+    for customer_identity_image, hand_side, finger_print in query_data:
         fingerprint = {
             'image_url': customer_identity_image.image_url,
             'hand_side': dropdown(hand_side),
