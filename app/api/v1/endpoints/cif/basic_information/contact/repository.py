@@ -13,7 +13,7 @@ from app.utils.constant.cif import (
     CIF_ID_TEST, CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import generate_uuid, now
+from app.utils.functions import generate_uuid
 
 DOMESTIC_CONTACT_INFORMATION_DETAIL = {
     "resident_address": {
@@ -288,7 +288,5 @@ async def repos_save_contact_information(
         return ReposReturn(is_error=True, msg="Save not success")
 
     return ReposReturn(data={
-        "cif_id": cif_id,
-        "created_at": now(),
-        "created_by": created_by
+        "cif_id": cif_id
     })
