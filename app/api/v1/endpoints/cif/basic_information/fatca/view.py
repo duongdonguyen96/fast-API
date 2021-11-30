@@ -25,12 +25,12 @@ router = APIRouter()
     )
 )
 async def view_save(
-        fatca: FatcaRequest,
+        fatca_request: FatcaRequest,
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    fatca_data = await CtrFatca(current_user).ctr_save_fatca(cif_id, fatca)
-    return ResponseData(**fatca_data)
+    fatca_data = await CtrFatca(current_user).ctr_save_fatca(cif_id, fatca_request)
+    return ResponseData[SaveSuccessResponse](**fatca_data)
 
 
 @router.get(
