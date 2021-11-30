@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Callable, Dict
 
 from app.settings.config import (
@@ -108,3 +108,9 @@ def travel_dict(d: dict, process_func: Callable):
 def process_generate_uuid(d):
     if isinstance(d, dict) and ("uuid" in d) and (d["uuid"] is None):
         d.update({"uuid": generate_uuid()})
+
+
+# TODO: sửa lại hàm này, tính tuổi theo luật VN
+def calculate_age(birth_date: date, end_date: date = date.today()) -> float:
+    age_number = (end_date - birth_date) // timedelta(days=365.2425)
+    return age_number

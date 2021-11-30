@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -8,7 +8,10 @@ from app.api.base.except_custom import ExceptionHandle
 from app.api.base.repository import ReposReturn
 from app.api.base.schema import Error
 from app.api.base.validator import ValidatorReturn
-from app.third_parties.oracle.base import SessionLocal
+from app.api.v1.endpoints.repository import (
+    repos_get_model_object_by_id_or_code, repos_get_model_objects_by_ids
+)
+from app.third_parties.oracle.base import Base, SessionLocal
 
 
 class BaseController:
@@ -50,6 +53,38 @@ class BaseController:
             )
 
         return result_call_repos.data
+
+    async def get_model_object_by_id(self, model_id: str, model: Base, loc: str):
+        return self.call_repos(
+            await repos_get_model_object_by_id_or_code(
+                model_id=model_id,
+                model_code=None,
+                model=model,
+                loc=loc,
+                session=self.oracle_session
+            )
+        )
+
+    async def get_model_objects_by_ids(self, model_ids: List[str], model: Base, loc: str):
+        return self.call_repos(
+            await repos_get_model_objects_by_ids(
+                model_ids=model_ids,
+                model=model,
+                loc=loc,
+                session=self.oracle_session
+            )
+        )
+
+    async def get_model_object_by_code(self, model_code: str, model: Base, loc: str):
+        return self.call_repos(
+            await repos_get_model_object_by_id_or_code(
+                model_id=None,
+                model_code=model_code,
+                model=model,
+                loc=loc,
+                session=self.oracle_session
+            )
+        )
 
     def append_error(self, msg: str, loc: str = "", detail: str = ""):
         """

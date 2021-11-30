@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from pydantic import Field
@@ -31,6 +30,3 @@ class OpionalDropdownRequest(BaseSchema):
 ########################################################################################################################
 class SaveSuccessResponse(BaseSchema):
     cif_id: str = Field(..., description='Id CIF ảo')
-    created_at: datetime = Field(..., description='Tạo mới vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
-                                 example='2021-15-12 06:07:08')
-    created_by: str = Field(..., description='Người tạo')
