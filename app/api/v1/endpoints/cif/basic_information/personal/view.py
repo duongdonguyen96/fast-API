@@ -15,7 +15,7 @@ from app.api.v1.schemas.utils import SaveSuccessResponse
 router = APIRouter()
 
 
-@router.put(
+@router.post(
     path="/",
     name="2. Thông tin cá nhân",
     description="Tạo dữ liệu tab `THÔNG TIN CÁ NHÂN` của khách hàng",
@@ -25,11 +25,11 @@ router = APIRouter()
     )
 )
 async def view_create_personal(
-        personal: PersonalRequest,
+        personal_request: PersonalRequest,
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    personal_data_request = await CtrPersonal(current_user).ctr_save_personal(cif_id, personal)
+    personal_data_request = await CtrPersonal(current_user).ctr_save_personal(cif_id, personal_request)
     return ResponseData[SaveSuccessResponse](**personal_data_request)
 
 
