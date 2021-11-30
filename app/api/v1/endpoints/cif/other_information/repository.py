@@ -31,7 +31,10 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
             StaffType, CustomerEmployee.staff_type_id == StaffType.id
         ).outerjoin(
             HrmEmployee, CustomerEmployee.employee_id == HrmEmployee.id
-        ).filter(Customer.id == cif_id)
+        ).filter(
+            Customer.id == cif_id,
+            Customer.active_flag == 1
+        )
     )
     customer_employee = customer_employee_engine.all()
 

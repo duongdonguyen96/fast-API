@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Query
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.get(
-    path="/province/{country_id}",
+    path="/province/",
     name="Province",
     description="Lấy dữ liệu config tỉnh/thành phố",
     responses=swagger_response(
@@ -22,7 +22,7 @@ router = APIRouter()
     )
 )
 async def view_province_info(
-        country_id: str = Path(..., description='Id country'),
+        country_id: str = Query(..., description='Id country'),
         current_user=Depends(get_current_user_from_header())
 ):
     province_info = await CtrAddress(current_user).ctr_province_info(country_id=country_id)
@@ -30,7 +30,7 @@ async def view_province_info(
 
 
 @router.get(
-    path="/district/{province_id}",
+    path="/district/",
     name="District",
     description="Lấy dữ liệu quận/huyện",
     responses=swagger_response(
@@ -39,7 +39,7 @@ async def view_province_info(
     )
 )
 async def view_district_info(
-        province_id: str = Path(..., description='Id province'),
+        province_id: str = Query(..., description='Id province'),
         current_user=Depends(get_current_user_from_header())
 ):
     district_info = await CtrAddress(current_user).ctr_district_info(province_id=province_id)
@@ -47,7 +47,7 @@ async def view_district_info(
 
 
 @router.get(
-    path="/ward/{district_id}",
+    path="/ward/",
     name="Ward",
     description="Lấy dữ liệu phường/xã",
     responses=swagger_response(
@@ -56,7 +56,7 @@ async def view_district_info(
     )
 )
 async def view_ward_info(
-        district_id: str = Path(..., description='Id district'),
+        district_id: str = Query(..., description='Id district'),
         current_user=Depends(get_current_user_from_header())
 ):
     ward_info = await CtrAddress(current_user).ctr_ward_info(district_id=district_id)
@@ -64,7 +64,7 @@ async def view_ward_info(
 
 
 @router.get(
-    path="/place-of-issue/{country_id}",
+    path="/place-of-issue/",
     name="Place Of Issue",
     description="Lấy dữ liệu nơi cấp",
     responses=swagger_response(
@@ -73,7 +73,7 @@ async def view_ward_info(
     )
 )
 async def view_place_of_issue_info(
-        country_id: str = Path(..., description='Id country'),
+        country_id: str = Query(..., description='Id country'),
         current_user=Depends(get_current_user_from_header())
 ):
     place_of_issue_info = await CtrAddress(current_user).ctr_place_of_issue(country_id=country_id)
