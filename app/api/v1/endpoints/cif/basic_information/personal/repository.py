@@ -25,7 +25,7 @@ from app.third_parties.oracle.models.master_data.others import (
 )
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import datetime_to_date, dropdown, now
+from app.utils.functions import dropdown, now
 
 
 async def repos_save_personal(cif_id: str, personal: PersonalRequest, created_by: str, ) -> ReposReturn:
@@ -40,9 +40,7 @@ async def repos_save_personal(cif_id: str, personal: PersonalRequest, created_by
 
 
 async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
-
-    Country = aliased(AddressCountry)
-    National = aliased(AddressCountry)
+    country = aliased(AddressCountry, name='Country')
 
     query_data = session.execute(
         select(
@@ -51,75 +49,58 @@ async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
             CustomerGender,
             CustomerTitle,
             AddressProvince,
-            Country,
-            National,
+            country,
+            AddressCountry,
             MaritalStatus,
-            ResidentStatus
-        ).join(
-            Customer, CustomerIndividualInfo.customer_id == Customer.id
-        ).join(
-            CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id
-        ).join(
-            CustomerTitle, CustomerIndividualInfo.title_id == CustomerTitle.id
-        ).join(
-            AddressProvince, CustomerIndividualInfo.place_of_birth_id == AddressProvince.id
-        ).join(
-            Country, CustomerIndividualInfo.country_of_birth_id == Country.id
-        ).join(
-            National, Customer.nationality_id == National.id
-        ).join(
-            MaritalStatus, CustomerIndividualInfo.marital_status_id == MaritalStatus.id
-        ).join(
-            ResidentStatus, CustomerIndividualInfo.resident_status_id == ResidentStatus.id
-        ).filter(CustomerIndividualInfo.customer_id == cif_id)
-    ).all()
-
-    if not query_data:
-        return ReposReturn(is_error=True, msg='cif_id not have customer individual info', loc='cif_id')
-
-    query_data_contact = session.execute(
-        select(
+            ResidentStatus,
             CustomerContactTypeData,
             CustomerContactType
-        ).filter(CustomerContactTypeData.customer_id == cif_id)
+        )
+        .join(Customer, CustomerIndividualInfo.customer_id == Customer.id)
+        .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
+        .join(CustomerTitle, CustomerIndividualInfo.title_id == CustomerTitle.id)
+        .join(AddressProvince, CustomerIndividualInfo.place_of_birth_id == AddressProvince.id)
+        .join(country, CustomerIndividualInfo.country_of_birth_id == country.id)
+        .join(AddressCountry, Customer.nationality_id == AddressCountry.id)
+        .join(MaritalStatus, CustomerIndividualInfo.marital_status_id == MaritalStatus.id)
+        .join(ResidentStatus, CustomerIndividualInfo.resident_status_id == ResidentStatus.id)
+        .join(CustomerContactTypeData, Customer.id == CustomerContactTypeData.customer_id)
+        .join(CustomerContactType, CustomerContactType.id == CustomerContactTypeData.customer_contact_type_id)
+        .filter(Customer.id == cif_id)
     ).all()
 
     if not query_data:
         return ReposReturn(is_error=True, msg='cif_id not have customer individual info', loc='cif_id')
 
+    first_row = query_data[0]
     data_contact = {
         'email_flag': 0,
         'mobile_number_flag': 0
     }
+
     # TODO: chưa có rule và data contact type nên đang để test
-    for customer_contact_type_data, customer_contact_type in query_data_contact:
-        if customer_contact_type.name == 'BE_TEST1':
-            data_contact['email_flag'] = customer_contact_type_data.active_flag
+    for row in query_data:
+        if row.CustomerContactType.name == 'BE_TEST1':
+            data_contact['email_flag'] = row.CustomerContactTypeData.active_flag
+        if row.CustomerContactType.name == 'BE_TEST':
+            data_contact['mobile_number_flag'] = row.CustomerContactTypeData.active_flag
 
-        if customer_contact_type.name == 'BE_TEST':
-            data_contact['mobile_number_flag'] = customer_contact_type_data.active_flag
-
-    data_response = {}
-
-    for customer, customer_individual_info, customer_gender, customer_title, address_province, address_country, \
-            address_country_national, marital_status, resident_status in query_data:
-
-        data_response = {
-            "full_name_vn": customer.full_name_vn,
-            "gender": dropdown(customer_gender),
-            "honorific": dropdown(customer_title),
-            "date_of_birth": datetime_to_date(customer_individual_info.date_of_birth),
-            "under_15_year_old_flag": customer_individual_info.under_15_year_old_flag,
-            "place_of_birth": dropdown(address_province),
-            "country_of_birth": dropdown(address_country),
-            "nationality": dropdown(address_country_national),
-            "tax_number": customer.tax_number,
-            "resident_status": dropdown(resident_status),
-            "mobile_number": customer.mobile_number,
-            "telephone_number": customer.telephone_number,
-            "email": customer.email,
-            "contact_method": data_contact,
-            "marital_status": dropdown(marital_status)
-        }
+    data_response = {
+        "full_name_vn": first_row.Customer.full_name_vn,
+        "gender": dropdown(first_row.CustomerGender),
+        "honorific": dropdown(first_row.CustomerTitle),
+        "date_of_birth": first_row.CustomerIndividualInfo.date_of_birth,
+        "under_15_year_old_flag": first_row.CustomerIndividualInfo.under_15_year_old_flag,
+        "place_of_birth": dropdown(first_row.AddressProvince),
+        "country_of_birth": dropdown(first_row.Country),
+        "nationality": dropdown(first_row.AddressCountry),
+        "tax_number": first_row.Customer.tax_number,
+        "resident_status": dropdown(first_row.ResidentStatus),
+        "mobile_number": first_row.Customer.mobile_number,
+        "telephone_number": first_row.Customer.telephone_number,
+        "email": first_row.Customer.email,
+        "contact_method": data_contact,
+        "marital_status": dropdown(first_row.MaritalStatus)
+    }
 
     return ReposReturn(data=data_response)
