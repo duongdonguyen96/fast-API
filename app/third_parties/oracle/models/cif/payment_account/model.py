@@ -67,8 +67,8 @@ class JointAccountHolder(Base):
     __tablename__ = 'crm_joint_account_holder'
     __table_args__ = {'comment': 'Thông tin đồng chủ sở hữu'}
 
-    joint_account_holder_id = Column(VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                                     comment='Mã Thông tin đồng chủ sở hữu')
+    id = Column('joint_account_holder_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
+                comment='Mã Thông tin đồng chủ sở hữu')
     cif_num = Column(VARCHAR(9), nullable=False, comment='Mã Khách hàng')
     casa_account_id = Column(ForeignKey('crm_casa_account.casa_account_id'), nullable=False,
                              comment='Số tài khoản hiện tại')
@@ -99,7 +99,7 @@ class JointAccountHolderAgreementAuthorization(Base):
 
     agreement_authorization_id = Column('agreement_author_id',
                                         ForeignKey('crm_agreement_authorization.agreement_author_id'), primary_key=True,
-                                        server_default=text("sys_guid() "), comment='Mã thỏa thuận - ủy quyền'),
+                                        server_default=text("sys_guid() "), comment='Mã thỏa thuận - ủy quyền')
     joint_account_holder_id = Column('joint_account_holder_id',
                                      ForeignKey('crm_joint_account_holder.joint_account_holder_id'),
                                      comment='Mã Thông tin đồng chủ sở hữu'),

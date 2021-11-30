@@ -40,5 +40,5 @@ async def view_hand_side_info(
 async def view_finger_printer_info(
         current_user=Depends(get_current_user_from_header())
 ):
-    finger_printer_info = await CtrConfigHand(current_user).ctrl_finger_printer()
+    finger_printer_info = await CtrConfigHand(current_user).ctr_finger_printer()
     return ResponseData[List[DropdownResponse]](**finger_printer_info)
