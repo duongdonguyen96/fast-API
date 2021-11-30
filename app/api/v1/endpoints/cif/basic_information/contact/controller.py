@@ -28,7 +28,7 @@ class CtrContactInformation(BaseController):
         contact_information_detail_data = self.call_repos(
             await repos_save_contact_information(
                 cif_id=cif_id,
-                contact_information_save_request=contact_information_save_request,
+                # contact_information_save_request=contact_information_save_request,
                 created_by=self.current_user.full_name_vn
             )
         )
