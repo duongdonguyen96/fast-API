@@ -1,13 +1,9 @@
 from typing import List
 
-from loguru import logger
-from sqlalchemy import delete, select
+from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
-from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import (
-    SubIdentityDocumentRequest
-)
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentityImage, CustomerSubIdentity
 )
@@ -16,7 +12,6 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 )
 from app.utils.constant.cif import CIF_ID_TEST, IMAGE_TYPE_CODE_SUB_IDENTITY
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import generate_uuid, now
 
 SUB_IDENTITY_INFO = [
     {
@@ -89,74 +84,32 @@ async def repos_get_detail(cif_id: str):
 @auto_commit
 async def repos_save_sub_identity(
         customer: Customer,
-        sub_identity_requests: List[SubIdentityDocumentRequest],
-        saved_by: str,
+        delete_sub_identity_list_ids: List,
+        create_sub_identity_list: List,
+        create_sub_identity_image_list: List,
+        update_sub_identity_list: List,
+        update_sub_identity_image_list: List,
         session: Session
 ):
 
-    sub_identities = session.execute(
-        select(
-            CustomerSubIdentity
-        ).filter(
-            CustomerSubIdentity.customer_id == customer.id
+    # Xóa
+    session.execute(delete(CustomerIdentityImage).filter(
+        and_(
+            CustomerIdentityImage.identity_id.in_(delete_sub_identity_list_ids),
+            CustomerIdentityImage.image_type_id == IMAGE_TYPE_CODE_SUB_IDENTITY
         )
-    ).scalars().all()
+    ))
+    session.execute(delete(CustomerSubIdentity).filter(
+        CustomerSubIdentity.id.in_(delete_sub_identity_list_ids)
+    ))
 
-    sub_identity_list = []
-    sub_identity_image_list = []
-    for sub_identity in sub_identity_requests:
-        sub_identity_id = generate_uuid()
-        # Tạo giấy tờ định danh phụ
-        sub_identity_list.append(CustomerSubIdentity(
-            id=sub_identity_id,
-            sub_identity_type_id=sub_identity.sub_identity_document_type.id,
-            name=sub_identity.name,
-            number=sub_identity.ocr_result.sub_identity_number,
-            symbol=sub_identity.ocr_result.symbol,
-            full_name=sub_identity.ocr_result.full_name_vn,
-            date_of_birth=sub_identity.ocr_result.date_of_birth,
-            passport_number=sub_identity.ocr_result.passport_number,
-            issued_date=sub_identity.ocr_result.issued_date,
-            sub_identity_expired_date=sub_identity.ocr_result.expired_date,
-            place_of_issue_id=sub_identity.ocr_result.place_of_issue.id,
-            customer_id=customer.id,
-            maker_at=now(),
-            maker_id=saved_by,
-            updater_at=now(),
-            updater_id=saved_by
-        ))
+    # Tạo giấy tờ định danh phụ
+    session.bulk_save_objects(create_sub_identity_list)
+    session.bulk_save_objects(create_sub_identity_image_list)
 
-        # Tạo hình ảnh giấy tờ định danh phụ
-        sub_identity_image_list.append(CustomerIdentityImage(
-            identity_id=sub_identity_id,
-            image_type_id=IMAGE_TYPE_CODE_SUB_IDENTITY,
-            image_url=sub_identity.sub_identity_document_image_url,
-            maker_id=saved_by,
-            maker_at=now(),
-            updater_id=saved_by,
-            updater_at=now()
-        ))
-
-    try:
-        if not sub_identities:
-            session.bulk_save_objects(sub_identity_list)
-            session.bulk_save_objects(sub_identity_image_list)
-        else:
-            # Lấy id của GTĐD đã tồn tại trong DB
-            sub_identities = session.execute(select(CustomerSubIdentity).filter(
-                CustomerSubIdentity.customer_id == customer.id)
-            ).scalars().all()
-            sub_identity_ids = [sub_identity.id for sub_identity in sub_identities]
-            session.execute(delete(CustomerIdentityImage).filter(
-                CustomerIdentityImage.identity_id.in_(sub_identity_ids)
-            ))
-            session.execute(delete(CustomerSubIdentity).filter(CustomerSubIdentity.customer_id == customer.id))
-            session.bulk_save_objects(sub_identity_list)
-            session.bulk_save_objects(sub_identity_image_list)
-
-    except Exception as ex:
-        logger.debug(ex)
-        return ReposReturn(is_error=True, msg="Save Sub Identity is not success")
+    # Cập nhật
+    session.bulk_save_objects(update_sub_identity_list)
+    session.bulk_save_objects(update_sub_identity_image_list)
 
     return ReposReturn(data={
         "cif_id": customer.id
@@ -168,3 +121,17 @@ async def repos_get_list_log(cif_id: str) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
     return ReposReturn(data=SUB_IDENTITY_LOGS_INFO)
+
+
+########################################################################################################################
+# Other
+########################################################################################################################
+async def repos_get_sub_identities(customer_id: str, session: Session):
+    sub_identities = session.execute(
+        select(
+            CustomerSubIdentity
+        ).filter(
+            CustomerSubIdentity.customer_id == customer_id
+        )
+    ).scalars()
+    return ReposReturn(data=sub_identities)
