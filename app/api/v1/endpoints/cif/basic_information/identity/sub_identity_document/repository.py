@@ -145,9 +145,7 @@ async def repos_save_sub_identity(customer, requests, saved_by, session):
         return ReposReturn(is_error=True, msg="Save Sub Identity is not success")
 
     return ReposReturn(data={
-        "cif_id": customer.id,
-        "created_at": now(),
-        "created_by": saved_by
+        "cif_id": customer.id
     })
 
 
