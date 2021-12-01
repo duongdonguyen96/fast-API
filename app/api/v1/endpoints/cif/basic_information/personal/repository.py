@@ -22,25 +22,26 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.others import (
     MaritalStatus, ResidentStatus
 )
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
 
-async def repos_get_customer_individual_info(cif_id: str, session: Session) -> ReposReturn:
-    customer_individual_info = session.execute(
+async def repos_get_customer_and_customer_individual_info(cif_id: str, session: Session) -> ReposReturn:
+    query_data = session.execute(
         select(
+            Customer,
             CustomerIndividualInfo
-        ).filter(CustomerIndividualInfo.customer_id == cif_id)
-    ).scalar()
+        ).join(
+            CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id
+        ).filter(Customer.id == cif_id)
+    ).all()
 
-    if not customer_individual_info:
-        return ReposReturn(
-            is_error=True,
-            msg='Customer Individual info not cid_id',
-            detail='CIF_ID_NOT_EXIT',
-            loc='cif_id'
-        )
+    if not query_data:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
-    return ReposReturn(data=customer_individual_info)
+    customer, customer_individual = query_data[0]
+
+    return ReposReturn(data=(customer, customer_individual))
 
 
 @auto_commit
@@ -65,13 +66,14 @@ async def repos_save_personal(
         ).values(data_update_customer_individual)
     )
 
+    # xóa những contact type data cũ
     session.execute(
         delete(
             CustomerContactTypeData
         ).filter(CustomerContactTypeData.customer_id == cif_id)
     )
-    data_insert_contact_type = [CustomerContactTypeData(**data_insert) for data_insert in list_contact_type_data]
-    session.bulk_save_objects(data_insert_contact_type)
+    # tạo mới contact type data
+    session.bulk_save_objects([CustomerContactTypeData(**data_insert) for data_insert in list_contact_type_data])
 
     return ReposReturn(data={
         "cif_id": cif_id,

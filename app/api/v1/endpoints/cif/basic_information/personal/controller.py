@@ -1,15 +1,12 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.personal.repository import (
-    repos_get_customer_individual_info, repos_get_personal_data,
+    repos_get_customer_and_customer_individual_info, repos_get_personal_data,
     repos_save_personal
 )
 from app.api.v1.endpoints.cif.basic_information.personal.schema import (
     PersonalRequest
 )
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
-from app.third_parties.oracle.models.cif.basic_information.model import (
-    Customer
-)
 from app.third_parties.oracle.models.master_data.address import (
     AddressCountry, AddressProvince
 )
@@ -23,7 +20,7 @@ from app.utils.constant.cif import (
     CUSTOMER_CONTACT_TYPE_EMAIL, CUSTOMER_CONTACT_TYPE_MOBILE
 )
 from app.utils.error_messages import ERROR_PHONE_NUMBER
-from app.utils.functions import check_phone_number, now
+from app.utils.functions import is_valid_mobile_number, now
 from app.utils.vietnamese_converter import (
     convert_to_unsigned_vietnamese, make_short_name, split_name
 )
@@ -34,10 +31,9 @@ class CtrPersonal(BaseController):
         # check cif đang tạo
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
 
-        customer = await self.get_model_object_by_id(model_id=cif_id, model=Customer, loc='')
-
-        customer_individual_info = self.call_repos(
-            await repos_get_customer_individual_info(cif_id=cif_id, session=self.oracle_session))
+        customer, customer_individual_info = self.call_repos(
+            await repos_get_customer_and_customer_individual_info(cif_id=cif_id, session=self.oracle_session)
+        )
 
         full_name_vn = personal_request.full_name_vn
         full_name = convert_to_unsigned_vietnamese(full_name_vn)
@@ -85,10 +81,7 @@ class CtrPersonal(BaseController):
 
         # check len mobile number
         mobile_number = personal_request.mobile_number
-        if len(mobile_number) > 10:
-            return self.response_exception(loc='mobile_number', msg=ERROR_PHONE_NUMBER)
-        number = check_phone_number(mobile_number)
-        if not number:
+        if not is_valid_mobile_number(mobile_number=mobile_number):
             return self.response_exception(loc='mobile_number', msg=ERROR_PHONE_NUMBER)
 
         data_update_customer = {

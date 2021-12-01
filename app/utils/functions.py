@@ -117,7 +117,7 @@ def calculate_age(birth_date: date, end_date: date = date.today()) -> float:
     return age_number
 
 
-def check_phone_number(number: str):
-    regex = r'0([0-9]{9})'
-    number = re.search(regex, number)
-    return number
+def is_valid_mobile_number(mobile_number: str) -> bool:
+    regex = r'0([0-9]{9})$'
+    found = re.match(regex, mobile_number)
+    return True if found else False
