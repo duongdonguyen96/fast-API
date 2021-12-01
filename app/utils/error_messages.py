@@ -24,6 +24,7 @@ ERROR_CAN_NOT_CREATE = "CAN_NOT_CREATE"
 
 ERROR_IMAGE_TYPE_NOT_EXIST = 'IMAGE_TYPE_NOT_EXIST'
 ERROR_SIGNATURE_IS_NULL = "ERROR_SIGNATURE_IS_NULL"
+ERROR_PHONE_NUMBER = "ERROR_PHONE_NUMBER"
 
 MESSAGE_STATUS = {
     # general error
@@ -49,5 +50,6 @@ MESSAGE_STATUS = {
     ERROR_IDENTITY_DOCUMENT_NOT_EXIST: "Identity Document is not exist",
     ERROR_CAN_NOT_CREATE: 'Can not create',
     ERROR_IMAGE_TYPE_NOT_EXIST: 'Image type is not exist',
-    ERROR_SIGNATURE_IS_NULL: "Signature can not be empty"
+    ERROR_SIGNATURE_IS_NULL: "Signature can not be empty",
+    ERROR_PHONE_NUMBER: "Phone number only 9 to 10 numbers and start with 0"
 }
