@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn, auto_commit
@@ -23,16 +23,6 @@ from app.third_parties.oracle.models.master_data.others import (
     MaritalStatus, ResidentStatus
 )
 from app.utils.functions import dropdown, now
-
-
-def repos_get_contact_type_data(cif_id: str, session: Session) -> ReposReturn:
-    contact_type_data = session.execute(
-        select(
-            CustomerContactTypeData
-        ).filter(CustomerContactTypeData.customer_id == cif_id)
-    ).scalars().all()
-
-    return ReposReturn(data=contact_type_data)
 
 
 async def repos_get_customer_individual_info(cif_id: str, session: Session) -> ReposReturn:
@@ -58,7 +48,6 @@ async def repos_save_personal(
         cif_id: str,
         data_update_customer: dict,
         data_update_customer_individual: dict,
-        contact_type_data: List,
         list_contact_type_data: List,
         session: Session,
         created_by: str
@@ -76,11 +65,13 @@ async def repos_save_personal(
         ).values(data_update_customer_individual)
     )
 
-    if not contact_type_data:
-        data_insert_contact_type = [CustomerContactTypeData(**data_insert) for data_insert in list_contact_type_data]
-        session.bulk_save_objects(data_insert_contact_type)
-    else:
-        session.bulk_update_mappings(CustomerContactTypeData, list_contact_type_data)
+    session.execute(
+        delete(
+            CustomerContactTypeData
+        ).filter(CustomerContactTypeData.customer_id == cif_id)
+    )
+    data_insert_contact_type = [CustomerContactTypeData(**data_insert) for data_insert in list_contact_type_data]
+    session.bulk_save_objects(data_insert_contact_type)
 
     return ReposReturn(data={
         "cif_id": cif_id,
