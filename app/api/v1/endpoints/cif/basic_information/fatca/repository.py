@@ -39,11 +39,8 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
                 CustomerFatca.customer_id == cif_id
             )
         ).outerjoin(
-            CustomerFatcaDocument, and_(
-                CustomerFatca.id == CustomerFatcaDocument.customer_fatca_id,
-                CustomerFatca.customer_id == cif_id
-            )
-        )
+            CustomerFatcaDocument, CustomerFatca.id == CustomerFatcaDocument.customer_fatca_id
+        ).order_by(FatcaCategory.order_no)
     ).all()
 
     if not query_data_fatca:
@@ -55,34 +52,39 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
 
     for customer_fatca, fatca_category, customer_fatca_document in query_data_fatca:
         if fatca_category.id not in fatca_information:
-            fatca_information[fatca_category.id] = []
-            fatca_information[fatca_category.id].append({
+            fatca_information[fatca_category.id] = {
                 "id": fatca_category.id,
                 "code": fatca_category.code,
                 "name": fatca_category.name,
-                "select_flag": customer_fatca.value
-            })
+                "select_flag": customer_fatca.value,
+                "documents": []
+            }
+        # check customer_fatca_document
+        if customer_fatca_document is not None:
+            documents = {
+                "id": customer_fatca_document.id,
+                "name": customer_fatca_document.document_name,
+                "url": customer_fatca_document.document_url,
+                "active_flag": customer_fatca_document.active_flag,
+                "version": customer_fatca_document.document_version,
+                "content_type": "Word",  # TODO
+                "size": "1MB",  # TODO
+                "folder_name": "Khởi tạo CIF",  # TODO
+                "created_by": "Nguyễn Phúc",  # TODO
+                "created_at": customer_fatca_document.created_at,
+                "updated_by": "Trần Bình Liên",  # TODO
+                "updated_at": "2020-12-30 06:07:08",  # TODO
+                "note": "Tài liệu quan trọng"  # TODO
+            }
+            if customer_fatca_document.customer_fatca_id == customer_fatca.id:
+                fatca_information[customer_fatca.fatca_category.id]['documents'].append(
+                    documents
+                )
 
-        documents = {
-            "id": customer_fatca_document.id,
-            "name": customer_fatca_document.document_name,
-            "url": customer_fatca_document.document_url,
-            "active_flag": customer_fatca_document.active_flag,
-            "version": customer_fatca_document.document_version,
-            "content_type": "Word",  # TODO
-            "size": "1MB",  # TODO
-            "folder_name": "Khởi tạo CIF",  # TODO
-            "created_by": "Nguyễn Phúc",  # TODO
-            "created_at": customer_fatca_document.created_at,
-            "updated_by": "Trần Bình Liên",  # TODO
-            "updated_at": "2020-12-30 06:07:08",  # TODO
-            "note": "Tài liệu quan trọng"  # TODO
-        }
-
-        if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VN:
-            documents_vn.append(documents)
-        if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
-            documents_en.append(documents)
+            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VN:
+                documents_vn.append(documents)
+            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
+                documents_en.append(documents)
 
     document_information = [
         # TODO : xét cứng dữ liệu language -> chưa thấy table lưu
@@ -104,11 +106,7 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
         }
     ]
 
-    fatca_response = []
-    for ids, fatca in fatca_information.items():
-        fatca_response.extend(fatca)
-
     return ReposReturn(data={
-        "fatca_information": fatca_response,
+        "fatca_information": list(fatca_information.values()),
         "document_information": document_information
     })

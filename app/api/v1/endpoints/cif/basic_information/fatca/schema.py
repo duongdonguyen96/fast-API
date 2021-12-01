@@ -39,9 +39,6 @@ class FatcaRequest(BaseSchema):
 # Response
 ########################################################################################################################
 
-class CategoryDropdownResponse(DropdownResponse):
-    select_flag: bool = Field(False, description='`False`: Có. `True`: Không')
-
 
 class DocumentsResponse(BaseSchema):
     id: str = Field(..., description='Mã biểu mẫu')
@@ -59,6 +56,11 @@ class DocumentsResponse(BaseSchema):
     updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
                                  example='2021-15-12 06:07:08')
     note: str = Field(..., description='Mô tả biểu mẫu')
+
+
+class CategoryDropdownResponse(DropdownResponse):
+    select_flag: bool = Field(False, description='`False`: Có. `True`: Không')
+    documents: List[DocumentsResponse] = Field(..., description='`False`: Có. `True`: Không')
 
 
 class DocumentsListResponse(BaseSchema):
