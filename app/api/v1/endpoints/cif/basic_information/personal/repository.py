@@ -1,10 +1,9 @@
-from sqlalchemy import select
+from typing import List
+
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session, aliased
 
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.basic_information.personal.schema import (
-    PersonalRequest
-)
+from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerContactTypeData
 )
@@ -23,14 +22,58 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.others import (
     MaritalStatus, ResidentStatus
 )
-from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
 
-async def repos_save_personal(cif_id: str, personal: PersonalRequest, created_by: str, ) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_customer_and_customer_individual_info(cif_id: str, session: Session) -> ReposReturn:
+    query_data = session.execute(
+        select(
+            Customer,
+            CustomerIndividualInfo
+        ).join(
+            CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id
+        ).filter(Customer.id == cif_id)
+    ).all()
+
+    if not query_data:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    customer, customer_individual = query_data[0]
+
+    return ReposReturn(data=(customer, customer_individual))
+
+
+@auto_commit
+async def repos_save_personal(
+        cif_id: str,
+        data_update_customer: dict,
+        data_update_customer_individual: dict,
+        list_contact_type_data: List,
+        session: Session,
+        created_by: str
+) -> ReposReturn:
+    session.execute(
+        update(
+            Customer,
+        ).filter(Customer.id == cif_id).values(data_update_customer)
+    )
+    session.execute(
+        update(
+            CustomerIndividualInfo
+        ).filter(
+            CustomerIndividualInfo.customer_id == cif_id
+        ).values(data_update_customer_individual)
+    )
+
+    # xóa những contact type data cũ
+    session.execute(
+        delete(
+            CustomerContactTypeData
+        ).filter(CustomerContactTypeData.customer_id == cif_id)
+    )
+    # tạo mới contact type data
+    session.bulk_save_objects([CustomerContactTypeData(**data_insert) for data_insert in list_contact_type_data])
 
     return ReposReturn(data={
         "cif_id": cif_id,
