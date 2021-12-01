@@ -10,7 +10,7 @@ from app.third_parties.oracle.models.cif.basic_information.fatca.model import (
 )
 from app.third_parties.oracle.models.master_data.others import FatcaCategory
 from app.utils.constant.cif import (
-    CIF_ID_TEST, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VN
+    CIF_ID_TEST, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VI
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
@@ -47,8 +47,6 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
     fatca_information = {}
-    documents_en = []
-    documents_vn = []
 
     for customer_fatca, fatca_category, customer_fatca_document in query_data_fatca:
         if fatca_category.id not in fatca_information:
@@ -57,7 +55,7 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
                 "code": fatca_category.code,
                 "name": fatca_category.name,
                 "select_flag": customer_fatca.value,
-                "document_depend_language": None
+                "document_depend_language": {}
             }
         # check customer_fatca_document
         if customer_fatca_document is not None:
@@ -78,27 +76,17 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
             }
 
             if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
-                fatca_information[fatca_category.id]["document_depend_language"] = {
-                    LANGUAGE_TYPE_EN: document,
-                    LANGUAGE_TYPE_VN: None
-                }
+                fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_EN] = document
 
-            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VN:
-                fatca_information[fatca_category.id]["document_depend_language"] = {
-                    LANGUAGE_TYPE_EN: None,
-                    LANGUAGE_TYPE_VN: document
-                }
+            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VI:
+                fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_VI] = document
 
     # TODO : xét cứng dữ liệu language -> chưa thấy table lưu
     en_documents = []
     vi_documents = []
     for fatca_category_id, fatca_category_data in fatca_information.items():
-        if fatca_category_data['document_depend_language']:
-            en_document = fatca_category_data['document_depend_language'][LANGUAGE_TYPE_EN]
-            vi_document = fatca_category_data['document_depend_language'][LANGUAGE_TYPE_VN]
-        else:
-            en_document = None
-            vi_document = None
+        en_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_EN)
+        vi_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_VI)
 
         en_documents.append(
             {
@@ -124,10 +112,10 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
             {
                 "language_type": {
                     "id": "1",
-                    "code": LANGUAGE_TYPE_VN,
+                    "code": LANGUAGE_TYPE_VI,
                     "name": "vn"
                 },
-                "documents": documents_vn
+                "documents": vi_documents
             },
             {
                 "language_type": {
@@ -135,7 +123,7 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
                     "code": LANGUAGE_TYPE_EN,
                     "name": "en"
                 },
-                "documents": documents_en
+                "documents": en_documents
             }
         ]
     })
