@@ -2,7 +2,7 @@ from typing import List
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.repository import (
-    repos_get_detail, repos_get_list_log, repos_save
+    repos_get_detail_sub_identity, repos_get_list_log, repos_save
 )
 from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import (
     SubIdentityDocumentRequest
@@ -12,10 +12,12 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
 
 class CtrSubIdentityDocument(BaseController):
-    async def get_detail(self, cif_id: str):
+    async def get_detail_sub_identity(self, cif_id: str):
+
         detail_data = self.call_repos(
-            await repos_get_detail(
-                cif_id=cif_id
+            await repos_get_detail_sub_identity(
+                cif_id=cif_id,
+                session=self.oracle_session
             )
         )
         return self.response(data=detail_data)
