@@ -20,6 +20,6 @@ class CtrPersonal(BaseController):
         return self.response(data=personal_data)
 
     async def ctr_personal(self, cif_id: str):
-        personal_data = self.call_repos(await repos_get_personal_data(cif_id))
+        personal_data = self.call_repos(await repos_get_personal_data(cif_id=cif_id, session=self.oracle_session))
 
         return self.response(data=personal_data)
