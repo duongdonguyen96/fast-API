@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -39,6 +39,12 @@ class FatcaRequest(BaseSchema):
 # Response
 ########################################################################################################################
 
+class CategoryDropdownResponse(BaseSchema):
+    id: str = Field(..., description='`Chuỗi định danh` loại Fatca')
+    code: str = Field(..., description='`Mã` loại Fatca')
+    name: str = Field(..., description='`Tên` loại Fatca')
+    select_flag: bool = Field(False, description='`False`: Có. `True`: Không của loại Fatca')
+
 
 class DocumentsResponse(BaseSchema):
     id: str = Field(..., description='Mã biểu mẫu')
@@ -58,14 +64,16 @@ class DocumentsResponse(BaseSchema):
     note: str = Field(..., description='Mô tả biểu mẫu')
 
 
-class CategoryDropdownResponse(DropdownResponse):
-    select_flag: bool = Field(False, description='`False`: Có. `True`: Không')
-    documents: List[DocumentsResponse] = Field(..., description='`False`: Có. `True`: Không')
+class DocumentDependFatcaCategoryResponse(BaseSchema):
+    id: str = Field(..., description='`Chuỗi định danh` loại Fatca')
+    code: str = Field(..., description='`Mã` loại Fatca')
+    name: str = Field(..., description='`Tên` loại Fatca')
+    document: Optional[DocumentsResponse] = Field(..., description='Thông tin biểu mẫu `FATCA` tương ứng loại Fatca')
 
 
 class DocumentsListResponse(BaseSchema):
     language_type: DropdownResponse = Field(..., description='Ngôn ngữ biểu mẫu')
-    documents: List[DocumentsResponse] = Field(..., description='Thông tin biểu mẫu `FATCA`')
+    documents: List[DocumentDependFatcaCategoryResponse] = Field(..., description='Các tài liệu theo ngôn ngữ biểu mẫu')
 
 
 class FatcaResponse(BaseSchema):
