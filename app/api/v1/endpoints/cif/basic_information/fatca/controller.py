@@ -39,13 +39,11 @@ class CtrFatca(BaseController):
                 return self.response_exception(msg='', detail='fatca_information select_flag true if not document')
 
         # tạo list fatca_category
-        list_fatca_id = []
-        list_fatca_id.extend(list_fatca_document_ids)
-        list_fatca_id.extend(fatca_category_ids)
+        fatca_category_ids.extend(list_fatca_document_ids)
 
         # check list id fatca_category có tồn tại hay không
         await self.get_model_objects_by_ids(
-            model_ids=list_fatca_id,
+            model_ids=fatca_category_ids,
             model=FatcaCategory,
             loc='list_fatca_id')
 

@@ -1,5 +1,6 @@
 from typing import List
 
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
@@ -17,6 +18,23 @@ async def repos_save_fatca_document(
         list_data_insert_fatca: List,
         session: Session,
 ) -> ReposReturn:
+    # list fatca_id cần xóa trong bảng fatca_document
+    customer_fatca_id = session.execute(
+        select(
+            CustomerFatca.id
+        ).filter(CustomerFatca.customer_id == cif_id)
+    ).scalars().all()
+
+    session.execute(
+        delete(
+            CustomerFatcaDocument
+        ).filter(CustomerFatcaDocument.customer_fatca_id.in_(customer_fatca_id))
+    )
+    session.execute(
+        delete(
+            CustomerFatca
+        ).filter(CustomerFatca.customer_id == cif_id)
+    )
 
     fatca_data = [CustomerFatca(**data_insert) for data_insert in list_data_insert_fatca]
     session.bulk_save_objects(fatca_data)
