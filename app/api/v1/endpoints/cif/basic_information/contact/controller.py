@@ -48,7 +48,6 @@ class CtrContactInformation(BaseController):
 
         # Địa chỉ liên lạc
         contact_address_resident_address_flag = contact_information_save_request.contact_address.resident_address_flag
-        contact_address_country_id = contact_information_save_request.contact_address.country.id
         contact_address_province_id = contact_information_save_request.contact_address.province.id
         contact_address_district_id = contact_information_save_request.contact_address.district.id
         contact_address_ward_id = contact_information_save_request.contact_address.ward.id
@@ -124,7 +123,6 @@ class CtrContactInformation(BaseController):
             # Nếu khác địa chỉ thường trú
             else:
                 list_require = [
-                    (contact_address_country_id, AddressCountry, "contact_address -> country -> id"),
                     (contact_address_province_id, AddressProvince, "contact_address -> province -> id"),
                     (contact_address_district_id, AddressDistrict, "contact_address -> district -> id"),
                     (contact_address_ward_id, AddressWard, "contact_address -> ward -> id")
@@ -136,7 +134,6 @@ class CtrContactInformation(BaseController):
                      "contact_address -> number_and_street")
                 )
                 contact_address.update({
-                    "address_country_id": contact_address_country_id,
                     "address_province_id": contact_address_province_id,
                     "address_district_id": contact_address_district_id,
                     "address_ward_id": contact_address_ward_id,
