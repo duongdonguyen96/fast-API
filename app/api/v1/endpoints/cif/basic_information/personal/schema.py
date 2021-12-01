@@ -1,9 +1,12 @@
 from datetime import date
+from typing import Optional
 
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
+from app.api.v1.schemas.utils import (
+    DropdownRequest, DropdownResponse, OptionalDropdownResponse
+)
 
 
 class ContactMethodRequest(BaseSchema):
@@ -43,10 +46,10 @@ class PersonalResponse(BaseSchema):
     place_of_birth: DropdownResponse = Field(..., description='Nơi sinh khách hàng')
     country_of_birth: DropdownResponse = Field(..., description='Quốc gia sinh khách hàng')
     nationality: DropdownResponse = Field(..., description='Quốc tịch khách hàng')
-    tax_number: str = Field(..., description='Mã số thuế cá nhân của khách hàng')
+    tax_number: Optional[str] = Field(..., description='Mã số thuế cá nhân của khách hàng')
     resident_status: DropdownResponse = Field(..., description='Tình trạng cư trú khách hàng')
     mobile_number: str = Field(..., description='Điện thoại di động khách hàng')
-    telephone_number: str = Field(..., description='Điện thoại bàn khách hàng')
-    email: str = Field(..., description='Email khách hàng')
+    telephone_number: Optional[str] = Field(..., description='Điện thoại bàn khách hàng')
+    email: Optional[str] = Field(..., description='Email khách hàng')
     contact_method: ContactMethodResponse = Field(..., description='Hình thức liên hệ khách hàng')
-    marital_status: DropdownResponse = Field(..., description='Tình trạng hôn nhân khách hàng')
+    marital_status: OptionalDropdownResponse = Field(..., description='Tình trạng hôn nhân khách hàng')

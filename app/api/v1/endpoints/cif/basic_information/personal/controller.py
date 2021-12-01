@@ -1,5 +1,3 @@
-import re
-
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.personal.repository import (
     repos_get_contact_type_data, repos_get_customer_individual_info,
@@ -24,7 +22,7 @@ from app.third_parties.oracle.models.master_data.others import (
 from app.utils.constant.cif import (
     CUSTOMER_CONTACT_TYPE_EMAIL, CUSTOMER_CONTACT_TYPE_MOBILE
 )
-from app.utils.functions import now
+from app.utils.functions import check_phone_number, now
 from app.utils.vietnamese_converter import (
     convert_to_unsigned_vietnamese, make_short_name, split_name
 )
@@ -84,8 +82,7 @@ class CtrPersonal(BaseController):
         if customer_individual_info.marital_status_id != marital_status_id:
             await self.get_model_object_by_id(model_id=marital_status_id, model=MaritalStatus, loc='marital_status_id')
 
-        regex = r'0([0-9]{9})'
-        number = re.search(regex, personal_request.mobile_number)
+        number = check_phone_number(personal_request.mobile_number)
         if not number:
             return self.response_exception(loc='mobile_number', msg='MOBILE_IN_VALID', detail='MOBILE_IN_VALID')
 
@@ -114,7 +111,8 @@ class CtrPersonal(BaseController):
         }
 
         contact_type_data = self.call_repos(
-            await repos_get_contact_type_data(cif_id=cif_id, session=self.oracle_session))
+            await repos_get_contact_type_data(cif_id=cif_id, session=self.oracle_session)
+        )
 
         # TODO : chưa có data contact_type nên đang để test
         list_contact_type_data = [
@@ -149,6 +147,6 @@ class CtrPersonal(BaseController):
         return self.response(data=personal_data)
 
     async def ctr_personal(self, cif_id: str):
-        personal_data = self.call_repos(await repos_get_personal_data(cif_id))
+        personal_data = self.call_repos(await repos_get_personal_data(cif_id=cif_id, session=self.oracle_session))
 
         return self.response(data=personal_data)

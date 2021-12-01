@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import date, datetime, timedelta
 from typing import Callable, Dict
@@ -114,3 +115,9 @@ def process_generate_uuid(d):
 def calculate_age(birth_date: date, end_date: date = date.today()) -> float:
     age_number = (end_date - birth_date) // timedelta(days=365.2425)
     return age_number
+
+
+def check_phone_number(number: str):
+    regex = r'0([0-9]{9})'
+    number = re.search(regex, number)
+    return number
