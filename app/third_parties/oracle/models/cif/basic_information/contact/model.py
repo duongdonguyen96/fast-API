@@ -18,8 +18,8 @@ class CustomerContactTypeData(Base):
     __tablename__ = 'crm_cust_contact_type_data'
     __table_args__ = {'comment': 'CHI TIẾT THÔNG TIN LOẠI LIÊN HỆ'}
 
-    customer_contact_type_id = Column('cust_contact_type_id', ForeignKey('crm_cust_contact_type.cust_contact_type_id'),
-                                      primary_key=True)
+    id = Column('cust_contact_type_data_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "))
+    customer_contact_type_id = Column('cust_contact_type_id', ForeignKey('crm_cust_contact_type.cust_contact_type_id'))
     customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
     customer_contact_type_created_at = Column('cust_contact_type_created_at', DateTime, comment='Ngày tạo')
     active_flag = Column(NUMBER(1, 2, True), comment='Sắp xếp')
