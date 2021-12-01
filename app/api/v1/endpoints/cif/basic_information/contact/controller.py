@@ -1,5 +1,6 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.contact.repository import (
+    repos_get_customer_addresses, repos_get_customer_professional,
     repos_get_detail_contact_information, repos_save_contact_information
 )
 from app.api.v1.endpoints.cif.basic_information.contact.schema import (
@@ -15,6 +16,7 @@ from app.third_parties.oracle.models.master_data.others import (
 from app.utils.constant.cif import (
     ADDRESS_COUNTRY_CODE_VN, CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
 )
+from app.utils.functions import generate_uuid
 
 
 class CtrContactInformation(BaseController):
@@ -33,18 +35,29 @@ class CtrContactInformation(BaseController):
 
         # Địa chỉ thường trú
         resident_address_domestic_flag = contact_information_save_request.resident_address.domestic_flag
-        resident_address_domestic_address_country_id = contact_information_save_request.resident_address.domestic_address.country.id
-        resident_address_domestic_address_province_id = contact_information_save_request.resident_address.domestic_address.province.id
-        resident_address_domestic_address_district_id = contact_information_save_request.resident_address.domestic_address.district.id
-        resident_address_domestic_address_ward_id = contact_information_save_request.resident_address.domestic_address.ward.id
-        resident_address_domestic_number_and_street = contact_information_save_request.resident_address.domestic_address.number_and_street
+        resident_address_domestic_address_country_id = contact_information_save_request.\
+            resident_address.domestic_address.country.id
+        resident_address_domestic_address_province_id = contact_information_save_request.\
+            resident_address.domestic_address.province.id
+        resident_address_domestic_address_district_id = contact_information_save_request.\
+            resident_address.domestic_address.district.id
+        resident_address_domestic_address_ward_id = contact_information_save_request.\
+            resident_address.domestic_address.ward.id
+        resident_address_domestic_number_and_street = contact_information_save_request.\
+            resident_address.domestic_address.number_and_street
 
-        resident_address_foreign_address_country_id = contact_information_save_request.resident_address.foreign_address.country.id
-        resident_address_foreign_address_province_id = contact_information_save_request.resident_address.foreign_address.province.id
-        resident_address_foreign_address_state_id = contact_information_save_request.resident_address.foreign_address.state.id
-        resident_address_foreign_address_address_1 = contact_information_save_request.resident_address.foreign_address.address_1
-        resident_address_foreign_address_address_2 = contact_information_save_request.resident_address.foreign_address.address_2
-        resident_address_foreign_zip_code = contact_information_save_request.resident_address.foreign_address.zip_code
+        resident_address_foreign_address_country_id = contact_information_save_request.\
+            resident_address.foreign_address.country.id
+        resident_address_foreign_address_province_id = contact_information_save_request.\
+            resident_address.foreign_address.province.id
+        resident_address_foreign_address_state_id = contact_information_save_request.\
+            resident_address.foreign_address.state.id
+        resident_address_foreign_address_address_1 = contact_information_save_request.\
+            resident_address.foreign_address.address_1
+        resident_address_foreign_address_address_2 = contact_information_save_request.\
+            resident_address.foreign_address.address_2
+        resident_address_foreign_zip_code = contact_information_save_request.\
+            resident_address.foreign_address.zip_code
 
         # Địa chỉ liên lạc
         contact_address_resident_address_flag = contact_information_save_request.contact_address.resident_address_flag
@@ -239,10 +252,28 @@ class CtrContactInformation(BaseController):
         if list_exist_error:
             return self.response_exception(msg=", ".join(list_exist_error) + " is NOT EXIST")
 
+        is_exist_customer_address = await repos_get_customer_addresses(cif_id=cif_id, session=self.oracle_session)
+        is_exist_customer_professional = await repos_get_customer_professional(
+            cif_id=cif_id, session=self.oracle_session
+        )
+        # Nếu thông tin chưa có -> Tạo mới
+        customer_professional_id = None
+        if (not is_exist_customer_address) and (not is_exist_customer_professional):
+            # Tạo thông tin nghề nghiệp khách hàng
+            customer_professional_id = generate_uuid()
+            career_information.update({
+                "id": customer_professional_id
+            })
+            is_created = True
+        # Nếu thông tin có trước ->  cập nhật
+        else:
+            is_created = False
+
         contact_information_detail_data = self.call_repos(
             await repos_save_contact_information(
                 cif_id=cif_id,
-                created_by=self.current_user.full_name_vn,
+                customer_professional_id=customer_professional_id,
+                is_created=is_created,
                 resident_address=resident_address,
                 contact_address=contact_address,
                 career_information=career_information,
