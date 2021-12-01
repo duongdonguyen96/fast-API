@@ -57,11 +57,11 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
                 "code": fatca_category.code,
                 "name": fatca_category.name,
                 "select_flag": customer_fatca.value,
-                "documents": []
+                "document_depend_language": None
             }
         # check customer_fatca_document
         if customer_fatca_document is not None:
-            documents = {
+            document = {
                 "id": customer_fatca_document.id,
                 "name": customer_fatca_document.document_name,
                 "url": customer_fatca_document.document_url,
@@ -76,37 +76,66 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
                 "updated_at": "2020-12-30 06:07:08",  # TODO
                 "note": "Tài liệu quan trọng"  # TODO
             }
-            if customer_fatca_document.customer_fatca_id == customer_fatca.id:
-                fatca_information[customer_fatca.fatca_category.id]['documents'].append(
-                    documents
-                )
+
+            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
+                fatca_information[fatca_category.id]["document_depend_language"] = {
+                    LANGUAGE_TYPE_EN: document,
+                    LANGUAGE_TYPE_VN: None
+                }
 
             if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VN:
-                documents_vn.append(documents)
-            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
-                documents_en.append(documents)
+                fatca_information[fatca_category.id]["document_depend_language"] = {
+                    LANGUAGE_TYPE_EN: None,
+                    LANGUAGE_TYPE_VN: document
+                }
 
-    document_information = [
-        # TODO : xét cứng dữ liệu language -> chưa thấy table lưu
-        {
-            "language_type": {
-                "id": "1",
-                "code": "VN",
-                "name": "vn"
-            },
-            "documents": documents_vn
-        },
-        {
-            "language_type": {
-                "id": "2",
-                "code": "EN",
-                "name": "en"
-            },
-            "documents": documents_en
-        }
-    ]
+    # TODO : xét cứng dữ liệu language -> chưa thấy table lưu
+    en_documents = []
+    vi_documents = []
+    for fatca_category_id, fatca_category_data in fatca_information.items():
+        if fatca_category_data['document_depend_language']:
+            en_document = fatca_category_data['document_depend_language'][LANGUAGE_TYPE_EN]
+            vi_document = fatca_category_data['document_depend_language'][LANGUAGE_TYPE_VN]
+        else:
+            en_document = None
+            vi_document = None
+
+        en_documents.append(
+            {
+                "id": fatca_category_data['id'],
+                "code": fatca_category_data['code'],
+                "name": fatca_category_data['name'],
+                "document": en_document
+            }
+        )
+
+        vi_documents.append(
+            {
+                "id": fatca_category_data['id'],
+                "code": fatca_category_data['code'],
+                "name": fatca_category_data['name'],
+                "document": vi_document
+            }
+        )
 
     return ReposReturn(data={
         "fatca_information": list(fatca_information.values()),
-        "document_information": document_information
+        "document_information": [
+            {
+                "language_type": {
+                    "id": "1",
+                    "code": LANGUAGE_TYPE_VN,
+                    "name": "vn"
+                },
+                "documents": documents_vn
+            },
+            {
+                "language_type": {
+                    "id": "2",
+                    "code": LANGUAGE_TYPE_EN,
+                    "name": "en"
+                },
+                "documents": documents_en
+            }
+        ]
     })
