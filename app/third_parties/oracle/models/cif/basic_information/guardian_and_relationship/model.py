@@ -18,7 +18,8 @@ class CustomerPersonalRelationship(Base):
     id = Column('cust_personal_relationship_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã quan hệ khách hàng cá nhân')
     customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
-    customer_relationship_type_id = Column(ForeignKey('crm_cust_relationship_type.cust_relationship_type_id'),
+    customer_relationship_type_id = Column('cust_relationship_type_id',
+                                           ForeignKey('crm_cust_relationship_type.cust_relationship_type_id'),
                                            nullable=False, comment='Mã loại mối quan hệ khách hàng')
     type = Column('cust_personal_relationship_type', NUMBER(1, 0, True), nullable=False,
                   comment='Loại quan hệ khách hàng cá nhân (0: Người giám hộ, 1: Mối quan hệ khách hàng)')
