@@ -65,14 +65,6 @@ class BaseController:
             )
         )
 
-    async def check_exist_list_by_id(self, check_list: list):
-        list_error = []
-        for model_id, model, loc in check_list:
-            instance = await self.get_model_object_by_id(model_id, model, loc)
-            if not instance:
-                list_error.append(loc)
-        return list_error
-
     async def get_model_objects_by_ids(self, model_ids: List[str], model: Base, loc: str):
         return self.call_repos(
             await repos_get_model_objects_by_ids(
@@ -82,13 +74,6 @@ class BaseController:
                 session=self.oracle_session
             )
         )
-
-    async def check_not_null(self, check_list):
-        list_error = []
-        for model_id, _, message in check_list:
-            if not model_id:
-                list_error.append(message)
-        return list_error
 
     async def get_model_object_by_code(self, model_code: str, model: Base, loc: str):
         return self.call_repos(

@@ -226,11 +226,14 @@ async def repos_save_contact_information(
     session: Session
 ) -> ReposReturn:
     if is_create:
-        session.add_all([
-            CustomerAddress(**resident_address),
-            CustomerAddress(**contact_address),
-            CustomerProfessional(**career_information)
-        ])
+        if resident_address and contact_address:
+            session.add_all([
+                CustomerAddress(**resident_address),
+                CustomerAddress(**contact_address),
+                CustomerProfessional(**career_information)
+            ])
+        else:
+            session.add(CustomerProfessional(**career_information))
         # Cập nhật lại thông tin nghề nghiệp khách hàng
         session.execute(
             update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
@@ -242,19 +245,20 @@ async def repos_save_contact_information(
             .filter(Customer.id == cif_id)
         ).scalars().first()
 
-        session.execute(
-            update(CustomerAddress).where(and_(
-                CustomerAddress.customer_id == cif_id,
-                CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE
-            )).values(**resident_address)
-        )
+        if resident_address and contact_address:
+            session.execute(
+                update(CustomerAddress).where(and_(
+                    CustomerAddress.customer_id == cif_id,
+                    CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE
+                )).values(**resident_address)
+            )
 
-        session.execute(
-            update(CustomerAddress).where(and_(
-                CustomerAddress.customer_id == cif_id,
-                CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE
-            )).values(**contact_address)
-        )
+            session.execute(
+                update(CustomerAddress).where(and_(
+                    CustomerAddress.customer_id == cif_id,
+                    CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE
+                )).values(**contact_address)
+            )
 
         session.execute(
             update(CustomerProfessional).where(and_(

@@ -4,7 +4,8 @@ from pydantic import Field
 
 from app.api.base.schema import BaseSchema
 from app.api.v1.schemas.utils import (
-    DropdownResponse, OpionalDropdownRequest, OptionalDropdownResponse
+    DropdownRequest, DropdownResponse, OpionalDropdownRequest,
+    OptionalDropdownResponse
 )
 
 
@@ -16,7 +17,7 @@ class DomesticAddressResponse(BaseSchema):
     province: OptionalDropdownResponse = Field(..., description="Tỉnh/Thành phố")
     district: OptionalDropdownResponse = Field(..., description="Quận/Huyện")
     ward: OptionalDropdownResponse = Field(..., description="Phường/Xã")
-    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường")
+    number_and_street: Optional[str] = Field(..., min_length=1, description="Số nhà, tên đường")
 
 
 class ForeignAddressResponse(BaseSchema):
@@ -39,10 +40,10 @@ class ResidentAddressContactInformationResponse(BaseSchema):
 class CareerInformationContactInformationResponse(BaseSchema):
     career: DropdownResponse = Field(..., description="Nghề nghiệp")
     average_income_amount: DropdownResponse = Field(..., description="Thu nhập BQ 3 tháng gần nhất")
-    company_name: str = Field(None, description="Tên cơ quan công tác")
-    company_phone: str = Field(None, description="Số điện thoại cơ quan")
+    company_name: Optional[str] = Field(None, description="Tên cơ quan công tác")
+    company_phone: Optional[str] = Field(None, description="Số điện thoại cơ quan")
     company_position: DropdownResponse = Field(None, description="Chức vụ")
-    company_address: str = Field(None, description="Địa chỉ cơ quan")
+    company_address: Optional[str] = Field(None, description="Địa chỉ cơ quan")
 
 
 # Quốc gia ở địa chỉ liên lạc không bắt buộc nhập ở màn hình 01_03_03
@@ -53,8 +54,10 @@ class ContactAddressResponse(DomesticAddressResponse):
 
 class ContactInformationDetailResponse(BaseSchema):
     resident_address: ResidentAddressContactInformationResponse = Field(..., description="I. Địa chỉ thường trú")
+    resident_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ thường trú")
     # Địa chỉ liên lạc sẽ giống với thông tin của địa chỉ trong nước
     contact_address: ContactAddressResponse = Field(..., description="II. Địa chỉ liên lạc")
+    contact_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ liên lạc")
     career_information: CareerInformationContactInformationResponse = Field(..., description="III. Thông tin nghề "
                                                                                              "nghiệp")
 
@@ -63,20 +66,20 @@ class ContactInformationDetailResponse(BaseSchema):
 # Request Body
 ########################################################################################################################
 class DomesticAddressRequest(BaseSchema):
-    country: OpionalDropdownRequest = Field(..., description="Quốc gia")
-    province: OpionalDropdownRequest = Field(..., description="Tỉnh/Thành phố")
-    district: OpionalDropdownRequest = Field(..., description="Quận/Huyện")
-    ward: OpionalDropdownRequest = Field(..., description="Phường/Xã")
-    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường")
+    country: DropdownRequest = Field(..., description="Quốc gia")
+    province: DropdownRequest = Field(..., description="Tỉnh/Thành phố")
+    district: DropdownRequest = Field(..., description="Quận/Huyện")
+    ward: DropdownRequest = Field(..., description="Phường/Xã")
+    number_and_street: str = Field(..., min_length=1, description="Số nhà, tên đường")
 
 
 class ForeignAddressRequest(BaseSchema):
-    country: OpionalDropdownRequest = Field(..., description="Quốc gia/Khu vực")
-    address_1: Optional[str] = Field(..., description="Địa chỉ 1")
+    country: DropdownRequest = Field(..., description="Quốc gia/Khu vực")
+    address_1: str = Field(..., description="Địa chỉ 1")
     address_2: Optional[str] = Field(..., description="Địa chỉ 2")
-    province: OpionalDropdownRequest = Field(..., description="Thành phố nước ngoài là AddressDistrict")
-    state: OpionalDropdownRequest = Field(..., description="Tỉnh/Bang nước ngoài là AddressProvince")
-    zip_code: Optional[str] = Field(..., description="Mã bưu chính")
+    province: DropdownRequest = Field(..., description="Thành phố nước ngoài là AddressDistrict")
+    state: DropdownRequest = Field(..., description="Tỉnh/Bang nước ngoài là AddressProvince")
+    zip_code: str = Field(..., description="Mã bưu chính")
 
 
 class ResidentAddressContactInformationRequest(BaseSchema):
@@ -87,20 +90,26 @@ class ResidentAddressContactInformationRequest(BaseSchema):
     foreign_address: ForeignAddressRequest = Field(..., description="Địa chỉ nước ngoài")
 
 
-class ContactAddressRequest(DomesticAddressRequest):
+class ContactAddressRequest(BaseSchema):
     resident_address_flag: bool = Field(..., description="Cờ giống địa chỉ thường trú")
-    country: OpionalDropdownRequest = Field(None, description="Quốc gia")
+    province: DropdownRequest = Field(..., description="Tỉnh/Thành phố")
+    district: DropdownRequest = Field(..., description="Quận/Huyện")
+    ward: DropdownRequest = Field(..., description="Phường/Xã")
+    number_and_street: str = Field(..., min_length=1, description="Số nhà, tên đường")
 
 
 class CareerInformationContactInformationRequest(CareerInformationContactInformationResponse):
-    career: OpionalDropdownRequest = Field(..., description="Nghề nghiệp")
-    average_income_amount: OpionalDropdownRequest = Field(..., description="Nghề nghiệp")
+    career: DropdownRequest = Field(..., description="Nghề nghiệp")
+    average_income_amount: DropdownRequest = Field(..., description="Nghề nghiệp")
     company_position: OpionalDropdownRequest = Field(None, description="Chức vụ")
 
 
 class ContactInformationSaveRequest(BaseSchema):
-    resident_address: ResidentAddressContactInformationRequest = Field(..., description="I. Địa chỉ thường trú")
+    resident_address: Optional[ResidentAddressContactInformationRequest] = Field(
+        ..., description="I. Địa chỉ thường trú")
+    resident_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ thường trú")
     # Địa chỉ liên lạc sẽ giống với thông tin của địa chỉ trong nước
-    contact_address: ContactAddressRequest = Field(..., description="II. Địa chỉ liên lạc")
-    career_information: CareerInformationContactInformationRequest = Field(...,
-                                                                           description="III. Thông tin nghề nghiệp")
+    contact_address: Optional[ContactAddressRequest] = Field(..., description="II. Địa chỉ liên lạc")
+    contact_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ liên lạc")
+    career_information: CareerInformationContactInformationRequest = Field(
+        ..., description="III. Thông tin nghề nghiệp")

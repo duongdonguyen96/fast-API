@@ -89,3 +89,22 @@ async def repos_get_data_model_config(session: Session, model: Base, country_id:
     return ReposReturn(data=[
         dropdown(data) for data in list_data
     ])
+
+
+async def get_model_object_by_customer_id(customer_id: str, model: Base, loc: str, session: Session):
+    try:
+        obj = session.execute(
+            select(
+                model
+            ).filter(
+                model.customer_id == customer_id
+            )
+        ).scalars().one()
+        return ReposReturn(data=obj)
+    except Exception:
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_ID_NOT_EXIST,
+            loc=loc,
+            detail=f'{str(model.__tablename__)}_id is not exist'
+        )
