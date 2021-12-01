@@ -22,9 +22,6 @@ from app.utils.functions import dropdown, now
 
 
 async def repos_get_detail_contact_information(cif_id: str, session: Session) -> ReposReturn:
-    domestic_contact_information_detail = {
-        "resident_address": {}
-    }
     customer_addresses = session.execute(
         select(
             CustomerAddress,
@@ -51,7 +48,12 @@ async def repos_get_detail_contact_information(cif_id: str, session: Session) ->
         )
     ).all()
 
-    for customer_address, address_country, address_province, address_district, address_ward, _, _, _, _ in customer_addresses:
+    domestic_contact_information_detail = {
+        "resident_address": {}
+    }
+    for customer_address, address_country, address_province, address_district, address_ward, \
+            _, _, _, _ in customer_addresses:
+
         if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
             if customer_address.address_domestic_flag:
                 domestic_contact_information_detail["resident_address"].update({
@@ -62,30 +64,11 @@ async def repos_get_detail_contact_information(cif_id: str, session: Session) ->
                         "ward": dropdown(address_ward),
                         "number_and_street": customer_address.address
                     },
-                    "foreign_address": {
-                        "country": {
-                            "id": None,
-                            "code": None,
-                            "name": None
-                        },
-                        "address_1": None,
-                        "address_2": None,
-                        "province": {
-                            "id": None,
-                            "code": None,
-                            "name": None
-                        },
-                        "state": {
-                            "id": None,
-                            "code": None,
-                            "name": None
-                        },
-                        "zip_code": None
-                    }
+                    "foreign_address": None
                 })
             else:
-                print(address_country)
                 domestic_contact_information_detail["resident_address"].update({
+                    "domestic_address": None,
                     "foreign_address": {
                         "country": dropdown(address_country),
                         "address_1": customer_address.address,
@@ -93,29 +76,6 @@ async def repos_get_detail_contact_information(cif_id: str, session: Session) ->
                         "province": dropdown(address_province),
                         "state": dropdown(address_district),
                         "zip_code": customer_address.zip_code
-                    },
-                    "domestic_address": {
-                        "country": {
-                            "id": None,
-                            "code": None,
-                            "name": None
-                        },
-                        "number_and_street": None,
-                        "province": {
-                            "id": None,
-                            "code": None,
-                            "name": None
-                        },
-                        "district": {
-                            "id": None,
-                            "code": None,
-                            "name": None
-                        },
-                        "ward": {
-                            "id": None,
-                            "code": None,
-                            "name": None
-                        }
                     }
                 })
             domestic_contact_information_detail["resident_address"].update({

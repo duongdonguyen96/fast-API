@@ -32,8 +32,8 @@ class ResidentAddressContactInformationResponse(BaseSchema):
     domestic_flag: bool = Field(..., description="""Cờ địa chỉ trong nước
     \n`flag` = `True` => Địa chỉ trong nước
     \n`flag` = `False` => Địa chỉ nước ngoài""")
-    domestic_address: DomesticAddressResponse = Field(..., description="Địa chỉ trong nước")
-    foreign_address: ForeignAddressResponse = Field(..., description="Địa chỉ nước ngoài")
+    domestic_address: Optional[DomesticAddressResponse] = Field(..., description="Địa chỉ trong nước")
+    foreign_address: Optional[ForeignAddressResponse] = Field(..., description="Địa chỉ nước ngoài")
 
 
 class CareerInformationContactInformationResponse(BaseSchema):
