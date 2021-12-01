@@ -13,7 +13,7 @@ class TransactionDaily(Base):
     __table_args__ = {'comment': 'Giao dịch lưu hằng ngày'}
 
     transaction_id = Column(VARCHAR(36), primary_key=True, comment='ID chính')
-    transaction_state_id = Column(ForeignKey('crm_transaction_stage.transaction_stage_id'),
+    transaction_stage_id = Column(ForeignKey('crm_transaction_stage.transaction_stage_id'),
                                   comment='ID giao đoạn giao dịch')
     transaction_parent_id = Column(ForeignKey('crm_transaction_daily.transaction_id'), comment='ID parent')
     transaction_root_id = Column(VARCHAR(36), comment='Mã root')
@@ -31,7 +31,7 @@ class TransactionAll(Base):
     __table_args__ = {'comment': 'Lưu tất cả quan hệ thông tin liên quan giao dịch'}
 
     transaction_id = Column(VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='ID chính')
-    transaction_state_id = Column(ForeignKey('crm_transaction_stage.transaction_stage_id'), comment='ID State')
+    transaction_stage_id = Column(ForeignKey('crm_transaction_stage.transaction_stage_id'), comment='ID State')
     transaction_parent_id = Column(ForeignKey('crm_transaction_all.transaction_id'))
     transaction_root_id = Column(VARCHAR(36), comment='ID root')
     data = Column(NCLOB, comment='Dữ liệu')

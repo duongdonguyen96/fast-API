@@ -1,7 +1,16 @@
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.api.base.repository import ReposReturn
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerIdentityImage, CustomerSubIdentity
+)
+from app.third_parties.oracle.models.master_data.identity import (
+    CustomerSubIdentityType, PlaceOfIssue
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+from app.utils.functions import dropdown, now
 
 SUB_IDENTITY_INFO = [
     {
@@ -65,10 +74,38 @@ SUB_IDENTITY_LOGS_INFO = [
 ]
 
 
-async def repos_get_detail(cif_id: str):
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
-    return ReposReturn(data=SUB_IDENTITY_INFO)
+async def repos_get_detail_sub_identity(cif_id: str, session: Session):
+    sub_identities = session.execute(
+        select(
+            CustomerSubIdentity,
+            CustomerSubIdentityType,
+            PlaceOfIssue,
+            CustomerIdentityImage
+        )
+        .join(CustomerSubIdentityType, CustomerSubIdentity.sub_identity_type_id == CustomerSubIdentityType.id)
+        .join(PlaceOfIssue, CustomerSubIdentity.place_of_issue_id == PlaceOfIssue.id)
+        .join(CustomerIdentityImage, CustomerSubIdentity.id == CustomerIdentityImage.identity_id)
+        .filter(CustomerSubIdentity.customer_id == cif_id)
+    ).all()
+    data = []
+    for sub_identity, sub_identity_type, place_of_issue, customer_identity_image in sub_identities:
+        data.append({
+            "id": sub_identity.id,
+            "name": sub_identity.name,
+            "sub_identity_document_type": dropdown(sub_identity_type),
+            "sub_identity_document_image_url": customer_identity_image.image_url,
+            "ocr_result": {
+                "sub_identity_number": sub_identity.number,
+                "symbol": sub_identity.symbol,
+                "full_name_vn": sub_identity.full_name,
+                "date_of_birth": sub_identity.date_of_birth,
+                "passport_number": sub_identity.passport_number,
+                "place_of_issue": dropdown(place_of_issue),
+                "expired_date": sub_identity.sub_identity_expired_date,
+                "issued_date": sub_identity.issued_date
+            }
+        })
+    return ReposReturn(data=data)
 
 
 async def repos_save(cif_id, requests, created_by):
