@@ -219,13 +219,13 @@ async def repos_get_detail_contact_information(cif_id: str) -> ReposReturn:
 async def repos_save_contact_information(
     cif_id: str,
     customer_professional_id: str,
-    is_created: bool,
+    is_create: bool,
     resident_address,
     contact_address,
     career_information,
     session: Session
 ) -> ReposReturn:
-    if is_created:
+    if is_create:
         session.add_all([
             CustomerAddress(**resident_address),
             CustomerAddress(**contact_address),

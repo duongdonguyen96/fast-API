@@ -264,16 +264,16 @@ class CtrContactInformation(BaseController):
             career_information.update({
                 "id": customer_professional_id
             })
-            is_created = True
+            is_create = True
         # Nếu thông tin có trước ->  cập nhật
         else:
-            is_created = False
+            is_create = False
 
         contact_information_detail_data = self.call_repos(
             await repos_save_contact_information(
                 cif_id=cif_id,
                 customer_professional_id=customer_professional_id,
-                is_created=is_created,
+                is_create=is_create,
                 resident_address=resident_address,
                 contact_address=contact_address,
                 career_information=career_information,
