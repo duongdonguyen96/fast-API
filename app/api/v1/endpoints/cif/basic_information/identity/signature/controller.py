@@ -6,7 +6,7 @@ from app.api.v1.endpoints.cif.basic_information.identity.signature.schema import
     SignaturesRequest
 )
 from app.api.v1.endpoints.cif.repository import (
-    repos_get_initializing_customer, repos_get_last_identity
+    repos_get_customer_identity, repos_get_initializing_customer
 )
 from app.utils.constant.cif import (
     ACTIVE_FLAG_CREATE_SIGNATURE, IMAGE_TYPE_SIGNATURE
@@ -25,7 +25,7 @@ class CtrSignature(BaseController):
             )
         # check cif đang tạo
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
-        identity = self.call_repos(await repos_get_last_identity(cif_id=cif_id, session=self.oracle_session))
+        identity = self.call_repos(await repos_get_customer_identity(cif_id=cif_id, session=self.oracle_session))
 
         list_data_insert = [{
             'identity_id': identity.id,
