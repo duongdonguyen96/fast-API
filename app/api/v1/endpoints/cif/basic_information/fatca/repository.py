@@ -8,7 +8,9 @@ from app.third_parties.oracle.models.cif.basic_information.fatca.model import (
     CustomerFatca, CustomerFatcaDocument
 )
 from app.third_parties.oracle.models.master_data.others import FatcaCategory
-from app.utils.constant.cif import LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VI
+from app.utils.constant.cif import (
+    LANGUAGE_ID_EN, LANGUAGE_ID_VN, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VN
+)
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
 
@@ -99,15 +101,15 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
             if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
                 fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_EN] = document
 
-            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VI:
-                fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_VI] = document
+            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VN:
+                fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_VN] = document
 
     # TODO : xét cứng dữ liệu language -> chưa thấy table lưu
     en_documents = []
     vi_documents = []
     for fatca_category_id, fatca_category_data in fatca_information.items():
         en_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_EN)
-        vi_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_VI)
+        vi_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_VN)
 
         en_documents.append(
             {
@@ -132,15 +134,15 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
         "document_information": [
             {
                 "language_type": {
-                    "id": "1",
-                    "code": LANGUAGE_TYPE_VI,
+                    "id": LANGUAGE_ID_VN,
+                    "code": LANGUAGE_TYPE_VN,
                     "name": "VN"
                 },
                 "documents": vi_documents
             },
             {
                 "language_type": {
-                    "id": "2",
+                    "id": LANGUAGE_ID_EN,
                     "code": LANGUAGE_TYPE_EN,
                     "name": "EN"
                 },
