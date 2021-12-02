@@ -7,7 +7,6 @@ from app.api.v1.endpoints.cif.basic_information.fatca.schema import (
 )
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
 from app.third_parties.oracle.models.master_data.others import FatcaCategory
-from app.utils.constant.cif import ACTIVE_FLAG
 from app.utils.functions import generate_uuid, now
 
 
@@ -16,34 +15,30 @@ class CtrFatca(BaseController):
         # check cif đang tạo
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
 
-        # lấy list fatca_category_id request
+        # lấy list fatca_category_id trong fatca_information
         fatca_category_ids = []
         for fatca_id in fatca_request.fatca_information:
             fatca_category_ids.append(fatca_id.id)
 
-        # lấy list fatca_document
-        list_fatca_document = []
+        # lấy list fatca_category_id trong document_information
+        in_document_fatca_category_ids = []
         for document in fatca_request.document_information:
-            list_fatca_document.extend(document.documents)
+            for fatca_document in document.documents:
+                in_document_fatca_category_ids.append(fatca_document.id)
 
-        # lấy list fatca_document_id request
-        list_fatca_document_ids = []
-        for fatca_document in list_fatca_document:
-            list_fatca_document_ids.append(fatca_document.id)
-
-        # rule check document
+        # RULE: Nếu Fatca info chọn có thì phải có document gửi lên
         for fatca in fatca_request.fatca_information:
-            if fatca.select_flag is True and fatca.id not in list_fatca_document_ids:
+            if fatca.select_flag and fatca.id not in in_document_fatca_category_ids:
                 return self.response_exception(msg='', detail='fatca_information select_flag true if not document')
 
-        # tạo list fatca_category
-        fatca_category_ids.extend(list_fatca_document_ids)
+        fatca_category_ids.extend(in_document_fatca_category_ids)
 
         # check list id fatca_category có tồn tại hay không
         await self.get_model_objects_by_ids(
             model_ids=fatca_category_ids,
             model=FatcaCategory,
-            loc='list_fatca_id')
+            loc='list_fatca_id'
+        )
 
         fatca_category__customer_fatca_ids = {}
         for fatca in fatca_request.fatca_information:
@@ -67,7 +62,7 @@ class CtrFatca(BaseController):
                     "document_name": 'document_name',
                     "document_url": fatca_document.url,
                     "document_version": '1',
-                    "active_flag": ACTIVE_FLAG,
+                    "active_flag": 1,
                     'created_at': now(),
                     'order_no': None
                 })
