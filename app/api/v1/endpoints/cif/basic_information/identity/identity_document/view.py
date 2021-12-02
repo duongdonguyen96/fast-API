@@ -2,6 +2,7 @@ from typing import List, Union
 
 from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
+from starlette.requests import Request
 
 from app.api.base.schema import ResponseData
 from app.api.base.swagger import swagger_response
@@ -92,10 +93,18 @@ router_special = APIRouter()
     tags=['[CIF] I. TTCN']
 )
 async def view_save(
+        request: Request,
         identity_document_request: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest] = Body(
             ...
         ),
         current_user=Depends(get_current_user_from_header())
 ):
+    # Vì 2 Model CMND, CCCD có cùng dạng ở level 1 nên phải kiểm tra để parse data sang model chuẩn tránh việc nhầm lẫn
+    if isinstance(identity_document_request, IdentityCardSaveRequest):
+        request_body = await request.json()
+        request_body_identity_document_type_id = request_body['identity_document_type']['id']
+        if request_body_identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
+            identity_document_request = CitizenCardSaveRequest(**request_body)
+
     save_info = await CtrIdentityDocument(current_user).save_identity(identity_document_request)
     return ResponseData[SaveSuccessResponse](**save_info)

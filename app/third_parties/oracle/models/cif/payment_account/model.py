@@ -103,6 +103,3 @@ class JointAccountHolderAgreementAuthorization(Base):
     joint_account_holder_id = Column('joint_account_holder_id',
                                      ForeignKey('crm_joint_account_holder.joint_account_holder_id'),
                                      comment='Mã Thông tin đồng chủ sở hữu'),
-
-    agreement_authorization = relationship('AgreementAuthorization')
-    joint_account_holder = relationship('JointAccountHolder')

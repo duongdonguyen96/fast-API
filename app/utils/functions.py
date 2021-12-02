@@ -1,5 +1,6 @@
+import re
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from typing import Callable, Dict
 
 from app.settings.config import (
@@ -110,7 +111,14 @@ def process_generate_uuid(d):
         d.update({"uuid": generate_uuid()})
 
 
-# TODO: sửa lại hàm này, tính tuổi theo luật VN
-def calculate_age(birth_date: date, end_date: date = date.today()) -> float:
-    age_number = (end_date - birth_date) // timedelta(days=365.2425)
+# Tính tuổi theo luật VN
+def calculate_age(birth_date: date, end_date: date = date.today()) -> int:
+    ages = (end_date - birth_date)
+    age_number = int((ages.total_seconds()) / (365.242 * 24 * 3600))
     return age_number
+
+
+def is_valid_mobile_number(mobile_number: str) -> bool:
+    regex = r'0([0-9]{9})$'
+    found = re.match(regex, mobile_number)
+    return True if found else False

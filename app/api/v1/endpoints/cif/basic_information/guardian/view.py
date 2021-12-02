@@ -46,7 +46,7 @@ async def view_detail(
     name="5. Thông tin người giám hộ",
     description="Lưu",
     responses=swagger_response(
-        response_model=ResponseData[List[SaveGuardianRequest]],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     )
 )

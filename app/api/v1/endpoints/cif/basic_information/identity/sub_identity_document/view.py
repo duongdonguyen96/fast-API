@@ -27,12 +27,12 @@ router = APIRouter()
     )
 )
 async def view_save(
-        requests: List[SubIdentityDocumentRequest],
+        sub_identity_request: List[SubIdentityDocumentRequest],
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    save_info = await CtrSubIdentityDocument(current_user).save(
-        requests=requests,
+    save_info = await CtrSubIdentityDocument(current_user).save_sub_identity(
+        sub_identity_request=sub_identity_request,
         cif_id=cif_id
     )
     return ResponseData[SaveSuccessResponse](**save_info)
@@ -53,7 +53,7 @@ async def view_detail(
 ):
     ctr_sub_identity_document = CtrSubIdentityDocument(current_user)
 
-    detail_info = await ctr_sub_identity_document.get_detail(
+    detail_info = await ctr_sub_identity_document.get_detail_sub_identity(
         cif_id=cif_id
     )
     return ResponseData[List[SubIdentityDetailResponse]](**detail_info)

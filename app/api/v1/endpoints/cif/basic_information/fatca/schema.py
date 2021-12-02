@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -12,17 +12,19 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
 class CategoryDropdownRequest(DropdownRequest):
-    active_flag: bool = Field(False, description='`False`: Có. `True`: Không')
+    select_flag: bool = Field(False, description='`False`: Có. `True`: Không')
 
 
 class DocumentsRequest(BaseSchema):
-    id: str = Field(..., description='Mã biểu mẫu')
+    id: str = Field(..., description='Id của loại tài liệu')
     url: str = Field(..., description='Đường dẫn biểu mẫu')
-    version: str = Field(..., description='Phiên bản biểu mẫu')
-    content_type: str = Field(..., description='Loại biểu mẫu')
-    size: str = Field(..., description='Kích thước biểu mẫu')
-    folder_name: str = Field(..., description='Thư mục biểu mẫu')
-    note: str = Field(..., description='Mô tả biểu mẫu')
+    # version: str = Field(..., description='Phiên bản biểu mẫu') #TODO: gọi DMS
+    # name: str = Field(..., description='Tên biểu mẫu') #TODO: gọi DMS
+    # active_flag: bool = Field(..., description='Trạng thái hoạt động') #TODO: gọi DMS
+    # content_type: str = Field(..., description='Loại biểu mẫu') # TODO: chưa có chỗ lưu
+    # size: str = Field(..., description='Kích thước biểu mẫu') # TODO: chưa có chỗ lưu
+    # folder_name: str = Field(..., description='Thư mục biểu mẫu') # TODO: chưa có chỗ lưu
+    # note: str = Field(..., description='Mô tả biểu mẫu') # TODO: chưa có chỗ lưu
 
 
 class DocumentsListRequest(BaseSchema):
@@ -39,8 +41,11 @@ class FatcaRequest(BaseSchema):
 # Response
 ########################################################################################################################
 
-class CategoryDropdownResponse(DropdownResponse):
-    active_flag: bool = Field(False, description='`False`: Có. `True`: Không')
+class CategoryDropdownResponse(BaseSchema):
+    id: str = Field(..., description='`Chuỗi định danh` loại Fatca')
+    code: str = Field(..., description='`Mã` loại Fatca')
+    name: str = Field(..., description='`Tên` loại Fatca')
+    select_flag: bool = Field(False, description='`False`: Có. `True`: Không của loại Fatca')
 
 
 class DocumentsResponse(BaseSchema):
@@ -61,9 +66,16 @@ class DocumentsResponse(BaseSchema):
     note: str = Field(..., description='Mô tả biểu mẫu')
 
 
+class DocumentDependFatcaCategoryResponse(BaseSchema):
+    id: str = Field(..., description='`Chuỗi định danh` loại Fatca')
+    code: str = Field(..., description='`Mã` loại Fatca')
+    name: str = Field(..., description='`Tên` loại Fatca')
+    document: Optional[DocumentsResponse] = Field(..., description='Thông tin biểu mẫu `FATCA` tương ứng loại Fatca')
+
+
 class DocumentsListResponse(BaseSchema):
     language_type: DropdownResponse = Field(..., description='Ngôn ngữ biểu mẫu')
-    documents: List[DocumentsResponse] = Field(..., description='Thông tin biểu mẫu `FATCA`')
+    documents: List[DocumentDependFatcaCategoryResponse] = Field(..., description='Các tài liệu theo ngôn ngữ biểu mẫu')
 
 
 class FatcaResponse(BaseSchema):
