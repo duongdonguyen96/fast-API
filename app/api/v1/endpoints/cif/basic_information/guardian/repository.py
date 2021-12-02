@@ -5,7 +5,9 @@ from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.guardian_and_relationship.model import (
     CustomerPersonalRelationship
 )
-from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.constant.cif import (
+    CIF_ID_TEST, CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
+)
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
@@ -104,10 +106,16 @@ async def repos_save_guardians(
         cif_id: str,
         list_data_insert: list,
         created_by: str,
-        session: Session
+        session: Session,
+        relationship_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 ):
     # clear old data
-    session.execute(delete(CustomerPersonalRelationship).where(CustomerPersonalRelationship.customer_id == cif_id))
+    session.execute(delete(
+        CustomerPersonalRelationship
+    ).filter(
+        CustomerPersonalRelationship.customer_id == cif_id,
+        CustomerPersonalRelationship.type == relationship_type
+    ))
 
     data_insert = [CustomerPersonalRelationship(**guardian) for guardian in list_data_insert]
 

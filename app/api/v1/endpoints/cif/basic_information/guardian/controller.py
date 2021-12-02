@@ -10,7 +10,6 @@ from app.api.v1.endpoints.cif.basic_information.guardian.schema import (
 from app.api.v1.endpoints.cif.repository import (
     repos_get_customers_by_cif_numbers, repos_get_initializing_customer
 )
-from app.api.v1.endpoints.repository import repos_get_model_objects_by_ids
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerRelationshipType
 )
@@ -64,10 +63,9 @@ class CtrGuardian(BaseController):
         )
 
         # check relationship types exist
-        await repos_get_model_objects_by_ids(
+        await self.get_model_objects_by_ids(
             model=CustomerRelationshipType,
             model_ids=list(relationship_types),
-            session=self.oracle_session,
             loc="customer_relationship"
         )
 
