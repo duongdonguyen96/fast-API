@@ -1,8 +1,9 @@
-from typing import List
+from sqlalchemy import delete
+from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.basic_information.guardian.schema import (
-    SaveGuardianRequest
+from app.api.base.repository import ReposReturn, auto_commit
+from app.third_parties.oracle.models.cif.basic_information.guardian_and_relationship.model import (
+    CustomerPersonalRelationship
 )
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
@@ -98,13 +99,19 @@ async def repos_detail_guardian(cif_id: str):
     return ReposReturn(data=GUARDIAN_INFO_DETAIL)
 
 
-async def repos_save_guardian(
+@auto_commit
+async def repos_save_guardians(
         cif_id: str,
-        guardian_save_request: List[SaveGuardianRequest],
-        created_by
+        list_data_insert: list,
+        created_by: str,
+        session: Session
 ):
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    # clear old data
+    session.execute(delete(CustomerPersonalRelationship).where(CustomerPersonalRelationship.customer_id == cif_id))
+
+    data_insert = [CustomerPersonalRelationship(**guardian) for guardian in list_data_insert]
+
+    session.bulk_save_objects(data_insert)
 
     return ReposReturn(data={
         "cif_id": cif_id,
