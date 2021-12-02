@@ -53,7 +53,7 @@ async def view_detail(
 ):
     ctr_sub_identity_document = CtrSubIdentityDocument(current_user)
 
-    detail_info = await ctr_sub_identity_document.get_detail(
+    detail_info = await ctr_sub_identity_document.get_detail_sub_identity(
         cif_id=cif_id
     )
     return ResponseData[List[SubIdentityDetailResponse]](**detail_info)

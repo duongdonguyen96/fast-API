@@ -35,7 +35,7 @@ class CustomerFatcaDocument(Base):
     document_name = Column(VARCHAR(255), nullable=False, comment='Tên biểu mẫu')
     document_url = Column(VARCHAR(255), nullable=False, comment='Đường dẫn biểu mẫu')
     document_version = Column(VARCHAR(10), nullable=False, comment='Phiên bản biểu mẫu')
-    active_flag = Column(VARCHAR(20), nullable=False, comment='Trạng thái hoạt động')
+    active_flag = Column(NUMBER(1, 0, False), nullable=False, comment='Trạng thái hoạt động')
     created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
     order_no = Column(NUMBER(3, 0, False), comment='Sắp xếp')
 
