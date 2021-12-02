@@ -2,7 +2,7 @@ from typing import List
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.guardian.repository import (
-    repos_detail_guardian, repos_save_guardians
+    repos_get_guardians, repos_save_guardians
 )
 from app.api.v1.endpoints.cif.basic_information.guardian.schema import (
     SaveGuardianRequest
@@ -22,7 +22,11 @@ from app.utils.error_messages import (
 
 class CtrGuardian(BaseController):
     async def detail(self, cif_id: str):
-        detail_guardian_info = self.call_repos(await repos_detail_guardian(cif_id=cif_id))
+        detail_guardian_info = self.call_repos(
+            await repos_get_guardians(
+                session=self.oracle_session,
+                cif_id=cif_id
+            ))
 
         return self.response(data=detail_guardian_info)
 

@@ -6,7 +6,7 @@ from app.api.v1.endpoints.cif.basic_information.identity.fingerprint.schema impo
     TwoFingerPrintRequest
 )
 from app.api.v1.endpoints.cif.repository import (
-    repos_get_initializing_customer, repos_get_last_identity
+    repos_get_customer_identity, repos_get_initializing_customer
 )
 from app.third_parties.oracle.models.master_data.identity import (
     FingerType, HandSide
@@ -38,7 +38,7 @@ class CtrFingerPrint(BaseController):
         await self.get_model_objects_by_ids(model_ids=hand_side_ids, model=HandSide, loc='hand_side -> id')
         await self.get_model_objects_by_ids(model_ids=finger_type_ids, model=FingerType, loc='finger_type -> id')
 
-        identity = self.call_repos(await repos_get_last_identity(cif_id, self.oracle_session))
+        identity = self.call_repos(await repos_get_customer_identity(cif_id, self.oracle_session))
 
         list_data_insert = [{
             'identity_id': identity.id,
