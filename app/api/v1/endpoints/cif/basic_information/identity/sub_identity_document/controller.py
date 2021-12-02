@@ -51,14 +51,15 @@ class CtrSubIdentityDocument(BaseController):
         await self.get_model_objects_by_ids(model_ids=place_of_issue_ids, model=PlaceOfIssue,
                                             loc="ocr_result -> place_of_issue -> id")
 
-        old_sub_identities, old_sub_identity_images = self.call_repos(
+        old_sub_identities_and_sub_identity_images = self.call_repos(
             await repos_get_sub_identities_and_sub_identity_images(customer_id=cif_id, session=self.oracle_session)
         )
 
-        old_sub_identity_ids = [old_sub_identity.id for old_sub_identity in old_sub_identities]
+        old_sub_identity_ids = [old_sub_identity.id
+                                for old_sub_identity, _ in old_sub_identities_and_sub_identity_images]
 
         old_sub_identity_id__image_ids = {}
-        for old_sub_identity_image in old_sub_identity_images:
+        for _, old_sub_identity_image in old_sub_identities_and_sub_identity_images:
             old_sub_identity_id__image_ids[old_sub_identity_image.identity_id] = old_sub_identity_image.id
 
         saved_by = self.current_user.full_name_vn
@@ -134,7 +135,7 @@ class CtrSubIdentityDocument(BaseController):
                 create_sub_identity_images.append(customer_sub_identity_image)
 
         # những SubIdentity id tồn tại trong hệ thống mà không gửi lên -> xóa
-        for old_sub_identity in old_sub_identities:
+        for old_sub_identity, _ in old_sub_identities_and_sub_identity_images:
             if old_sub_identity.id not in update_sub_identities_ids:
                 delete_sub_identity_ids.append(old_sub_identity.id)
 
