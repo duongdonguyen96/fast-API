@@ -1,12 +1,16 @@
+import json
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import and_, select, update
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.base import Base
+from app.third_parties.oracle.models.cif.form.model import (
+    Booking, BookingCustomer, TransactionDaily
+)
 from app.utils.error_messages import ERROR_ID_NOT_EXIST
-from app.utils.functions import dropdown
+from app.utils.functions import dropdown, generate_uuid, now
 
 
 async def repos_get_model_object_by_id_or_code(model_id: Optional[str], model_code: Optional[str], model: Base,
@@ -89,3 +93,63 @@ async def repos_get_data_model_config(session: Session, model: Base, country_id:
     return ReposReturn(data=[
         dropdown(data) for data in list_data
     ])
+
+
+async def write_transaction_log_and_update_booking(description: str,
+                                                   log_data: json,
+                                                   session: Session,
+                                                   customer_id: Optional[str] = None,
+                                                   account_id: Optional[str] = None,
+                                                   ) -> Optional[ReposReturn]:
+    booking = session.execute(
+        select(
+            Booking
+        )
+        .join(
+            BookingCustomer, and_(
+                Booking.id == BookingCustomer.id,
+                BookingCustomer.customer_id == customer_id
+            )
+        )
+    ).scalar()
+
+    # TODO: BookingAccount
+    if not booking:
+        return ReposReturn(is_error=True, detail='Can not found booking', loc='cif_id')
+
+    # TODO: TransactionDaily có thể mai mốt bị gộp thành TransactionAll
+    previous_transaction = session.execute(
+        select(
+            TransactionDaily
+        ).filter(transaction_id=booking.transaction_id)
+    ).scalar()
+    if not previous_transaction:
+        return ReposReturn(is_error=True, detail='Can not found transaction', loc='cif_id')
+
+    # lưu log trong CRM_TRANSACTION_DAILY
+    transaction_id = generate_uuid()
+    session.add(
+        TransactionDaily(
+            transaction_id=transaction_id,
+            transaction_stage_id='BE_TEST',  # TODO
+            data=log_data,
+            transaction_parent_id=booking.transaction_id,
+            transaction_root_id=previous_transaction.transaction_root_id,
+            description=description,
+            created_at=now(),
+            updated_at=now()
+        )
+    )
+
+    # Cập nhật lại transaction_id trong Booking
+    session.execute(
+        update(
+            Booking
+        ).filter(
+            Booking.id == booking.id
+        ).values(
+            transaction_id=transaction_id
+        )
+    )
+
+    return None

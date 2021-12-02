@@ -1,9 +1,13 @@
-from typing import Optional
+import json
+from typing import List, Optional
 
 from sqlalchemy import and_, desc, select, update
 from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -30,8 +34,7 @@ from app.third_parties.oracle.models.master_data.identity import (
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     CIF_ID_TEST, CONTACT_ADDRESS_CODE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
-    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_IMAGE_FLAG_BACKSIDE,
-    IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
+    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
     RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
@@ -318,92 +321,82 @@ async def repos_get_list_log(cif_id: str) -> ReposReturn:
 ########################################################################################################################
 @auto_commit
 async def repos_save_identity(
+        identity_document_type_id: str,
         customer_id: Optional[str],
+        identity_id: Optional[str],
         saving_customer: dict,
         saving_customer_identity: dict,
         saving_customer_individual_info: dict,
-        saving_customer_resident_address: dict,
-        saving_customer_contact_address: dict,
-        save_by: str,
+        saving_customer_resident_address: Optional[dict],  # CMND, CCCD mới có
+        saving_customer_contact_address: Optional[dict],  # CMND, CCCD mới có
+        saving_customer_compare_image: dict,
+        saving_customer_identity_images: List[dict],
+        log_data: json,
         session: Session
 ):
-    # front_side_information_identity_image_url = identity_document_req.front_side_information.identity_image_url
-    # front_side_information_compare_image_url = identity_document_req.front_side_information.face_compare_image_url
-    # back_side_information_identity_image_url = identity_document_req.front_side_information.face_compare_image_url
 
-    # TODO: nếu là passport là kiểu khác
-    front_side_information_identity_image_url = None
-    front_side_information_compare_image_url = None
-    back_side_information_identity_image_url = None
+    new_first_identity_image_id = generate_uuid()  # ID ảnh mặt trước hoặc ảnh hộ chiếu
+    new_second_identity_image_id = generate_uuid()  # ID ảnh mặt sau
 
     # Tạo mới
     if not customer_id:
-        new_transaction_id = generate_uuid()
-        new_booking_id = generate_uuid()
         new_customer_id = generate_uuid()
         new_identity_id = generate_uuid()
-        new_front_side_identity_image_id = generate_uuid()
 
-        customer_id = new_customer_id
-
+        customer_id = new_customer_id  # Lấy id sau khi create thành công
+        # create new Customer
         saving_customer['id'] = new_customer_id
+        session.add(
+            Customer(**saving_customer)
+        )
 
+        # create new CustomerIndividualInfo
         saving_customer_individual_info['customer_id'] = new_customer_id
-        saving_customer_resident_address['customer_id'] = new_customer_id
-        saving_customer_contact_address['customer_id'] = new_customer_id
+        session.add(
+            CustomerIndividualInfo(**saving_customer_individual_info)
+        )
 
+        # create new CustomerIdentity
         saving_customer_identity['id'] = new_identity_id
         saving_customer_identity['customer_id'] = new_customer_id
+        session.add(
+            CustomerIdentity(**saving_customer_identity)
+        )
+        await create_customer_identity_image_and_customer_compare_image(
+            identity_id=new_identity_id,
+            new_first_identity_image_id=new_first_identity_image_id,
+            new_second_identity_image_id=new_second_identity_image_id,
+            saving_customer_identity_images=saving_customer_identity_images,
+            saving_customer_compare_image=saving_customer_compare_image,
+            session=session
+        )
 
+        if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            # create new CustomerAddress for resident address
+            saving_customer_resident_address['customer_id'] = new_customer_id
+            session.add(
+                CustomerAddress(**saving_customer_resident_address)
+            )
+
+            # create new CustomerAddress for contact address
+            saving_customer_contact_address['customer_id'] = new_customer_id
+            session.add(
+                CustomerAddress(**saving_customer_contact_address)
+            )
+
+        new_transaction_id = generate_uuid()
+        new_booking_id = generate_uuid()
+
+        # create booking & log
         session.add_all([
-            Customer(**saving_customer),
-            CustomerIdentity(**saving_customer_identity),
-            CustomerIdentityImage(
-                id=new_front_side_identity_image_id,
-                identity_id=new_identity_id,
-                image_type_id=IMAGE_TYPE_CODE_IDENTITY,
-                image_url=front_side_information_identity_image_url,
-                hand_side_id=None,
-                finger_type_id=None,
-                vector_data=None,
-                active_flag=True,
-                maker_id=save_by,
-                maker_at=now(),
-                updater_id=save_by,
-                updater_at=now(),
-                identity_image_front_flag=IDENTITY_IMAGE_FLAG_FRONT_SIDE
-            ),
-            CustomerIndividualInfo(**saving_customer_individual_info),
-            CustomerAddress(**saving_customer_resident_address),
-            CustomerAddress(**saving_customer_contact_address),
-            CustomerCompareImage(
-                identity_id=new_identity_id,
-                identity_image_id=new_front_side_identity_image_id,
-                compare_image_url=front_side_information_compare_image_url,
-                similar_percent=00,
-                maker_id=save_by,
-                maker_at=now()
-            ),
-            CustomerIdentityImage(
-                identity_id=new_identity_id,
-                image_type_id=IMAGE_TYPE_CODE_IDENTITY,
-                image_url=back_side_information_identity_image_url,
-                hand_side_id=None,
-                finger_type_id=None,
-                vector_data=None,
-                active_flag=True,
-                maker_id=save_by,
-                maker_at=now(),
-                updater_id=save_by,
-                updater_at=now(),
-                identity_image_front_flag=IDENTITY_IMAGE_FLAG_BACKSIDE
-            ),
-
             # Tạo BOOKING, CRM_TRANSACTION_DAILY -> CRM_BOOKING -> BOOKING_CUSTOMER -> BOOKING_BUSSINESS_FORM
             TransactionDaily(
                 transaction_id=new_transaction_id,
-                data=None,
+                transaction_stage_id='BE_TEST',  # TODO
+                data=log_data,
+                transaction_root_id=new_transaction_id,
                 description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Tạo mới",
+                created_at=now(),
                 updated_at=now()
             ),
             Booking(
@@ -425,46 +418,133 @@ async def repos_save_identity(
             )
         ])
 
+    # TODO: Lưu Log lịch sử thay đổi GTDD
+
     # Update
     else:
         # Cập nhật 1 cif_number đã tồn tại
-        saving_customer_identity.update({"customer_id": customer_id})
+        saving_customer_identity.update({
+            "id": identity_id,
+            "customer_id": customer_id
+        })
         saving_customer_individual_info.update({"customer_id": customer_id})
-        saving_customer_resident_address.update({"customer_id": customer_id})
-        saving_customer_contact_address.update({"customer_id": customer_id})
 
-        session.execute(update(Customer).where(
+        session.execute(update(Customer).filter(
             Customer.id == customer_id
         ).values(**saving_customer))
-        # TODO: cần check lại tạo một dòng hay tạo mới nhiều dòng customer_identity
-        session.execute(update(CustomerIdentity).where(
+
+        session.execute(update(CustomerIdentity).filter(
             CustomerIdentity.customer_id == customer_id
         ).values(saving_customer_identity))
-        session.execute(update(CustomerIndividualInfo).where(
+
+        session.execute(update(CustomerIndividualInfo).filter(
             CustomerIndividualInfo.customer_id == customer_id
         ).values(saving_customer_individual_info))
-        session.execute(update(CustomerAddress).where(and_(
-            CustomerAddress.customer_id == customer_id,
-            CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE,
-        )).values(saving_customer_resident_address))
-        session.execute(update(CustomerAddress).where(and_(
-            CustomerAddress.customer_id == customer_id,
-            CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE,
-        )).values(saving_customer_contact_address))
 
-        # TODO cập nhật lại transaction_id trong Booking
-        # lưu log trong CRM_TRANSACTION_DAILY
-        transaction_id = generate_uuid()
-        session.add(
-            TransactionDaily(
-                transaction_id=transaction_id,
-                data=None,
-                description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
-                updated_at=now()
-            )
+        # Passport thì không có địa chỉ
+        if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            saving_customer_resident_address.update({"customer_id": customer_id})
+            saving_customer_contact_address.update({"customer_id": customer_id})
+
+            session.execute(update(CustomerAddress).filter(and_(
+                CustomerAddress.customer_id == customer_id,
+                CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE,
+            )).values(saving_customer_resident_address))
+            session.execute(update(CustomerAddress).filter(and_(
+                CustomerAddress.customer_id == customer_id,
+                CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE,
+            )).values(saving_customer_contact_address))
+
+        # ảnh chụp giấy tờ
+        saving_customer_compare_image['identity_id'] = identity_id
+
+        for saving_customer_identity_image in saving_customer_identity_images:
+            saving_customer_identity_image['identity_id'] = identity_id
+
+        await create_customer_identity_image_and_customer_compare_image(
+            identity_id=identity_id,
+            new_first_identity_image_id=new_first_identity_image_id,
+            new_second_identity_image_id=new_second_identity_image_id,
+            saving_customer_identity_images=saving_customer_identity_images,
+            saving_customer_compare_image=saving_customer_compare_image,
+            session=session
         )
+
+        await write_transaction_log_and_update_booking(
+            description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
+            log_data=log_data,
+            session=session,
+            customer_id=customer_id
+        )
+
+    # TODO: Lưu Log lịch sử thay đổi GTDD
 
     return ReposReturn(data={
         "cif_id": customer_id
     })
 ########################################################################################################################
+
+
+########################################################################################################################
+# Repo khác
+########################################################################################################################
+async def repos_get_identity_information(customer_id: str, session: Session):
+    identities = session.execute(
+        select(
+            Customer,
+            CustomerIdentity,
+            CustomerIndividualInfo,
+            CustomerAddress
+        )
+        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+        .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .filter(Customer.id == customer_id)
+    ).all()
+
+    if not identities:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    customer, customer_identity, customer_individual_info, _ = identities[0]
+    customer_resident_address: Optional[CustomerAddress] = None
+    customer_contact_address: Optional[CustomerAddress] = None
+    for _, _, _, customer_address in identities:
+        if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
+            customer_resident_address = customer_address
+        if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
+            customer_contact_address = customer_address
+
+    return ReposReturn(data=(
+        customer, customer_identity, customer_individual_info, customer_resident_address, customer_contact_address
+    ))
+
+
+async def create_customer_identity_image_and_customer_compare_image(
+    identity_id,
+    new_first_identity_image_id,
+    new_second_identity_image_id,
+    saving_customer_identity_images,
+    saving_customer_compare_image,
+    session: Session
+):
+    # create new CustomerIdentityImage ảnh mặt trước hoặc hộ chiếu
+    saving_customer_identity_images[0]['id'] = new_first_identity_image_id
+    saving_customer_identity_images[0]['identity_id'] = identity_id
+    session.add(
+        CustomerIdentityImage(**saving_customer_identity_images[0])
+    )
+    # create new CustomerIdentityImage ảnh mặt sau
+    if len(saving_customer_identity_images) > 1:
+        saving_customer_identity_images[1]['id'] = new_second_identity_image_id
+        saving_customer_identity_images[1]['identity_id'] = identity_id
+        session.add(
+            CustomerIdentityImage(**saving_customer_identity_images[1])
+        )
+    # create new CustomerCompareImage
+    saving_customer_compare_image['identity_id'] = identity_id
+    saving_customer_compare_image['identity_image_id'] = new_first_identity_image_id
+    session.add(
+        CustomerCompareImage(**saving_customer_compare_image)
+    )
+
+    return None
