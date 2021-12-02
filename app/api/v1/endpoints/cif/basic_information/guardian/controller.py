@@ -15,7 +15,9 @@ from app.third_parties.oracle.models.master_data.customer import (
     CustomerRelationshipType
 )
 from app.utils.constant.cif import CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
-from app.utils.error_messages import ERROR_RELATION_CUSTOMER_SELF_RELATED
+from app.utils.error_messages import (
+    ERROR_CIF_NUMBER_DUPLICATED, ERROR_RELATION_CUSTOMER_SELF_RELATED
+)
 
 
 class CtrGuardian(BaseController):
@@ -40,9 +42,14 @@ class CtrGuardian(BaseController):
             relationship_types.add(guardian.customer_relationship.id)
 
         # check duplicate cif_number in request body
+        if len(guardian_cif_numbers) != len(set(guardian_cif_numbers)):
+            return self.response_exception(
+                msg=ERROR_CIF_NUMBER_DUPLICATED,
+                loc="cif_number",
+            )
+
         # check if it relates to itself
-        if len(guardian_cif_numbers) != len(
-                set(guardian_cif_numbers)) or current_customer.cif_number in guardian_cif_numbers:
+        if current_customer.cif_number in guardian_cif_numbers:
             return self.response_exception(
                 msg=ERROR_RELATION_CUSTOMER_SELF_RELATED,
                 loc="cif_number",
@@ -57,13 +64,11 @@ class CtrGuardian(BaseController):
         )
 
         # check relationship types exist
-        self.call_repos(
-            await repos_get_model_objects_by_ids(
-                model=CustomerRelationshipType,
-                model_ids=list(relationship_types),
-                session=self.oracle_session,
-                loc="customer_relationship"
-            )
+        await repos_get_model_objects_by_ids(
+            model=CustomerRelationshipType,
+            model_ids=list(relationship_types),
+            session=self.oracle_session,
+            loc="customer_relationship"
         )
 
         guardians_cif_number__id = {}
