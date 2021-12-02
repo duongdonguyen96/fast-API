@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -49,11 +49,14 @@ class LogResponse(BaseSchema):
 ########################################################################################################################
 # Request Body Lưu GTĐD phụ -> Phân tích OCR
 class SubIdentityOCRResultRequest(SubIdentityOCRResultResponse):
-    province: DropdownRequest = Field(..., description="Quốc gia")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
 
 
 # Request Body Lưu GTĐD phụ
-class SubIdentityDocumentRequest(SubIdentityDetailResponse):
+class SubIdentityDocumentRequest(BaseSchema):
+    id: Optional[str] = Field(..., description="ID GTĐD phụ, nếu có gửi lên id là chỉnh sửa, không gửi lên id là tạo "
+                                               "mới, những id có tồn tại trong hệ thống nhưng không gửi lên là bị xóa")
+    name: str = Field(..., description="Tên GTĐD phụ")
+    sub_identity_document_image_url: str = Field(..., description="I. Thông tin giấy tờ")
     sub_identity_document_type: DropdownRequest = Field(..., description="Loại GTĐD phụ")
     ocr_result: SubIdentityOCRResultRequest = Field(..., description="II. Phân tích OCR")
