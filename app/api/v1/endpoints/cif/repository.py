@@ -220,7 +220,7 @@ async def repos_customer_information(cif_id: str) -> ReposReturn:
     })
 
 
-async def repos_get_last_identity(cif_id: str, session: Session):
+async def repos_get_customer_identity(cif_id: str, session: Session):
     identity = session.execute(
         select(
             CustomerIdentity
