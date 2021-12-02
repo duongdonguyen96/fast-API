@@ -1,29 +1,52 @@
-from sqlalchemy import and_, select
+from typing import List
+
+from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.basic_information.fatca.schema import (
-    FatcaRequest
-)
+from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.fatca.model import (
     CustomerFatca, CustomerFatcaDocument
 )
 from app.third_parties.oracle.models.master_data.others import FatcaCategory
 from app.utils.constant.cif import (
-    CIF_ID_TEST, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VI
+    LANGUAGE_ID_EN, LANGUAGE_ID_VN, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VN
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
 
 
-async def repos_save_fatca(cif_id: str, fatca: FatcaRequest, created_by: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+@auto_commit
+async def repos_save_fatca_document(
+        cif_id: str,
+        list_data_insert_fatca_document: List,
+        list_data_insert_fatca: List,
+        session: Session,
+) -> ReposReturn:
+    # list fatca_id cần xóa trong bảng fatca_document
+    customer_fatca_id = session.execute(
+        select(
+            CustomerFatca.id
+        ).filter(CustomerFatca.customer_id == cif_id)
+    ).scalars().all()
+
+    session.execute(
+        delete(
+            CustomerFatcaDocument
+        ).filter(CustomerFatcaDocument.customer_fatca_id.in_(customer_fatca_id))
+    )
+    session.execute(
+        delete(
+            CustomerFatca
+        ).filter(CustomerFatca.customer_id == cif_id)
+    )
+
+    fatca_data = [CustomerFatca(**data_insert) for data_insert in list_data_insert_fatca]
+    session.bulk_save_objects(fatca_data)
+
+    fatca_document_data = [CustomerFatcaDocument(**data_insert) for data_insert in list_data_insert_fatca_document]
+    session.bulk_save_objects(fatca_document_data)
 
     return ReposReturn(data={
-        "cif_id": cif_id,
-        "created_at": now(),
-        "created_by": created_by
+        "cif_id": cif_id
     })
 
 
@@ -78,15 +101,15 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
             if customer_fatca_document.document_language_type == LANGUAGE_TYPE_EN:
                 fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_EN] = document
 
-            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VI:
-                fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_VI] = document
+            if customer_fatca_document.document_language_type == LANGUAGE_TYPE_VN:
+                fatca_information[fatca_category.id]["document_depend_language"][LANGUAGE_TYPE_VN] = document
 
     # TODO : xét cứng dữ liệu language -> chưa thấy table lưu
     en_documents = []
     vi_documents = []
     for fatca_category_id, fatca_category_data in fatca_information.items():
         en_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_EN)
-        vi_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_VI)
+        vi_document = fatca_category_data['document_depend_language'].get(LANGUAGE_TYPE_VN)
 
         en_documents.append(
             {
@@ -111,17 +134,17 @@ async def repos_get_fatca_data(cif_id: str, session: Session) -> ReposReturn:
         "document_information": [
             {
                 "language_type": {
-                    "id": "1",
-                    "code": LANGUAGE_TYPE_VI,
-                    "name": "vn"
+                    "id": LANGUAGE_ID_VN,
+                    "code": LANGUAGE_TYPE_VN,
+                    "name": "VN"
                 },
                 "documents": vi_documents
             },
             {
                 "language_type": {
-                    "id": "2",
+                    "id": LANGUAGE_ID_EN,
                     "code": LANGUAGE_TYPE_EN,
-                    "name": "en"
+                    "name": "EN"
                 },
                 "documents": en_documents
             }

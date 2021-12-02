@@ -16,13 +16,15 @@ class CategoryDropdownRequest(DropdownRequest):
 
 
 class DocumentsRequest(BaseSchema):
-    id: str = Field(..., description='Mã biểu mẫu')
+    id: str = Field(..., description='Id của loại tài liệu')
     url: str = Field(..., description='Đường dẫn biểu mẫu')
-    version: str = Field(..., description='Phiên bản biểu mẫu')
-    content_type: str = Field(..., description='Loại biểu mẫu')
-    size: str = Field(..., description='Kích thước biểu mẫu')
-    folder_name: str = Field(..., description='Thư mục biểu mẫu')
-    note: str = Field(..., description='Mô tả biểu mẫu')
+    # version: str = Field(..., description='Phiên bản biểu mẫu') #TODO: gọi DMS
+    # name: str = Field(..., description='Tên biểu mẫu') #TODO: gọi DMS
+    # active_flag: bool = Field(..., description='Trạng thái hoạt động') #TODO: gọi DMS
+    # content_type: str = Field(..., description='Loại biểu mẫu') # TODO: chưa có chỗ lưu
+    # size: str = Field(..., description='Kích thước biểu mẫu') # TODO: chưa có chỗ lưu
+    # folder_name: str = Field(..., description='Thư mục biểu mẫu') # TODO: chưa có chỗ lưu
+    # note: str = Field(..., description='Mô tả biểu mẫu') # TODO: chưa có chỗ lưu
 
 
 class DocumentsListRequest(BaseSchema):
