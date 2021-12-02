@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -13,7 +13,7 @@ from app.api.v1.schemas.utils import DropdownRequest
 # Thông tin người giám hộ -> Danh sách người giám hộ
 class GuardianResponse(RelationshipResponse):
     id: str = Field(..., description="ID người giám hộ")
-    avatar_url: str = Field(..., description="URL avatar người giám hộ")
+    avatar_url: Optional[str] = Field(..., description="URL avatar người giám hộ")
 
 
 # Thông tin người giám hộ
