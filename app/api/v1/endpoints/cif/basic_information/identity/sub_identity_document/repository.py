@@ -116,33 +116,30 @@ async def repos_get_detail_sub_identity(cif_id: str, session: Session):
 @auto_commit
 async def repos_save_sub_identity(
         customer: Customer,
-        delete_sub_identity_list_ids: List,
-        create_sub_identity_list: List,
-        create_sub_identity_image_list: List,
-        update_sub_identity_list: List,
-        update_sub_identity_image_list: List,
+        delete_sub_identity_ids: List,
+        create_sub_identities: List,
+        create_sub_identity_images: List,
+        update_sub_identities: List,
+        update_sub_identity_images: List,
         session: Session
 ):
 
     # Xóa
-    if delete_sub_identity_list_ids:
-        session.execute(delete(CustomerIdentityImage).filter(
-            and_(
-                CustomerIdentityImage.identity_id.in_(delete_sub_identity_list_ids),
-                CustomerIdentityImage.image_type_id == IMAGE_TYPE_CODE_SUB_IDENTITY
-            )
-        ))
+    if delete_sub_identity_ids:
         session.execute(delete(CustomerSubIdentity).filter(
-            CustomerSubIdentity.id.in_(delete_sub_identity_list_ids)
+            CustomerSubIdentity.id.in_(delete_sub_identity_ids)
         ))
 
     # Tạo giấy tờ định danh phụ
-    session.bulk_save_objects(create_sub_identity_list)
-    session.bulk_save_objects(create_sub_identity_image_list)
+    session.bulk_save_objects([CustomerSubIdentity(**customer_sub_identity)
+                               for customer_sub_identity in create_sub_identities])
+
+    session.bulk_save_objects([CustomerIdentityImage(**create_sub_identity_image)
+                               for create_sub_identity_image in create_sub_identity_images])
 
     # Cập nhật
-    session.bulk_update_mappings(CustomerSubIdentity, update_sub_identity_list)
-    session.bulk_update_mappings(CustomerIdentityImage, update_sub_identity_image_list)
+    session.bulk_update_mappings(CustomerSubIdentity, update_sub_identities)
+    session.bulk_update_mappings(CustomerIdentityImage, update_sub_identity_images)
 
     return ReposReturn(data={
         "cif_id": customer.id
