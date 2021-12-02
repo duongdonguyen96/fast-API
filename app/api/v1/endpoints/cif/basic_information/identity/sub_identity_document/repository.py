@@ -125,23 +125,24 @@ async def repos_save_sub_identity(
 ):
 
     # Xóa
-    session.execute(delete(CustomerIdentityImage).filter(
-        and_(
-            CustomerIdentityImage.identity_id.in_(delete_sub_identity_list_ids),
-            CustomerIdentityImage.image_type_id == IMAGE_TYPE_CODE_SUB_IDENTITY
-        )
-    ))
-    session.execute(delete(CustomerSubIdentity).filter(
-        CustomerSubIdentity.id.in_(delete_sub_identity_list_ids)
-    ))
+    if delete_sub_identity_list_ids:
+        session.execute(delete(CustomerIdentityImage).filter(
+            and_(
+                CustomerIdentityImage.identity_id.in_(delete_sub_identity_list_ids),
+                CustomerIdentityImage.image_type_id == IMAGE_TYPE_CODE_SUB_IDENTITY
+            )
+        ))
+        session.execute(delete(CustomerSubIdentity).filter(
+            CustomerSubIdentity.id.in_(delete_sub_identity_list_ids)
+        ))
 
     # Tạo giấy tờ định danh phụ
     session.bulk_save_objects(create_sub_identity_list)
     session.bulk_save_objects(create_sub_identity_image_list)
 
     # Cập nhật
-    session.bulk_save_objects(update_sub_identity_list)
-    session.bulk_save_objects(update_sub_identity_image_list)
+    session.bulk_update_mappings(CustomerSubIdentity, update_sub_identity_list)
+    session.bulk_update_mappings(CustomerIdentityImage, update_sub_identity_image_list)
 
     return ReposReturn(data={
         "cif_id": customer.id
@@ -158,12 +159,19 @@ async def repos_get_list_log(cif_id: str) -> ReposReturn:
 ########################################################################################################################
 # Other
 ########################################################################################################################
-async def repos_get_sub_identities(customer_id: str, session: Session):
+async def repos_get_sub_identities_and_sub_identity_images(customer_id: str, session: Session):
     sub_identities = session.execute(
         select(
-            CustomerSubIdentity
-        ).filter(
+            CustomerSubIdentity,
+            CustomerIdentityImage
+        )
+        .join(CustomerIdentityImage, and_(
+            CustomerSubIdentity.id == CustomerIdentityImage.identity_id,
+            CustomerIdentityImage.image_type_id == IMAGE_TYPE_CODE_SUB_IDENTITY
+        ))
+        .filter(
             CustomerSubIdentity.customer_id == customer_id
         )
-    ).scalars()
+    ).all()
+
     return ReposReturn(data=sub_identities)

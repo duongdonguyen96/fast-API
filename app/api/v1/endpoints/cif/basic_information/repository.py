@@ -1,12 +1,4 @@
-from typing import List, Set
-
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.api.base.repository import ReposReturn
-from app.third_parties.oracle.models.master_data.identity import (
-    CustomerSubIdentityType, PlaceOfIssue
-)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
@@ -92,29 +84,3 @@ async def repos_detail_relationship(cif_id: str, cif_number_need_to_find: str):
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
     return ReposReturn(data=DETAIL_RELATIONSHIP_DATA)
-
-
-async def repos_get_identity_document_types(sub_identity_type_ids: List[str], session: Session):
-    crm_sub_identity_types = session.execute(
-        select(
-            CustomerSubIdentityType
-        ).filter(CustomerSubIdentityType.code.in_(sub_identity_type_ids))
-    ).scalars().all()
-
-    if len(crm_sub_identity_types) != len(sub_identity_type_ids):
-        return ReposReturn(is_error=True, detail="Sub Identity Type is not exist", loc="sub_identity_type_id")
-
-    return ReposReturn(data=crm_sub_identity_types)
-
-
-async def repos_get_place_of_issue(place_of_issue_ids: Set[str], session: Session):
-    crm_place_of_issues = session.execute(
-        select(
-            PlaceOfIssue
-        ).filter(PlaceOfIssue.id.in_(place_of_issue_ids))
-    ).scalars().all()
-
-    if len(crm_place_of_issues) != len(place_of_issue_ids):
-        return ReposReturn(is_error=True, detail="Place Of Issue is not exist", loc="place_of_issue_id")
-
-    return ReposReturn(data=crm_place_of_issues)
