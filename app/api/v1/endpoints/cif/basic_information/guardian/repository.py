@@ -202,10 +202,16 @@ async def repos_save_guardians(
         cif_id: str,
         list_data_insert: list,
         created_by: str,
-        session: Session
+        session: Session,
+        relationship_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 ):
     # clear old data
-    session.execute(delete(CustomerPersonalRelationship).where(CustomerPersonalRelationship.customer_id == cif_id))
+    session.execute(delete(
+        CustomerPersonalRelationship
+    ).filter(
+        CustomerPersonalRelationship.customer_id == cif_id,
+        CustomerPersonalRelationship.type == relationship_type
+    ))
 
     data_insert = [CustomerPersonalRelationship(**guardian) for guardian in list_data_insert]
 
