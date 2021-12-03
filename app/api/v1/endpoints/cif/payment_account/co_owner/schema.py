@@ -11,7 +11,8 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 ############################################################
 
 
-class SignatureResponse(DropdownResponse):
+class SignatureResponse(BaseSchema):
+    id: str = Field(..., description='Id hình ảnh định danh')
     image_url: str = Field(..., description='Hình ảnh mẫu chữ ký')
 
 
@@ -29,13 +30,14 @@ class BasicInformationResponse(BaseSchema):
 
 class IdentityDocumentResponse(BaseSchema):
     identity_number: str = Field(..., description='Số CMND/CCCD/HC')
+    identity_type: DropdownResponse = Field(..., description='Loại giấy tờ định danh')
     issued_date: date = Field(..., description='Ngày cấp')
     expired_date: date = Field(..., description='Ngày hết hạn')
     place_of_issue: DropdownResponse = Field(..., description='Nơi cấp')
 
 
 class AddressInformationResponse(BaseSchema):
-    content_address: str = Field(..., description='Địa chỉ liên hệ')
+    contact_address: str = Field(..., description='Địa chỉ liên hệ')
     resident_address: str = Field(..., description='Địa chỉ thường trú')
 
 
