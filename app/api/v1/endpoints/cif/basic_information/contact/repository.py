@@ -112,44 +112,44 @@ async def repos_save_contact_information(
     cif_id: str,
     customer_professional_id: str,
     is_create: bool,
-    resident_address: dict,
-    contact_address: dict,
-    career_information: dict,
+    saving_resident_address: dict,
+    saving_contact_address: dict,
+    saving_career_information: dict,
     log_data: json,
     session: Session
 ) -> ReposReturn:
     if is_create:
-        if resident_address and contact_address:
+        if saving_resident_address and saving_contact_address:
             session.add_all([
-                CustomerAddress(**resident_address),
-                CustomerAddress(**contact_address),
+                CustomerAddress(**saving_resident_address),
+                CustomerAddress(**saving_contact_address),
             ])
 
-        session.add(CustomerProfessional(**career_information))
+        session.add(CustomerProfessional(**saving_career_information))
         # Cập nhật lại thông tin nghề nghiệp khách hàng
         session.execute(
             update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
         )
     else:
-        if resident_address and contact_address:
+        if saving_resident_address and saving_contact_address:
             session.execute(
                 update(CustomerAddress).where(and_(
                     CustomerAddress.customer_id == cif_id,
                     CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE
-                )).values(**resident_address)
+                )).values(**saving_resident_address)
             )
 
             session.execute(
                 update(CustomerAddress).where(and_(
                     CustomerAddress.customer_id == cif_id,
                     CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE
-                )).values(**contact_address)
+                )).values(**saving_contact_address)
             )
 
         session.execute(
             update(CustomerProfessional).where(and_(
                 CustomerProfessional.id == customer_professional_id,
-            )).values(**career_information)
+            )).values(**saving_career_information)
         )
 
         # update booking & log
@@ -184,16 +184,3 @@ async def repos_get_customer_professional(cif_id: str, session: Session):
         ))
     ).scalars().first()
     return ReposReturn(data=customer_professional)
-
-
-async def repos_get_career_information(cif_id: str, session: Session):
-    career_information = session.execute(
-        select(
-            CustomerProfessional
-        )
-        .join(Customer, and_(
-            CustomerProfessional.id == Customer.customer_professional_id,
-            Customer.id == cif_id
-        ))
-    ).scalars().first()
-    return ReposReturn(data=career_information)
