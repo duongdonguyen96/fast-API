@@ -156,51 +156,53 @@ async def repos_get_guardians(
     ).all()
 
     # vì join với address bị lặp dữ liệu nên cần tạo dict địa chỉ dựa trên id để trả về
-    guardians_info = {}
+    guardian_id__infos = {}
     for guardian in guardians:
+        if not guardian_id__infos.get(guardian.id):
+            guardian_id__infos[guardian.id] = {
+                "guardian": guardian,
+                "contact_address": None,
+                "resident_address": None,
+            }
         address = {
             "province": dropdown(guardian.AddressProvince),
             "district": dropdown(guardian.AddressDistrict),
             "ward": dropdown(guardian.AddressWard),
             "number_and_street": guardian.CustomerAddress.address
         }
-        if not guardians_info.get(guardian.id):
-            guardians_info[guardian.id] = {
-                "guardian": guardian,
-                "contact_address": None,
-                "resident_address": address,
-            }
         if guardian.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
-            guardians_info[guardian.id]["contact_address"] = address
+            guardian_id__infos[guardian.id]["contact_address"] = address
+        else:
+            guardian_id__infos[guardian.id]["resident_address"] = address
 
     return ReposReturn(data={
-        "guardian_flag": True if guardians else False,
-        "number_of_guardian": len(guardians),
+        "guardian_flag": True if guardian_id__infos else False,
+        "number_of_guardian": len(guardian_id__infos),
         "guardians": [{
-            "id": guardian["guardian"].id,
-            "avatar_url": guardian["guardian"].avatar_url,
+            "id": info["guardian"].id,
+            "avatar_url": info["guardian"].avatar_url,
             "basic_information": {
-                "cif_number": guardian["guardian"].cif_number,
-                "customer_relationship": dropdown(guardian["guardian"].CustomerRelationshipType),
-                "full_name_vn": guardian["guardian"].full_name_vn,
-                "date_of_birth": guardian["guardian"].CustomerIndividualInfo.date_of_birth,
-                "gender": dropdown(guardian["guardian"].CustomerGender),
-                "nationality": dropdown(guardian["guardian"].AddressCountry),
-                "telephone_number": guardian["guardian"].telephone_number,
-                "mobile_number": guardian["guardian"].mobile_number,
-                "email": guardian["guardian"].email,
+                "cif_number": info["guardian"].cif_number,
+                "customer_relationship": dropdown(info["guardian"].CustomerRelationshipType),
+                "full_name_vn": info["guardian"].full_name_vn,
+                "date_of_birth": info["guardian"].CustomerIndividualInfo.date_of_birth,
+                "gender": dropdown(info["guardian"].CustomerGender),
+                "nationality": dropdown(info["guardian"].AddressCountry),
+                "telephone_number": info["guardian"].telephone_number,
+                "mobile_number": info["guardian"].mobile_number,
+                "email": info["guardian"].email,
             },
             "identity_document": {
-                "identity_number": guardian["guardian"].CustomerIdentity.identity_num,
-                "issued_date": guardian["guardian"].CustomerIdentity.issued_date,
-                "place_of_issue": dropdown(guardian["guardian"].PlaceOfIssue),
-                "expired_date": guardian["guardian"].CustomerIdentity.expired_date
+                "identity_number": info["guardian"].CustomerIdentity.identity_num,
+                "issued_date": info["guardian"].CustomerIdentity.issued_date,
+                "place_of_issue": dropdown(info["guardian"].PlaceOfIssue),
+                "expired_date": info["guardian"].CustomerIdentity.expired_date
             },
             "address_information": {
-                "contact_address": guardian["contact_address"],
-                "resident_address": guardian["resident_address"],
+                "contact_address": info["contact_address"],
+                "resident_address": info["resident_address"],
             }
-        } for guardian in guardians_info.values()]
+        } for info in guardian_id__infos.values()]
     })
 
 

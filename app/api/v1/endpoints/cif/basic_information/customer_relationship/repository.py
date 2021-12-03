@@ -163,51 +163,53 @@ async def repos_get_customer_relationships(
     ).all()
 
     # vì join với address bị lặp dữ liệu nên cần tạo dict địa chỉ dựa trên id để trả về
-    customer_relationships_info = {}
+    customer_relationship_id__infos = {}
     for customer_relationship in customer_relationships:
+        if not customer_relationship_id__infos.get(customer_relationship.id):
+            customer_relationship_id__infos[customer_relationship.id] = {
+                "customer_relationship": customer_relationship,
+                "contact_address": None,
+                "resident_address": None,
+            }
         address = {
             "province": dropdown(customer_relationship.AddressProvince),
             "district": dropdown(customer_relationship.AddressDistrict),
             "ward": dropdown(customer_relationship.AddressWard),
             "number_and_street": customer_relationship.CustomerAddress.address
         }
-        if not customer_relationships_info.get(customer_relationship.id):
-            customer_relationships_info[customer_relationship.id] = {
-                "customer_relationship": customer_relationship,
-                "contact_address": None,
-                "resident_address": address,
-            }
         if customer_relationship.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
-            customer_relationships_info[customer_relationship.id]["contact_address"] = address
+            customer_relationship_id__infos[customer_relationship.id]["contact_address"] = address
+        else:
+            customer_relationship_id__infos[customer_relationship.id]["resident_address"] = address
 
     return ReposReturn(data={
-        "customer_relationship_flag": True if customer_relationships else False,
-        "number_of_customer_relationship": len(customer_relationships),
+        "customer_relationship_flag": True if customer_relationship_id__infos else False,
+        "number_of_customer_relationship": len(customer_relationship_id__infos),
         "relationships": [{
-            "id": customer_relationship["customer_relationship"].id,
-            "avatar_url": customer_relationship["customer_relationship"].avatar_url,
+            "id": info["customer_relationship"].id,
+            "avatar_url": info["customer_relationship"].avatar_url,
             "basic_information": {
-                "cif_number": customer_relationship["customer_relationship"].cif_number,
-                "customer_relationship": dropdown(customer_relationship["customer_relationship"].CustomerRelationshipType),
-                "full_name_vn": customer_relationship["customer_relationship"].full_name_vn,
-                "date_of_birth": customer_relationship["customer_relationship"].CustomerIndividualInfo.date_of_birth,
-                "gender": dropdown(customer_relationship["customer_relationship"].CustomerGender),
-                "nationality": dropdown(customer_relationship["customer_relationship"].AddressCountry),
-                "telephone_number": customer_relationship["customer_relationship"].telephone_number,
-                "mobile_number": customer_relationship["customer_relationship"].mobile_number,
-                "email": customer_relationship["customer_relationship"].email,
+                "cif_number": info["customer_relationship"].cif_number,
+                "customer_relationship": dropdown(info["customer_relationship"].CustomerRelationshipType),
+                "full_name_vn": info["customer_relationship"].full_name_vn,
+                "date_of_birth": info["customer_relationship"].CustomerIndividualInfo.date_of_birth,
+                "gender": dropdown(info["customer_relationship"].CustomerGender),
+                "nationality": dropdown(info["customer_relationship"].AddressCountry),
+                "telephone_number": info["customer_relationship"].telephone_number,
+                "mobile_number": info["customer_relationship"].mobile_number,
+                "email": info["customer_relationship"].email,
             },
             "identity_document": {
-                "identity_number": customer_relationship["customer_relationship"].CustomerIdentity.identity_num,
-                "issued_date": customer_relationship["customer_relationship"].CustomerIdentity.issued_date,
-                "place_of_issue": dropdown(customer_relationship["customer_relationship"].PlaceOfIssue),
-                "expired_date": customer_relationship["customer_relationship"].CustomerIdentity.expired_date
+                "identity_number": info["customer_relationship"].CustomerIdentity.identity_num,
+                "issued_date": info["customer_relationship"].CustomerIdentity.issued_date,
+                "place_of_issue": dropdown(info["customer_relationship"].PlaceOfIssue),
+                "expired_date": info["customer_relationship"].CustomerIdentity.expired_date
             },
             "address_information": {
-                "contact_address": customer_relationship["resident_address"],
-                "resident_address": customer_relationship["contact_address"],
+                "contact_address": info["contact_address"],
+                "resident_address": info["resident_address"],
             }
-        } for customer_relationship in customer_relationships_info.values()]
+        } for info in customer_relationship_id__infos.values()]
     })
 
 
