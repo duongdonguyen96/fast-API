@@ -28,7 +28,7 @@ class ForeignAddressResponse(BaseSchema):
     zip_code: Optional[str] = Field(..., description="Mã bưu chính")
 
 
-class ResidentAddressContactInformationResponse(BaseSchema):
+class ResidentAddressResponse(BaseSchema):
     domestic_flag: bool = Field(..., description="""Cờ địa chỉ trong nước
     \n`flag` = `True` => Địa chỉ trong nước
     \n`flag` = `False` => Địa chỉ nước ngoài""")
@@ -51,9 +51,11 @@ class ContactAddressResponse(DomesticAddressResponse):
 
 
 class ContactInformationDetailResponse(BaseSchema):
-    resident_address: ResidentAddressContactInformationResponse = Field(..., description="I. Địa chỉ thường trú")
+    resident_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ thường trú")
+    resident_address: Optional[ResidentAddressResponse] = Field(..., description="I. Địa chỉ thường trú")
     # Địa chỉ liên lạc sẽ giống với thông tin của địa chỉ trong nước
-    contact_address: ContactAddressResponse = Field(..., description="II. Địa chỉ liên lạc")
+    contact_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ liên lạc")
+    contact_address: Optional[ContactAddressResponse] = Field(..., description="II. Địa chỉ liên lạc")
     career_information: CareerInformationContactInformationResponse = Field(..., description="III. Thông tin nghề "
                                                                                              "nghiệp")
 
