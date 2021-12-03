@@ -1,11 +1,14 @@
 from typing import List
 
 from app.api.base.controller import BaseController
+from app.api.v1.endpoints.cif.basic_information.customer_relationship.repository import (
+    repos_get_customer_relationships
+)
 from app.api.v1.endpoints.cif.basic_information.customer_relationship.schema import (
     SaveCustomerRelationshipRequest
 )
 from app.api.v1.endpoints.cif.basic_information.guardian.repository import (
-    repos_get_guardians, repos_save_guardians
+    repos_save_guardians
 )
 from app.api.v1.endpoints.cif.repository import (
     repos_get_customers_by_cif_numbers, repos_get_initializing_customer
@@ -24,10 +27,9 @@ from app.utils.error_messages import (
 class CtrCustomerRelationship(BaseController):
     async def detail(self, cif_id: str):
         detail_customer_relationship_info = self.call_repos(
-            await repos_get_guardians(
+            await repos_get_customer_relationships(
                 cif_id=cif_id,
                 session=self.oracle_session,
-                relation_type=CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
             ))
         return self.response(data=detail_customer_relationship_info)
 

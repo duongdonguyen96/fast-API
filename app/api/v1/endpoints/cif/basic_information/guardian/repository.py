@@ -25,7 +25,7 @@ from app.third_parties.oracle.models.master_data.customer import (
 )
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.utils.constant.cif import (
-    CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN, RESIDENT_ADDRESS_CODE
+    CONTACT_ADDRESS_CODE, CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 )
 from app.utils.functions import dropdown, now
 
@@ -115,7 +115,6 @@ GUARDIAN_INFO_DETAIL = {
 async def repos_get_guardians(
         cif_id: str,
         session: Session,
-        relation_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN,
 ):
     guardians = session.execute(
         select(
@@ -152,57 +151,56 @@ async def repos_get_guardians(
         .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
         .filter(
             CustomerPersonalRelationship.customer_id == cif_id,
-            CustomerPersonalRelationship.type == relation_type,
+            CustomerPersonalRelationship.type == CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN,
         )
     ).all()
 
     # vì join với address bị lặp dữ liệu nên cần tạo dict địa chỉ dựa trên id để trả về
-    guardians__address = {}
-    for (index, guardian) in enumerate(guardians):
-        if not guardians__address.get(guardian.id):
-            guardians__address.update({
-                guardian.id: {
-                    "resident_address": None,
-                    "contact_address": None
-                }
-            })
-        else:
-            guardian = guardians.pop(index)
-        address_type = "resident_address" if guardian.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE else "contact_address"
-        guardians__address[guardian.id].update({
-            address_type: {
-                "province": dropdown(guardian.AddressProvince),
-                "district": dropdown(guardian.AddressDistrict),
-                "ward": dropdown(guardian.AddressWard),
-                "number_and_street": guardian.CustomerAddress.address
+    guardians_info = {}
+    for guardian in guardians:
+        address = {
+            "province": dropdown(guardian.AddressProvince),
+            "district": dropdown(guardian.AddressDistrict),
+            "ward": dropdown(guardian.AddressWard),
+            "number_and_street": guardian.CustomerAddress.address
+        }
+        if not guardians_info.get(guardian.id):
+            guardians_info[guardian.id] = {
+                "guardian": guardian,
+                "contact_address": None,
+                "resident_address": address,
             }
-        })
+        if guardian.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
+            guardians_info[guardian.id]["contact_address"] = address
 
     return ReposReturn(data={
         "guardian_flag": True if guardians else False,
         "number_of_guardian": len(guardians),
         "guardians": [{
-            "id": guardian.id,
-            "avatar_url": guardian.avatar_url,
+            "id": guardian["guardian"].id,
+            "avatar_url": guardian["guardian"].avatar_url,
             "basic_information": {
-                "cif_number": guardian.cif_number,
-                "customer_relationship": dropdown(guardian.CustomerRelationshipType),
-                "full_name_vn": guardian.full_name_vn,
-                "date_of_birth": guardian.CustomerIndividualInfo.date_of_birth,
-                "gender": dropdown(guardian.CustomerGender),
-                "nationality": dropdown(guardian.AddressCountry),
-                "telephone_number": guardian.telephone_number,
-                "mobile_number": guardian.mobile_number,
-                "email": guardian.email,
+                "cif_number": guardian["guardian"].cif_number,
+                "customer_relationship": dropdown(guardian["guardian"].CustomerRelationshipType),
+                "full_name_vn": guardian["guardian"].full_name_vn,
+                "date_of_birth": guardian["guardian"].CustomerIndividualInfo.date_of_birth,
+                "gender": dropdown(guardian["guardian"].CustomerGender),
+                "nationality": dropdown(guardian["guardian"].AddressCountry),
+                "telephone_number": guardian["guardian"].telephone_number,
+                "mobile_number": guardian["guardian"].mobile_number,
+                "email": guardian["guardian"].email,
             },
             "identity_document": {
-                "identity_number": guardian.CustomerIdentity.identity_num,
-                "issued_date": guardian.CustomerIdentity.issued_date,
-                "place_of_issue": dropdown(guardian.PlaceOfIssue),
-                "expired_date": guardian.CustomerIdentity.expired_date
+                "identity_number": guardian["guardian"].CustomerIdentity.identity_num,
+                "issued_date": guardian["guardian"].CustomerIdentity.issued_date,
+                "place_of_issue": dropdown(guardian["guardian"].PlaceOfIssue),
+                "expired_date": guardian["guardian"].CustomerIdentity.expired_date
             },
-            "address_information": guardians__address[guardian.id]
-        } for guardian in guardians]
+            "address_information": {
+                "contact_address": guardian["contact_address"],
+                "resident_address": guardian["resident_address"],
+            }
+        } for guardian in guardians_info.values()]
     })
 
 
