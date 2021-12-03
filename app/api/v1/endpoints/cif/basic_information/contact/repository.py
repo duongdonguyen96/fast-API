@@ -1,7 +1,12 @@
+import json
+
 from sqlalchemy import and_, select, update
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress, CustomerProfessional
 )
@@ -107,9 +112,10 @@ async def repos_save_contact_information(
     cif_id: str,
     customer_professional_id: str,
     is_create: bool,
-    resident_address,
-    contact_address,
-    career_information,
+    resident_address: dict,
+    contact_address: dict,
+    career_information: dict,
+    log_data: json,
     session: Session
 ) -> ReposReturn:
     if is_create:
@@ -145,6 +151,16 @@ async def repos_save_contact_information(
                 CustomerProfessional.id == customer_professional_id,
             )).values(**career_information)
         )
+
+        # update booking & log
+        fail_result = await write_transaction_log_and_update_booking(
+            description="Tạo CIF -> Thông tin cá nhân -> Thông tin liên lạc -- Cập nhật",
+            log_data=log_data,
+            session=session,
+            customer_id=cif_id
+        )
+        if fail_result:
+            return fail_result
 
     return ReposReturn(data={
         "cif_id": cif_id

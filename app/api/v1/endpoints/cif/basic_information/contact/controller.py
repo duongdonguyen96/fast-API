@@ -336,6 +336,7 @@ class CtrContactInformation(BaseController):
                 resident_address=resident_address,
                 contact_address=contact_address,
                 career_information=career_information,
+                log_data=contact_information_save_request.json(),
                 session=self.oracle_session
             )
         )
