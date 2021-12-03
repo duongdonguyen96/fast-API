@@ -24,7 +24,9 @@ from app.third_parties.oracle.models.master_data.customer import (
     CustomerGender, CustomerRelationshipType
 )
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
-from app.utils.constant.cif import RESIDENT_ADDRESS_CODE
+from app.utils.constant.cif import (
+    CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN, RESIDENT_ADDRESS_CODE
+)
 from app.utils.functions import dropdown, now
 
 GUARDIAN_INFO_DETAIL = {
@@ -110,7 +112,11 @@ GUARDIAN_INFO_DETAIL = {
 }
 
 
-async def repos_get_guardians(cif_id: str, session: Session):
+async def repos_get_guardians(
+        cif_id: str,
+        session: Session,
+        relation_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN,
+):
     guardians = session.execute(
         select(
             CustomerPersonalRelationship,
@@ -146,12 +152,13 @@ async def repos_get_guardians(cif_id: str, session: Session):
         .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
         .filter(
             CustomerPersonalRelationship.customer_id == cif_id,
+            CustomerPersonalRelationship.type == relation_type,
         )
     ).all()
 
     # vì join với address bị lặp dữ liệu nên cần tạo dict địa chỉ dựa trên id để trả về
     guardians__address = {}
-    for guardian in guardians:
+    for (index, guardian) in enumerate(guardians):
         if not guardians__address.get(guardian.id):
             guardians__address.update({
                 guardian.id: {
@@ -159,6 +166,8 @@ async def repos_get_guardians(cif_id: str, session: Session):
                     "contact_address": None
                 }
             })
+        else:
+            guardian = guardians.pop(index)
         address_type = "resident_address" if guardian.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE else "contact_address"
         guardians__address[guardian.id].update({
             address_type: {
