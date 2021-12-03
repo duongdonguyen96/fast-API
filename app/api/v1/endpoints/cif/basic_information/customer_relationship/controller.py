@@ -2,7 +2,7 @@ from typing import List
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.customer_relationship.repository import (
-    repos_detail_customer_relationship
+    repos_get_customer_relationships
 )
 from app.api.v1.endpoints.cif.basic_information.customer_relationship.schema import (
     SaveCustomerRelationshipRequest
@@ -26,7 +26,11 @@ from app.utils.error_messages import (
 
 class CtrCustomerRelationship(BaseController):
     async def detail(self, cif_id: str):
-        detail_customer_relationship_info = self.call_repos(await repos_detail_customer_relationship(cif_id=cif_id))
+        detail_customer_relationship_info = self.call_repos(
+            await repos_get_customer_relationships(
+                cif_id=cif_id,
+                session=self.oracle_session,
+            ))
         return self.response(data=detail_customer_relationship_info)
 
     async def save(self,
