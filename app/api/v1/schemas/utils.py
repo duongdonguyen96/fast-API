@@ -18,7 +18,7 @@ class OptionalDropdownResponse(BaseSchema):
 
 
 class DropdownRequest(BaseSchema):
-    id: str = Field(..., description='`Chuỗi định danh`')
+    id: str = Field(..., min_length=1, description='`Chuỗi định danh`')
 
 
 class OpionalDropdownRequest(BaseSchema):
