@@ -7,11 +7,6 @@ DETAIL_RELATIONSHIP_DATA = {
     "avatar_url": "https//example.com/example.jpg",
     "basic_information": {
         "cif_number": "1",
-        "customer_relationship": {
-            "id": "1",
-            "code": "MOTHER",
-            "name": "Mẹ"
-        },
         "full_name_vn": "Nguyễn Anh Đào",
         "date_of_birth": "1990-08-12",
         "gender": {
