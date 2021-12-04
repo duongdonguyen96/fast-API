@@ -1,7 +1,7 @@
 import json
 from typing import List, Optional
 
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, func, select, update
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
@@ -66,6 +66,27 @@ async def repos_get_model_objects_by_ids(model_ids: List[str], model: Base, loc:
         )
 
     return ReposReturn(data=objs)
+
+
+async def repos_get_optional_model_object_by_code_or_name(
+        model: Base, session: Session,
+        model_code: Optional[str] = None, model_name: Optional[str] = None
+) -> ReposReturn:
+    statement = None
+
+    if model_code:
+        statement = select(model).filter(model.code == model_code)
+
+    if model_name:
+        statement = select(model).filter(func.lower(model.name) == func.lower(model_name))  # TODO: check it
+
+    if not statement:
+        return ReposReturn(data=None)
+
+    if hasattr(model, 'active_flag'):
+        statement = statement.filter(model.active_flag == 1)
+
+    return ReposReturn(data=session.execute(statement).scalar())
 
 
 async def repos_get_data_model_config(session: Session, model: Base, country_id: Optional[str] = None,
