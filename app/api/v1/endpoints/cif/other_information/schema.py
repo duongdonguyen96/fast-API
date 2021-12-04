@@ -19,7 +19,8 @@ class OtherInformationResponse(BaseSchema):
                     "`True`: có, "
                     "`False`: không."
     )
-    sale_staff: Optional[EmployeeDropdownResponse] = Field(..., description="Mã nhân viên kinh doanh `có thể null`", nullable=True)
+    sale_staff: Optional[EmployeeDropdownResponse] = Field(..., description="Mã nhân viên kinh doanh `có thể null`",
+                                                           nullable=True)
     indirect_sale_staff: Optional[EmployeeDropdownResponse] = Field(..., description="Mã nhân viên kinh doanh gián tiếp"
                                                                                      "`có thể null`")
 
@@ -32,7 +33,8 @@ class OtherInformationUpdateRequest(BaseSchema):
                     "`True`: có, "
                     "`False`: không."
     )
-    sale_staff: Optional[DropdownRequest] = Field(..., description="Mã nhân viên kinh doanh, `có thể null`", nullable=True)
+    sale_staff: Optional[DropdownRequest] = Field(..., description="Mã nhân viên kinh doanh, `có thể null`",
+                                                  nullable=True)
     indirect_sale_staff: Optional[DropdownRequest] = Field(
         ..., description="Mã nhân viên kinh doanh gián tiếp `có thể null`"
     )
