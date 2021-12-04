@@ -3,7 +3,7 @@ from typing import Optional, Union
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import (
     repos_get_detail_identity, repos_get_identity_information,
-    repos_get_list_log, repos_save_identity
+    repos_get_identity_log_list, repos_save_identity
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
@@ -55,9 +55,12 @@ class CtrIdentityDocument(BaseController):
         )
         return detail_data['identity_document_type']['code'], self.response(data=detail_data)
 
-    async def get_list_log(self, cif_id: str):
+    async def get_identity_log_list(self, cif_id: str):
         logs_data = self.call_repos(
-            await repos_get_list_log(cif_id=cif_id)
+            await repos_get_identity_log_list(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
         )
         return self.response(data=logs_data)
 
@@ -330,8 +333,6 @@ class CtrIdentityDocument(BaseController):
                     "vector_data": None,
                     "active_flag": True,
                     "maker_id": self.current_user.user_id,
-                    "maker_at": now(),
-                    "updater_id": self.current_user.user_id,
                     "updater_at": now(),
                     "identity_image_front_flag": IDENTITY_IMAGE_FLAG_BACKSIDE
                 }

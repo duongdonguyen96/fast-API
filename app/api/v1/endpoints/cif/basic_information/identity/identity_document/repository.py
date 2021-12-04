@@ -12,7 +12,8 @@ from app.third_parties.oracle.models.cif.basic_information.contact.model import 
     CustomerAddress
 )
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerCompareImage, CustomerIdentity, CustomerIdentityImage
+    CustomerCompareImage, CustomerIdentity, CustomerIdentityImage,
+    CustomerIdentityImageTransaction
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -33,63 +34,12 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
+    CONTACT_ADDRESS_CODE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
     IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
     RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, generate_uuid, now
-
-IDENTITY_LOGS_INFO = [
-    {
-        "reference_flag": True,
-        "created_date": "2021-02-18",
-        "identity_document_type": {
-            "id": "1",
-            "code": "CMND",
-            "name": "Chứng minh nhân dân"
-        },
-        "identity_images": [
-            {
-                "image_url": "https://example.com/example.jpg"
-            },
-            {
-                "image_url": "https://example.com/example.jpg"
-            }
-        ]
-    },
-    {
-        "reference_flag": False,
-        "created_date": "2021-02-18",
-        "identity_document_type": {
-            "id": "2",
-            "code": "CCCD",
-            "name": "Căn cước công dân"
-        },
-        "identity_images": [
-            {
-                "image_url": "https://example.com/example.jpg"
-            },
-            {
-                "image_url": "https://example.com/example.jpg"
-            }
-        ]
-    },
-    {
-        "reference_flag": False,
-        "created_date": "2021-02-18",
-        "identity_document_type": {
-            "id": "3",
-            "code": "HC",
-            "name": "Hộ chiếu"
-        },
-        "identity_images": [
-            {
-                "image_url": "https://example.com/example.jpg"
-            }
-        ]
-    }
-]
 
 
 ########################################################################################################################
@@ -309,11 +259,53 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
 ########################################################################################################################
 
 
-async def repos_get_list_log(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_identity_log_list(
+        cif_id: str,
+        session: Session
+) -> ReposReturn:
+    identity_image_transactions = session.execute(
+        select(
+            CustomerIdentityImageTransaction,
+        )
+        .join(CustomerIdentityImage, CustomerIdentityImageTransaction.identity_image_id == CustomerIdentityImage.id)
+        .join(CustomerIdentity, and_(
+            CustomerIdentityImage.identity_id == CustomerIdentity.id,
+            CustomerIdentity.customer_id == cif_id
+        ))
+        .order_by(desc(CustomerIdentityImageTransaction.maker_at))
+    ).scalars().all()
 
-    return ReposReturn(data=IDENTITY_LOGS_INFO)
+    identity_log_infos = []
+    identity_images = []
+    previous_maker_at = None
+    for identity_image_transaction in identity_image_transactions:
+        reference_flag = True if identity_image_transaction == identity_image_transactions[0] else False
+        maker_at = identity_image_transaction.maker_at
+        identity_log_info = {
+            "reference_flag": reference_flag,
+            "created_date": maker_at,
+            "identity_images": identity_images
+        }
+        if not previous_maker_at:
+            identity_images.append({
+                "image_url": identity_image_transaction.image_url
+            })
+            previous_maker_at = maker_at
+        elif previous_maker_at != maker_at:
+            identity_images = [{
+                "image_url": identity_image_transaction.image_url
+            }]
+            previous_maker_at = maker_at
+        else:
+            identity_images.append({
+                "image_url": identity_image_transaction.image_url
+            })
+            continue
+
+        identity_log_info['identity_images'] = identity_images
+        identity_log_infos.append(identity_log_info)
+
+    return ReposReturn(data=identity_log_infos)
 
 
 ########################################################################################################################
