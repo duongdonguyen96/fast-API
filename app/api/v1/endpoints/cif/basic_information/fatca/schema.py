@@ -70,7 +70,7 @@ class DocumentDependFatcaCategoryResponse(BaseSchema):
     id: str = Field(..., description='`Chuỗi định danh` loại Fatca')
     code: str = Field(..., description='`Mã` loại Fatca')
     name: str = Field(..., description='`Tên` loại Fatca')
-    document: Optional[DocumentsResponse] = Field(..., description='Thông tin biểu mẫu `FATCA` tương ứng loại Fatca')
+    document: Optional[DocumentsResponse] = Field(..., description='Thông tin biểu mẫu `FATCA` tương ứng loại Fatca', nullable=True)
 
 
 class DocumentsListResponse(BaseSchema):

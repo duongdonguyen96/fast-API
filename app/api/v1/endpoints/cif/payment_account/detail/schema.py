@@ -23,9 +23,9 @@ class PaymentAccountResponse(BaseSchema):
     account_structure_type_level_1: OptionalDropdownResponse = Field(..., description="Kiểu kiến trúc cấp 1")
     account_structure_type_level_2: OptionalDropdownResponse = Field(..., description="Kiểu kiến trúc cấp 2")
     account_structure_type_level_3: OptionalDropdownResponse = Field(..., description="Kiểu kiến trúc cấp 3")
-    casa_account_number: Optional[str] = Field(..., description="Số tài khoản")
-    account_salary_organization_account: Optional[str] = Field(..., description="Tài khoản của tổ chức chi lương")
-    account_salary_organization_name: Optional[str] = Field(..., description="Chủ tài khoản chi lương")
+    casa_account_number: Optional[str] = Field(..., description="Số tài khoản", nullable=True)
+    account_salary_organization_account: Optional[str] = Field(..., description="Tài khoản của tổ chức chi lương", nullable=True)
+    account_salary_organization_name: Optional[str] = Field(..., description="Chủ tài khoản chi lương", nullable=True)
 
 
 ########################################################################################################################
