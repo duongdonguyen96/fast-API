@@ -25,11 +25,12 @@ class ServiceFile:
         await self.session.close()
         self.session = None
 
-    async def __call_upload_file(self, file: bytes, name: str) -> Optional[dict]:
+    async def __call_upload_file(self, file: bytes, name: str, return_download_file_url_flag: bool) -> Optional[dict]:
         api_url = f'{self.url}/api/v1/files/'
 
         form_data = aiohttp.FormData()
         form_data.add_field('file', value=file, filename=name)
+        form_data.add_field('return_download_file_url_flag', value=str(return_download_file_url_flag))
 
         async with self.session.post(
                 url=api_url,
@@ -41,16 +42,33 @@ class ServiceFile:
             if response.status != status.HTTP_201_CREATED:
                 return None
 
-            return await response.json()
+            upload_file_response_body = await response.json()
+            if upload_file_response_body['file_url']:
+                upload_file_response_body['file_url'] = self.replace_with_cdn(upload_file_response_body['file_url'])
 
-    async def upload_file(self, file: bytes, name: str) -> Optional[dict]:
-        return await self.__call_upload_file(file=file, name=name)
+            return upload_file_response_body
 
-    async def upload_multi_file(self, files: List[bytes], names: List[str]) -> Optional[List[dict]]:
+    async def upload_file(self, file: bytes, name: str, return_download_file_url_flag: bool = True) -> Optional[dict]:
+        return await self.__call_upload_file(
+            file=file,
+            name=name,
+            return_download_file_url_flag=return_download_file_url_flag
+        )
+
+    async def upload_multi_file(self, files: List[bytes], names: List[str],
+                                return_download_file_url_flag: bool = True) -> Optional[List[dict]]:
         coroutines = []
         for index, file in enumerate(files):
             # coroutines.append(self.__call_upload_file(file=file))
-            coroutines.append(asyncio.ensure_future(self.__call_upload_file(file=file, name=names[index])))
+            coroutines.append(
+                asyncio.ensure_future(
+                    self.__call_upload_file(
+                        file=file,
+                        name=names[index],
+                        return_download_file_url_flag=return_download_file_url_flag
+                    )
+                )
+            )
 
         return list(await asyncio.gather(*coroutines))
 
