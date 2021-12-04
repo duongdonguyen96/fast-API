@@ -1,11 +1,12 @@
 from typing import List
 
-from sqlalchemy import and_, delete, select
+from sqlalchemy import and_, delete, desc, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerIdentityImage, CustomerSubIdentity
+    CustomerIdentityImage, CustomerIdentityImageTransaction,
+    CustomerSubIdentity
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -13,8 +14,7 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
-from app.utils.constant.cif import CIF_ID_TEST, IMAGE_TYPE_CODE_SUB_IDENTITY
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
 from app.utils.functions import dropdown
 
 SUB_IDENTITY_INFO = [
@@ -148,11 +148,53 @@ async def repos_save_sub_identity(
     })
 
 
-async def repos_get_list_log(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_sub_identity_log_list(
+        cif_id: str,
+        session: Session
+) -> ReposReturn:
+    sub_identity_logs = session.execute(
+        select(
+            CustomerIdentityImageTransaction,
+        )
+        .join(CustomerIdentityImage, CustomerIdentityImageTransaction.identity_image_id == CustomerIdentityImage.id)
+        .join(CustomerSubIdentity, and_(
+            CustomerIdentityImage.identity_id == CustomerSubIdentity.id,
+            CustomerSubIdentity.customer_id == cif_id
+        ))
+        .order_by(desc(CustomerIdentityImageTransaction.maker_at))
+    ).scalars().all()
 
-    return ReposReturn(data=SUB_IDENTITY_LOGS_INFO)
+    sub_identity_log_infos = []
+    sub_identity_images = []
+    previous_maker_at = None
+    for sub_identity_log in sub_identity_logs:
+        reference_flag = True if sub_identity_log == sub_identity_logs[0] else False
+        maker_at = sub_identity_log.maker_at
+        sub_identity_log_info = {
+            "reference_flag": reference_flag,
+            "created_date": maker_at,
+            "identity_images": sub_identity_images
+        }
+        if not previous_maker_at:
+            sub_identity_images.append({
+                "image_url": sub_identity_log.image_url
+            })
+            previous_maker_at = maker_at
+        elif previous_maker_at != maker_at:
+            sub_identity_images = [{
+                "image_url": sub_identity_log.image_url
+            }]
+            previous_maker_at = maker_at
+        else:
+            sub_identity_images.append({
+                "image_url": sub_identity_log.image_url
+            })
+            continue
+
+        sub_identity_log_info['identity_images'] = sub_identity_images
+        sub_identity_log_infos.append(sub_identity_log_info)
+
+    return ReposReturn(data=sub_identity_log_infos)
 
 
 ########################################################################################################################
