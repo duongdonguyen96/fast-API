@@ -86,8 +86,6 @@ class AgreementAuthorization(Base):
                 comment='ID chính')
     code = Column('agreement_author_code', VARCHAR(50), comment='Mã code')
     name = Column('agreement_author_name', VARCHAR(1000), comment='Tên ủy quyền')
-    method_sign = Column(NUMBER(1, 2, True), comment='Phương thức kí')
-    agreement_flag = Column(NUMBER(1, 2, True), comment='Cờ ủy quyền')
     active_flag = Column('agreement_active_flag', NUMBER(1, 2, True), comment='Cờ trạng thái kích hoạt')
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
@@ -103,3 +101,5 @@ class JointAccountHolderAgreementAuthorization(Base):
     joint_account_holder_id = Column('joint_account_holder_id',
                                      ForeignKey('crm_joint_account_holder.joint_account_holder_id'),
                                      comment='Mã Thông tin đồng chủ sở hữu'),
+    method_sign = Column(NUMBER(1, 0, False), comment='Phương thức kí')
+    agreement_flag = Column(NUMBER(1, 0, False), comment='Cờ ủy quyền')
