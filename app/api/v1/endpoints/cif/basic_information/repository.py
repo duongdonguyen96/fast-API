@@ -67,14 +67,14 @@ async def repos_get_customer_detail(
         )
     ).all()
 
-    customer_info = rows[0]
-
     if not rows:
         return ReposReturn(
             is_error=True,
             msg=ERROR_CIF_NUMBER_NOT_EXIST,
             loc="cif_number"
         )
+
+    customer_info = rows[0]
 
     # vì join với address bị lặp dữ liệu nên cần tạo dict địa chỉ dựa trên id để trả về
     customer_id__address_info = {
