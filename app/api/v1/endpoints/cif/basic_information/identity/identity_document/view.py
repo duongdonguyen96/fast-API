@@ -11,7 +11,8 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.contr
     CtrIdentityDocument
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.ocr_schema_response import (
-    OCRFrontSideIdentityCardResponse, OCRPassportResponse
+    OCRBackSideIdentityCardResponse, OCRFrontSideIdentityCardResponse,
+    OCRPassportResponse
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
@@ -22,6 +23,7 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schem
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
 from app.utils.constant.cif import (
+    EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD,
     EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
 )
@@ -121,6 +123,7 @@ async def view_save(
     responses=swagger_response(
         response_model=Union[
             ResponseData[OCRFrontSideIdentityCardResponse],
+            ResponseData[OCRBackSideIdentityCardResponse],
             ResponseData[OCRPassportResponse]
         ],
         success_status_code=status.HTTP_200_OK
@@ -146,5 +149,7 @@ async def view_upload_identity_document_image(
     # TODO: các loại khác
     if identity_type == EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD:
         return ResponseData[OCRFrontSideIdentityCardResponse](**upload_info)
+    if identity_type == EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD:
+        return ResponseData[OCRBackSideIdentityCardResponse](**upload_info)
     else:
         return ResponseData[OCRPassportResponse](**upload_info)

@@ -46,7 +46,7 @@ class OCRFrontSideBasicInfoIdentityCardResponse(BaseSchema):
 
 
 # III. Phân tích OCR (CMND)
-class OCRResultIdentityCardResponse(BaseSchema):
+class OCRResultFrontSideIdentityCardResponse(BaseSchema):
     identity_document: OCRFrontSideDocumentIdentityCardResponse = Field(..., description="Giấy tờ định danh")
     basic_information: OCRFrontSideBasicInfoIdentityCardResponse = Field(..., description="Thông tin cơ bản")
     address_information: OCRAddressIdentityCitizenCardResponse = Field(..., description="Thông tin địa chỉ")
@@ -55,7 +55,33 @@ class OCRResultIdentityCardResponse(BaseSchema):
 # RESPONSE CMND
 class OCRFrontSideIdentityCardResponse(BaseSchema):
     front_side_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
-    ocr_result: OCRResultIdentityCardResponse = Field(..., description="Phân tích OCR")
+    ocr_result: OCRResultFrontSideIdentityCardResponse = Field(...,
+                                                               description="Phân tích OCR thông tin mặt trước CMND")
+
+
+class BackSideIdentityCardResponse(BaseSchema):
+    identity_image_url: Optional[str] = Field(..., description="URL hình ảnh mặt sau CMND", nullable=True)
+
+
+class OCRBackSideIdentityDocumentIdentityCardResponse(BaseSchema):
+    issued_date: Optional[date] = Field(..., description="Ngày cấp", nullable=True)
+    place_of_issue: Optional[DropdownResponse] = Field(..., description="Nơi cấp", nullable=True)
+
+
+class OCRBackSideBasicInformationIdentityCardResponse(BaseSchema):
+    ethnic: Optional[DropdownResponse] = Field(..., description="Dân tộc", nullable=True)
+    religion: Optional[DropdownResponse] = Field(..., description="Tôn giáo", nullable=True)
+    identity_characteristic: Optional[str] = Field(..., description="Đặc điểm nhận dạng", nullable=True)
+
+
+class OCRResultBackSideIdentityCardResponse(BaseSchema):
+    identity_document: OCRBackSideIdentityDocumentIdentityCardResponse = Field(..., description="Giấy tờ định danh")
+    basic_information: OCRBackSideBasicInformationIdentityCardResponse = Field(..., description="Thông tin cơ bản")
+
+
+class OCRBackSideIdentityCardResponse(BaseSchema):
+    back_side_information: BackSideIdentityCardResponse = Field(..., description="Thông tin mặt sau")
+    ocr_result: OCRResultBackSideIdentityCardResponse = Field(..., description="Phân tích OCR mặt sau CMND")
 
 
 ########################################################################################################################
