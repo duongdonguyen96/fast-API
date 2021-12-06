@@ -54,15 +54,17 @@ class DebitCard(Base):
     card_delivery_address_id = Column(ForeignKey('crm_card_delivery_address.card_delivery_address_id'),
                                       comment='Mã địa chỉ giao nhận thẻv(PK)')
     parent_card_id = Column(ForeignKey('crm_debit_card.card_id'), comment='Mã thẻ cấp cha')
-    card_registration_flag = Column(NUMBER(1, 2, True), comment='Trạng thái đk thẻ')
-    payment_online_flag = Column(NUMBER(1, 2, True), comment='Trạng thái thanh toán')
+    card_registration_flag = Column(NUMBER(1, 0, False), comment='Trạng thái đk thẻ')
+    payment_online_flag = Column(NUMBER(1, 0, False), comment='Trạng thái thanh toán')
     first_name_on_card = Column(VARCHAR(21), comment='Họ in trên thẻ')
     middle_name_on_card = Column(VARCHAR(21), comment='Tên đệm in trên thẻ')
     last_name_on_card = Column(VARCHAR(21), comment='Tên in trên thẻ')
-    card_delivery_address_flag = Column(NUMBER(1, 2, True),
-                                        comment='Trạng thái địa chỉ giao thẻ (0: giao tại đơn vị SCB, 1: địa chỉ tùy chọn)')
+    card_delivery_address_flag = Column(
+        NUMBER(1, 0, False),
+        comment='Trạng thái địa chỉ giao thẻ (0: giao tại đơn vị SCB, 1: địa chỉ tùy chọn)'
+    )
     created_at = Column(DateTime, comment='ngày tạo')
-    active_flag = Column(NUMBER(1, 2, True), comment='Trạng thái hoạt động (Có/không)')
+    active_flag = Column(NUMBER(1, 0, False), comment='Trạng thái hoạt động (Có/không)')
 
     brand_of_card = relationship('BrandOfCard')
     card_delivery_address = relationship('CardDeliveryAddress')
