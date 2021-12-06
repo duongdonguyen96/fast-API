@@ -341,7 +341,7 @@ async def repos_get_identity_log_list(
     for identity_image_transaction in identity_image_transactions:
         maker_at = date_to_string(identity_image_transaction.maker_at)
 
-        if maker_at not in identity_log_infos:
+        if maker_at not in date__identity_images.keys():
             date__identity_images[maker_at] = []
 
         date__identity_images[maker_at].append({
@@ -349,10 +349,10 @@ async def repos_get_identity_log_list(
         })
 
     identity_log_infos = [{
-        "reference_flag": False,
+        "reference_flag": True if index == 0 else False,
         "created_date": created_date,
         "identity_images": identity_images
-    } for created_date, identity_images in date__identity_images.items()]
+    } for index, (created_date, identity_images) in enumerate(date__identity_images.items())]
 
     identity_log_infos[0]["reference_flag"] = True
 
