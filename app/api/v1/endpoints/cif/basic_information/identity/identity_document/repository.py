@@ -647,8 +647,6 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
         loc='nationality:VN',
         session=session
     )
-    vietnamese_nationality = repos_return_vietnamese_nationality.data
-    # TODO: vietnamese_nationality
 
     try:
         # TODO: tách tỉnh ra query. Hỏi thăm bên eKYC xem có case đặc biệt không
@@ -703,7 +701,8 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
                 "full_name_vn": ocr_data.get('full_name'),
                 "date_of_birth": date_string_to_other_date_string_format(ocr_data.get('date_of_birth'),
                                                                          from_format='%d/%m/%Y'),
-                "nationality": dropdown(vietnamese_nationality),
+                "nationality": dropdown(repos_return_vietnamese_nationality.data)
+                if not repos_return_vietnamese_nationality.is_error else None,
                 "province": dropdown(optional_place_of_origin) if optional_place_of_origin else None,
             },
             "address_information": {
