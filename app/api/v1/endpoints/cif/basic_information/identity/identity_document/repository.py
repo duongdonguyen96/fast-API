@@ -354,8 +354,6 @@ async def repos_get_identity_log_list(
         "identity_images": identity_images
     } for index, (created_date, identity_images) in enumerate(date__identity_images.items())]
 
-    identity_log_infos[0]["reference_flag"] = True
-
     return ReposReturn(data=identity_log_infos)
 
 
