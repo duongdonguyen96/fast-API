@@ -15,7 +15,7 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
-from app.utils.functions import dropdown
+from app.utils.functions import date_to_string, dropdown
 
 SUB_IDENTITY_INFO = [
     {
@@ -152,7 +152,8 @@ async def repos_get_sub_identity_log_list(
         cif_id: str,
         session: Session
 ) -> ReposReturn:
-    sub_identity_logs = session.execute(
+
+    sub_identity_image_transactions = session.execute(
         select(
             CustomerIdentityImageTransaction,
         )
@@ -165,34 +166,29 @@ async def repos_get_sub_identity_log_list(
     ).scalars().all()
 
     sub_identity_log_infos = []
-    sub_identity_images = []
-    previous_maker_at = None
-    for sub_identity_log in sub_identity_logs:
-        reference_flag = True if sub_identity_log == sub_identity_logs[0] else False
-        maker_at = sub_identity_log.maker_at
-        sub_identity_log_info = {
-            "reference_flag": reference_flag,
-            "created_date": maker_at,
-            "identity_images": sub_identity_images
-        }
-        if not previous_maker_at:
-            sub_identity_images.append({
-                "image_url": sub_identity_log.image_url
-            })
-            previous_maker_at = maker_at
-        elif previous_maker_at != maker_at:
-            sub_identity_images = [{
-                "image_url": sub_identity_log.image_url
-            }]
-            previous_maker_at = maker_at
-        else:
-            sub_identity_images.append({
-                "image_url": sub_identity_log.image_url
-            })
-            continue
 
-        sub_identity_log_info['identity_images'] = sub_identity_images
-        sub_identity_log_infos.append(sub_identity_log_info)
+    if not sub_identity_image_transactions:
+        return ReposReturn(data=sub_identity_log_infos)
+
+    date__sub_identity_images = {}
+
+    for sub_identity_image_transaction in sub_identity_image_transactions:
+        maker_at = date_to_string(sub_identity_image_transaction.maker_at)
+
+        if maker_at not in date__sub_identity_images.keys():
+            date__sub_identity_images[maker_at] = []
+
+        date__sub_identity_images[maker_at].append({
+            "image_url": sub_identity_image_transaction.image_url
+        })
+
+    sub_identity_log_infos = [{
+        "reference_flag": True if index == 0 else False,
+        "created_date": created_date,
+        "identity_images": identity_images
+    } for index, (created_date, identity_images) in enumerate(date__sub_identity_images.items())]
+
+    sub_identity_log_infos[0]["reference_flag"] = True
 
     return ReposReturn(data=sub_identity_log_infos)
 
