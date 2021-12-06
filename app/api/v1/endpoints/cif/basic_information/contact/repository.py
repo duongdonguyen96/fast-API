@@ -10,6 +10,9 @@ from app.api.v1.endpoints.repository import (
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress, CustomerProfessional
 )
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerIdentity
+)
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
@@ -112,6 +115,7 @@ async def repos_save_contact_information(
     cif_id: str,
     customer_professional_id: str,
     is_create: bool,
+    is_passport: bool,
     saving_resident_address: dict,
     saving_contact_address: dict,
     saving_career_information: dict,
@@ -119,7 +123,7 @@ async def repos_save_contact_information(
     session: Session
 ) -> ReposReturn:
     if is_create:
-        if saving_resident_address and saving_contact_address:
+        if is_passport:
             session.add_all([
                 CustomerAddress(**saving_resident_address),
                 CustomerAddress(**saving_contact_address),
@@ -131,7 +135,7 @@ async def repos_save_contact_information(
             update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
         )
     else:
-        if saving_resident_address and saving_contact_address:
+        if is_passport:
             session.execute(
                 update(CustomerAddress).where(and_(
                     CustomerAddress.customer_id == cif_id,
@@ -176,11 +180,19 @@ async def repos_get_customer_addresses(cif_id: str, session: Session):
     return ReposReturn(data=customer_addresses)
 
 
-async def repos_get_customer_professional(cif_id: str, session: Session):
+async def repos_get_customer_professional_and_identity_and_address(cif_id: str, session: Session):
     customer_professional = session.execute(
-        select(CustomerProfessional).join(Customer, and_(
+        select(
+            Customer,
+            CustomerProfessional,
+            CustomerIdentity,
+            CustomerAddress
+        )
+        .join(CustomerProfessional, and_(
             Customer.customer_professional_id == CustomerProfessional.id,
-            Customer.id == cif_id
         ))
-    ).scalars().first()
+        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .filter(Customer.id == cif_id)
+    ).all()
     return ReposReturn(data=customer_professional)

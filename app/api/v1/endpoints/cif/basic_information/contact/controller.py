@@ -1,14 +1,12 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.contact.repository import (
-    repos_get_customer_addresses, repos_get_customer_professional,
+    repos_get_customer_professional_and_identity_and_address,
     repos_get_detail_contact_information, repos_save_contact_information
 )
 from app.api.v1.endpoints.cif.basic_information.contact.schema import (
     ContactInformationSaveRequest
 )
-from app.api.v1.endpoints.cif.repository import (
-    repos_get_customer_identity, repos_get_initializing_customer
-)
+from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
 from app.third_parties.oracle.models.master_data.address import (
     AddressCountry, AddressDistrict, AddressProvince, AddressWard
 )
@@ -41,25 +39,27 @@ class CtrContactInformation(BaseController):
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
 
         # Kiểm tra thông tin liên lạc tạo mới hay cập nhật => Kiểm tra theo thông tin nghề nghiệp
-        customer_professional = self.call_repos(
-            await repos_get_customer_professional(cif_id=cif_id, session=self.oracle_session))
+        customer_datas = self.call_repos(
+            await repos_get_customer_professional_and_identity_and_address(cif_id=cif_id, session=self.oracle_session))
+        _, customer_professional, customer_identity, _ = customer_datas[0]
+
         is_create = True if not customer_professional else False
 
-        customer_identity = self.call_repos(await repos_get_customer_identity(cif_id, self.oracle_session))
         saving_resident_address = None
         saving_contact_address = None
 
-        customer_addresses = self.call_repos(await repos_get_customer_addresses(cif_id, self.oracle_session))
         customer_resident_address = None
         customer_contact_address = None
-        for customer_address in customer_addresses:
+        for _, _, _, customer_address in customer_datas:
             if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
                 customer_resident_address = customer_address
             if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
                 customer_contact_address = customer_address
 
+        is_passport = False
         # RULE: Nếu GTĐD là Hộ chiếu -> có địa chỉ thường trú, địa chỉ liên lạc
         if customer_identity.identity_type_id == IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            is_passport = True
             ############################################################################################################
             # Địa chỉ thường trú
             ############################################################################################################
@@ -118,15 +118,12 @@ class CtrContactInformation(BaseController):
                         loc="resident_address -> domestic_address -> ward -> id"
                     )
 
-                # check resident_address_domestic_address_number_and_street
-                resident_domestic_number_and_street = resident_address.domestic_address.number_and_street
-
                 saving_resident_address.update({
                     "address_country_id": resident_domestic_country_id,
                     "address_province_id": resident_domestic_province_id,
                     "address_district_id": resident_domestic_district_id,
                     "address_ward_id": resident_domestic_ward_id,
-                    "address": resident_domestic_number_and_street,
+                    "address": resident_address.domestic_address.number_and_street,
                     "zip_code": None,
                     "latitude": None,
                     "longitude": None,
@@ -193,10 +190,6 @@ class CtrContactInformation(BaseController):
             # Địa chỉ liên lạc
             ############################################################################################################
 
-            saving_contact_address = {
-                "customer_id": cif_id,
-                "address_type_id": CONTACT_ADDRESS_CODE
-            }
             contact_address = contact_information_save_request.contact_address
             # RULE: Địa chỉ liên lạc không được giống địa chỉ thường trú nếu địa chỉ thường trú là địa chỉ nước ngoài
             if not resident_address.domestic_flag and contact_address.resident_address_flag:
@@ -206,23 +199,6 @@ class CtrContactInformation(BaseController):
             contact_address_province_id = contact_address.province.id
             contact_address_district_id = contact_address.district.id
             contact_address_ward_id = contact_address.ward.id
-            contact_address_number_and_street = contact_address.number_and_street
-
-            saving_contact_address.update({
-                # RULE: Với địa chỉ thường trú nước ngoài, địa chỉ tạm trú phải lấy ở VN
-                "address_country_id": ADDRESS_COUNTRY_CODE_VN,
-                "address_province_id": contact_address_province_id,
-                "address_district_id": contact_address_district_id,
-                "address_ward_id": contact_address_ward_id,
-                "address": contact_address_number_and_street,
-                "zip_code": None,
-                "latitude": None,
-                "longitude": None,
-                "address_primary_flag": None,
-                "address_domestic_flag": True,  # Địa chỉ liên lạc là địa chỉ trong nước
-                "address_2": None,
-                "address_same_permanent_flag": False
-            })
 
             # Nếu địa chỉ liên lạc khác địa chỉ thường trú hoặc địa chỉ thường trú là nước ngoài
             if not contact_address_resident_address_flag or not resident_address.domestic_flag:
@@ -241,9 +217,27 @@ class CtrContactInformation(BaseController):
                     await self.get_model_object_by_id(contact_address_ward_id, AddressWard,
                                                       "contact_address -> ward -> id")
 
+                saving_contact_address = {
+                    "customer_id": cif_id,
+                    "address_type_id": CONTACT_ADDRESS_CODE,
+                    # RULE: Với địa chỉ thường trú nước ngoài, địa chỉ tạm trú phải lấy ở VN
+                    "address_country_id": ADDRESS_COUNTRY_CODE_VN,
+                    "address_province_id": contact_address_province_id,
+                    "address_district_id": contact_address_district_id,
+                    "address_ward_id": contact_address_ward_id,
+                    "address": contact_address.number_and_street,
+                    "zip_code": None,
+                    "latitude": None,
+                    "longitude": None,
+                    "address_primary_flag": None,
+                    "address_domestic_flag": True,  # Địa chỉ liên lạc là địa chỉ trong nước
+                    "address_2": None,
+                    "address_same_permanent_flag": False
+                }
+
             # Nếu địa chỉ liên lạc giống địa chỉ thường trú
             else:
-                saving_contact_address.update(saving_resident_address)
+                saving_contact_address = saving_resident_address
                 # Giống địa chỉ thường trú nhưng vẫn là tạm trú
                 saving_contact_address.update({
                     "address_same_permanent_flag": True,
@@ -256,35 +250,31 @@ class CtrContactInformation(BaseController):
         ################################################################################################################
         # Thông tin nghề nghiệp
         ################################################################################################################
-        career_id = contact_information_save_request.career_information.career.id
-        average_income_amount_id = contact_information_save_request.career_information.average_income_amount.id
-        company_position_id = contact_information_save_request.career_information.company_position.id
-        company_name = contact_information_save_request.career_information.company_name
-        company_phone = contact_information_save_request.career_information.company_phone
-        company_address = contact_information_save_request.career_information.company_address
 
-        career_information = self.call_repos(await repos_get_customer_professional(cif_id, self.oracle_session))
         # check career
-        if is_create or (career_information.career_id != career_id):
+        career_id = contact_information_save_request.career_information.career.id
+        if is_create or (customer_professional.career_id != career_id):
             await self.get_model_object_by_id(career_id, Career, "career_information -> career -> id")
 
         # check average_income_amount
-        if is_create or (career_information.average_income_amount_id != average_income_amount_id):
+        average_income_amount_id = contact_information_save_request.career_information.average_income_amount.id
+        if is_create or (customer_professional.average_income_amount_id != average_income_amount_id):
             await self.get_model_object_by_id(average_income_amount_id, AverageIncomeAmount,
                                               "career_information -> average_income_amount -> id")
 
         # check company_position
-        if is_create or (career_information.position_id != company_position_id):
+        company_position_id = contact_information_save_request.career_information.company_position.id
+        if is_create or (customer_professional.position_id != company_position_id):
             await self.get_model_object_by_id(company_position_id, Position,
                                               "career_information -> company_position -> id")
 
         saving_career_information = {
             "career_id": career_id,
             "average_income_amount_id": average_income_amount_id,
-            "company_name": company_name,
-            "company_phone": company_phone,
+            "company_name": contact_information_save_request.career_information.company_name,
+            "company_phone": contact_information_save_request.career_information.company_phone,
             "position_id": company_position_id,
-            "company_address": company_address
+            "company_address": contact_information_save_request.career_information.company_address
         }
 
         ################################################################################################################
@@ -292,17 +282,18 @@ class CtrContactInformation(BaseController):
         if is_create:
             # Tạo thông tin nghề nghiệp khách hàng
             customer_professional_id = generate_uuid()
-            career_information.update({
+            customer_professional.update({
                 "id": customer_professional_id
             })
         else:
-            customer_professional_id = career_information.id
+            customer_professional_id = customer_professional.id
 
         contact_information_detail_data = self.call_repos(
             await repos_save_contact_information(
                 cif_id=cif_id,
                 customer_professional_id=customer_professional_id,
                 is_create=is_create,
+                is_passport=is_passport,
                 saving_resident_address=saving_resident_address,
                 saving_contact_address=saving_contact_address,
                 saving_career_information=saving_career_information,
