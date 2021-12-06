@@ -101,13 +101,13 @@ class ContactAddressRequest(BaseSchema):
 class CareerInformationContactInformationRequest(CareerInformationContactInformationResponse):
     career: DropdownRequest = Field(..., description="Nghề nghiệp")
     average_income_amount: DropdownRequest = Field(..., description="Nghề nghiệp")
-    company_position: OpionalDropdownRequest = Field(None, description="Chức vụ")
+    company_position: OpionalDropdownRequest = Field(None, description="Chức vụ", nullable=True)
 
 
 class ContactInformationSaveRequest(BaseSchema):
     resident_address: Optional[ResidentAddressContactInformationRequest] = Field(
-        ..., description="I. Địa chỉ thường trú")
+        ..., description="I. Địa chỉ thường trú", nullale=True)
     # Địa chỉ liên lạc sẽ giống với thông tin của địa chỉ trong nước
-    contact_address: Optional[ContactAddressRequest] = Field(..., description="II. Địa chỉ liên lạc")
+    contact_address: Optional[ContactAddressRequest] = Field(..., description="II. Địa chỉ liên lạc", nullale=True)
     career_information: CareerInformationContactInformationRequest = Field(
         ..., description="III. Thông tin nghề nghiệp")
