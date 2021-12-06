@@ -16,6 +16,7 @@ class CtrBasicInformation(BaseController):
             relationship_type: int
     ):
         # check and get current customer
+        # check current customer is initializing
         current_customer = self.call_repos(
             await repos_get_initializing_customer(
                 cif_id=cif_id,
