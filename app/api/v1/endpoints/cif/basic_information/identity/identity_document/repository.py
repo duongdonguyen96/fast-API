@@ -39,7 +39,7 @@ from app.utils.constant.cif import (
     RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown, generate_uuid, now
+from app.utils.functions import date_to_string, dropdown, generate_uuid, now
 
 
 ########################################################################################################################
@@ -276,34 +276,28 @@ async def repos_get_identity_log_list(
     ).scalars().all()
 
     identity_log_infos = []
-    identity_images = []
-    previous_maker_at = None
-    for identity_image_transaction in identity_image_transactions:
-        reference_flag = True if identity_image_transaction == identity_image_transactions[0] else False
-        maker_at = identity_image_transaction.maker_at
-        identity_log_info = {
-            "reference_flag": reference_flag,
-            "created_date": maker_at,
-            "identity_images": identity_images
-        }
-        if not previous_maker_at:
-            identity_images.append({
-                "image_url": identity_image_transaction.image_url
-            })
-            previous_maker_at = maker_at
-        elif previous_maker_at != maker_at:
-            identity_images = [{
-                "image_url": identity_image_transaction.image_url
-            }]
-            previous_maker_at = maker_at
-        else:
-            identity_images.append({
-                "image_url": identity_image_transaction.image_url
-            })
-            continue
+    if not identity_image_transactions:
+        return ReposReturn(data=identity_log_infos)
 
-        identity_log_info['identity_images'] = identity_images
-        identity_log_infos.append(identity_log_info)
+    date__identity_images = {}
+
+    for identity_image_transaction in identity_image_transactions:
+        maker_at = date_to_string(identity_image_transaction.maker_at)
+
+        if maker_at not in identity_log_infos:
+            date__identity_images[maker_at] = []
+
+        date__identity_images[maker_at].append({
+            "image_url": identity_image_transaction.image_url
+        })
+
+    identity_log_infos = [{
+        "reference_flag": False,
+        "created_date": created_date,
+        "identity_images": identity_images
+    } for created_date, identity_images in date__identity_images.items()]
+
+    identity_log_infos[0]["reference_flag"] = True
 
     return ReposReturn(data=identity_log_infos)
 
