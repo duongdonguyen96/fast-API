@@ -17,24 +17,24 @@ class DomesticAddressResponse(BaseSchema):
     province: OptionalDropdownResponse = Field(..., description="Tỉnh/Thành phố")
     district: OptionalDropdownResponse = Field(..., description="Quận/Huyện")
     ward: OptionalDropdownResponse = Field(..., description="Phường/Xã")
-    number_and_street: Optional[str] = Field(..., min_length=1, description="Số nhà, tên đường")
+    number_and_street: str = Field(..., min_length=1, description="Số nhà, tên đường")
 
 
 class ForeignAddressResponse(BaseSchema):
     country: OptionalDropdownResponse = Field(..., description="Quốc gia/Khu vực")
-    address_1: Optional[str] = Field(..., description="Địa chỉ 1")
-    address_2: Optional[str] = Field(..., description="Địa chỉ 2")
+    address_1: Optional[str] = Field(..., description="Địa chỉ 1", nullable=True)
+    address_2: Optional[str] = Field(..., description="Địa chỉ 2", nullable=True)
     province: OptionalDropdownResponse = Field(..., description="Thành phố")
     state: OptionalDropdownResponse = Field(..., description="Tỉnh/Bang")
-    zip_code: str = Field(..., min_length=1, description="Mã bưu chính")
+    zip_code: str = Field(..., min_length=1, description="Mã bưu chính", nullable=True)
 
 
 class ResidentAddressContactInformationResponse(BaseSchema):
     domestic_flag: bool = Field(..., description="""Cờ địa chỉ trong nước
     \n`flag` = `True` => Địa chỉ trong nước
     \n`flag` = `False` => Địa chỉ nước ngoài""")
-    domestic_address: Optional[DomesticAddressResponse] = Field(..., description="Địa chỉ trong nước")
-    foreign_address: Optional[ForeignAddressResponse] = Field(..., description="Địa chỉ nước ngoài")
+    domestic_address: Optional[DomesticAddressResponse] = Field(..., description="Địa chỉ trong nước", nullable=True)
+    foreign_address: Optional[ForeignAddressResponse] = Field(..., description="Địa chỉ nước ngoài", nullable=True)
 
 
 class CareerInformationContactInformationResponse(BaseSchema):
@@ -66,20 +66,20 @@ class ContactInformationDetailResponse(BaseSchema):
 # Request Body
 ########################################################################################################################
 class DomesticAddressRequest(BaseSchema):
-    country: DropdownRequest = Field(..., description="Quốc gia")
-    province: DropdownRequest = Field(..., description="Tỉnh/Thành phố")
-    district: DropdownRequest = Field(..., description="Quận/Huyện")
-    ward: DropdownRequest = Field(..., description="Phường/Xã")
-    number_and_street: str = Field(..., min_length=1, description="Số nhà, tên đường")
+    country: OpionalDropdownRequest = Field(..., description="Quốc gia")
+    province: OpionalDropdownRequest = Field(..., description="Tỉnh/Thành phố")
+    district: OpionalDropdownRequest = Field(..., description="Quận/Huyện")
+    ward: OpionalDropdownRequest = Field(..., description="Phường/Xã")
+    number_and_street: Optional[str] = Field(..., min_length=1, description="Số nhà, tên đường", nullable=True)
 
 
 class ForeignAddressRequest(BaseSchema):
-    country: DropdownRequest = Field(..., description="Quốc gia/Khu vực")
-    address_1: str = Field(..., min_length=1, description="Địa chỉ 1")
-    address_2: Optional[str] = Field(..., min_length=1, description="Địa chỉ 2")
-    province: DropdownRequest = Field(..., description="Thành phố nước ngoài là AddressDistrict")
-    state: DropdownRequest = Field(..., description="Tỉnh/Bang nước ngoài là AddressProvince")
-    zip_code: str = Field(..., min_length=1, description="Mã bưu chính")
+    country: OpionalDropdownRequest = Field(..., description="Quốc gia/Khu vực")
+    address_1: Optional[str] = Field(..., description="Địa chỉ 1", nullable=True)
+    address_2: Optional[str] = Field(..., description="Địa chỉ 2", nullable=True)
+    province: OpionalDropdownRequest = Field(..., description="Thành phố")
+    state: OpionalDropdownRequest = Field(..., description="Tỉnh/Bang")
+    zip_code: Optional[str] = Field(..., description="Mã bưu chính", nullable=True)
 
 
 class ResidentAddressContactInformationRequest(BaseSchema):

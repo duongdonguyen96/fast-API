@@ -74,8 +74,8 @@ class CustomerIdentityImageTransaction(Base):
     active_flag = Column(NUMBER(1, 0, False), comment='Trạng thái kích hoạt (Có/không tương ứng tick xanh đỏ)')
     maker_id = Column(VARCHAR(36), nullable=False, comment='Người thực hiện')
     maker_at = Column(DateTime, nullable=False, comment='Ngày thực hiện')
-    approved_by_id = Column(VARCHAR(36), nullable=False, comment='Người duyệt')
-    approved_at = Column(DateTime, nullable=False, comment='Ngày duyệt')
+    approved_id = Column('approver_id', VARCHAR(36), nullable=False, comment='Người duyệt')
+    approved_at = Column('approver_at', DateTime, nullable=False, comment='Ngày duyệt')
 
 
 class CustomerCompareImage(Base):
