@@ -71,8 +71,8 @@ class MethodAuthenticationResponse(DropdownResponse):
 
 
 class NumberResponse(BaseSchema):
-    id: Optional[str] = Field(..., description='Mã tài khoản')
-    name: Optional[str] = Field(..., description='Tài khoản')
+    id: Optional[str] = Field(..., description='Mã tài khoản', nullable=True)
+    name: Optional[str] = Field(..., description='Tài khoản', nullable=True)
 
 
 class PaymentFeeResponse(BaseSchema):
@@ -289,7 +289,7 @@ class MethodAuthenticationRequest(DropdownRequest):
 
 
 class NumberRequest(BaseSchema):
-    id: Optional[str] = Field(..., description='Mã tài khoản')
+    id: Optional[str] = Field(..., description='Mã tài khoản', nullable=True)
 
 
 class PaymentFeeRequest(DropdownRequest):

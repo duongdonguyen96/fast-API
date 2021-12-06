@@ -1,9 +1,12 @@
 from typing import Optional, Union
 
+from fastapi import UploadFile
+
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import (
     repos_get_detail_identity, repos_get_identity_information,
-    repos_get_identity_log_list, repos_save_identity
+    repos_get_identity_log_list, repos_save_identity,
+    repos_upload_identity_document_and_ocr
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
@@ -11,6 +14,7 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schem
 from app.api.v1.endpoints.cif.repository import (
     repos_check_not_exist_cif_number
 )
+from app.api.v1.endpoints.file.validator import file_validator
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -32,11 +36,11 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CONTACT_ADDRESS_CODE, CUSTOMER_UNCOMPLETED_FLAG, IDENTITY_DOCUMENT_TYPE,
-    IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
-    IDENTITY_DOCUMENT_TYPE_PASSPORT, IDENTITY_IMAGE_FLAG_BACKSIDE,
-    IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
-    RESIDENT_ADDRESS_CODE
+    CONTACT_ADDRESS_CODE, CUSTOMER_UNCOMPLETED_FLAG, EKYC_IDENTITY_TYPE,
+    IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
+    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
+    IDENTITY_IMAGE_FLAG_BACKSIDE, IDENTITY_IMAGE_FLAG_FRONT_SIDE,
+    IMAGE_TYPE_CODE_IDENTITY, RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import ERROR_IDENTITY_DOCUMENT_NOT_EXIST
 from app.utils.functions import calculate_age, now
@@ -333,6 +337,8 @@ class CtrIdentityDocument(BaseController):
                     "vector_data": None,
                     "active_flag": True,
                     "maker_id": self.current_user.user_id,
+                    "maker_at": now(),
+                    "updater_id": self.current_user.user_id,
                     "updater_at": now(),
                     "identity_image_front_flag": IDENTITY_IMAGE_FLAG_BACKSIDE
                 }
@@ -391,3 +397,24 @@ class CtrIdentityDocument(BaseController):
             )
         )
         return self.response(data=info_save_document)
+
+    async def upload_identity_document_and_ocr(self, identity_type: int, image_file: UploadFile):
+
+        if identity_type not in EKYC_IDENTITY_TYPE:
+            return self.response_exception(msg='', detail='identity_type is not exist', loc='identity_type')
+
+        image_file_name = image_file.filename
+        image_data = await image_file.read()
+
+        self.call_validator(await file_validator(image_data))
+
+        upload_info = self.call_repos(
+            await repos_upload_identity_document_and_ocr(
+                image_file=image_data,
+                image_file_name=image_file_name,
+                identity_type=identity_type,
+                session=self.oracle_session
+            )
+        )
+
+        return self.response(data=upload_info)
