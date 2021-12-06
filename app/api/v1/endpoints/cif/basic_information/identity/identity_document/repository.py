@@ -15,7 +15,8 @@ from app.third_parties.oracle.models.cif.basic_information.contact.model import 
     CustomerAddress
 )
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerCompareImage, CustomerIdentity, CustomerIdentityImage
+    CustomerCompareImage, CustomerIdentity, CustomerIdentityImage,
+    CustomerIdentityImageTransaction
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -36,14 +37,14 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE,
-    EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
+    CONTACT_ADDRESS_CODE, EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import ERROR_CALL_SERVICE, ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import (
-    date_string_to_other_date_string_format, dropdown, generate_uuid, now
+    date_string_to_other_date_string_format, date_to_string, dropdown,
+    generate_uuid, now
 )
 
 IDENTITY_LOGS_INFO = [
@@ -315,11 +316,47 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
 ########################################################################################################################
 
 
-async def repos_get_list_log(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_identity_log_list(
+        cif_id: str,
+        session: Session
+) -> ReposReturn:
+    identity_image_transactions = session.execute(
+        select(
+            CustomerIdentityImageTransaction,
+        )
+        .join(CustomerIdentityImage, CustomerIdentityImageTransaction.identity_image_id == CustomerIdentityImage.id)
+        .join(CustomerIdentity, and_(
+            CustomerIdentityImage.identity_id == CustomerIdentity.id,
+            CustomerIdentity.customer_id == cif_id
+        ))
+        .order_by(desc(CustomerIdentityImageTransaction.maker_at))
+    ).scalars().all()
 
-    return ReposReturn(data=IDENTITY_LOGS_INFO)
+    identity_log_infos = []
+    if not identity_image_transactions:
+        return ReposReturn(data=identity_log_infos)
+
+    date__identity_images = {}
+
+    for identity_image_transaction in identity_image_transactions:
+        maker_at = date_to_string(identity_image_transaction.maker_at)
+
+        if maker_at not in date__identity_images.keys():
+            date__identity_images[maker_at] = []
+
+        date__identity_images[maker_at].append({
+            "image_url": identity_image_transaction.image_url
+        })
+
+    identity_log_infos = [{
+        "reference_flag": True if index == 0 else False,
+        "created_date": created_date,
+        "identity_images": identity_images
+    } for index, (created_date, identity_images) in enumerate(date__identity_images.items())]
+
+    identity_log_infos[0]["reference_flag"] = True
+
+    return ReposReturn(data=identity_log_infos)
 
 
 ########################################################################################################################
