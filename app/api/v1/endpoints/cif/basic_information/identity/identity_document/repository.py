@@ -6,8 +6,11 @@ from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn, auto_commit
 from app.api.v1.endpoints.repository import (
+    repos_get_model_object_by_id_or_code,
+    repos_get_optional_model_object_by_code_or_name,
     write_transaction_log_and_update_booking
 )
+from app.settings.event import service_ekyc, service_file
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -33,12 +36,15 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
-    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
-    RESIDENT_ADDRESS_CODE
+    CIF_ID_TEST, CONTACT_ADDRESS_CODE,
+    EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
+    IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
+    IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE
 )
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown, generate_uuid, now
+from app.utils.error_messages import ERROR_CALL_SERVICE, ERROR_CIF_ID_NOT_EXIST
+from app.utils.functions import (
+    date_string_to_other_date_string_format, dropdown, generate_uuid, now
+)
 
 IDENTITY_LOGS_INFO = [
     {
@@ -548,3 +554,183 @@ async def create_customer_identity_image_and_customer_compare_image(
     )
 
     return None
+
+
+########################################################################################################################
+# Gọi qua eKYC để OCR giấy tờ định danh
+########################################################################################################################
+async def repos_upload_identity_document_and_ocr(
+        identity_type: int,
+        image_file: bytes,
+        image_file_name: str,
+        session: Session
+):
+    is_success, ocr_response = await service_ekyc.ocr_identity_document(
+        file=image_file,
+        filename=image_file_name,
+        identity_type=identity_type
+    )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE, detail=ocr_response.get('message'))
+
+    file_response = await service_file.upload_file(file=image_file, name=image_file_name)
+    if not file_response:
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE, detail='Call to service file failed')
+
+    if identity_type == EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD:
+        response_data = await mapping_ekyc_front_side_identity_card_ocr_data(
+            image_url=file_response['file_url'],
+            ocr_data=ocr_response.get('data', {}),
+            session=session
+        )
+    else:
+        response_data = await mapping_ekyc_passport_ocr_data(
+            image_url=file_response['file_url'],
+            ocr_data=ocr_response.get('data', {}),
+            session=session
+        )
+
+    return ReposReturn(data=response_data)
+
+
+async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_data: dict, session: Session):
+    vietnamese_nationality = await repos_get_model_object_by_id_or_code(
+        model_id=None,
+        model_code='VN',  # TODO: tạo constant,
+        model=AddressCountry,
+        loc='nationality:VN',
+        session=session
+    )
+
+    try:
+        # TODO: tách tỉnh ra query. Hỏi thăm bên eKYC xem có case đặc biệt không
+        place_of_origin = ocr_data.get('place_of_origin', ', ').split(', ')[-1]
+    except ValueError:
+        place_of_origin = None
+
+    optional_place_of_origin = await repos_get_optional_model_object_by_code_or_name(
+        model_name=place_of_origin,
+        model=AddressProvince,
+        session=session
+    )
+
+    try:
+        number_and_street, ward, district, province = ocr_data.get('place_of_residence', ', , , ').split(', ')
+    except ValueError:
+        number_and_street = ward = district = province = ''
+
+    optional_province = await repos_get_optional_model_object_by_code_or_name(
+        model_name=province,
+        model=AddressProvince,
+        session=session
+    )
+    optional_district = await repos_get_optional_model_object_by_code_or_name(
+        model_name=district,
+        model=AddressDistrict,
+        session=session
+    )
+    optional_ward = await repos_get_optional_model_object_by_code_or_name(
+        model_name=ward,
+        model=AddressWard,
+        session=session
+    )
+
+    resident_address = {
+        "province": dropdown(optional_province) if optional_province else None,
+        "district": dropdown(optional_district) if optional_district else None,
+        "ward": dropdown(optional_ward) if optional_ward else None,
+        "number_and_street": number_and_street
+    }
+
+    front_side_identity_card_info = {
+        "front_side_information": {
+            "identity_image_url": image_url
+        },
+        "ocr_result": {
+            "identity_document": {
+                "identity_number": ocr_data.get('document_id'),
+                "expired_date": ''  # TODO: có thể CMND 12 số có
+            },
+            "basic_information": {
+                "full_name_vn": ocr_data.get('full_name'),
+                "date_of_birth": date_string_to_other_date_string_format(ocr_data.get('date_of_birth'),
+                                                                         from_format='%d-%m-%Y'),
+                "nationality": dropdown(vietnamese_nationality),
+                "province": dropdown(optional_place_of_origin) if optional_place_of_origin else None,
+            },
+            "address_information": {
+                "resident_address": resident_address,
+                "contact_address": resident_address
+            }
+        }
+    }
+
+    return front_side_identity_card_info
+
+
+async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session: Session):
+    optional_place_of_issue = await repos_get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('place_of_issue'),
+        model=PlaceOfIssue,
+        session=session
+    )
+
+    optional_passport_code = await repos_get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('passport_code'),
+        model=PassportCode,
+        session=session
+    )
+
+    optional_gender = await repos_get_optional_model_object_by_code_or_name(
+        model_code='NU' if ocr_data.get('gender') == 'F' else 'NAM',  # TODO: tự tạo constant
+        model=CustomerGender,
+        session=session
+    )
+
+    optional_nationality = await repos_get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('nationality', '/').split('/')[0],  # Việt Nam/Vietnamese
+        model=AddressCountry,
+        session=session
+    )
+
+    optional_place_of_birth = await repos_get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('place_of_origin'),  # Việt Nam/Vietnamese
+        model=AddressProvince,
+        session=session
+    )
+
+    passport_info = {
+        "passport_information": {
+            "identity_image_url": image_url
+        },
+        "ocr_result": {
+            "identity_document":
+                {
+                    "identity_number": ocr_data.get('document_id'),
+                    "issued_date": date_string_to_other_date_string_format(ocr_data.get('date_of_issue'),
+                                                                           from_format='%d/%m/%Y'),
+                    "place_of_issue": dropdown(optional_place_of_issue) if optional_place_of_issue else None,
+                    "expired_date": date_string_to_other_date_string_format(ocr_data.get('date_of_expiry'),
+                                                                            from_format='%d/%m/%Y'),
+                    "passport_type": {  # TODO: chỗ này bên Ekyc chưa thấy trả vể
+                        "id": "string",
+                        "code": "string",
+                        "name": "string"
+                    },
+                    "passport_code": dropdown(optional_passport_code) if optional_passport_code else None,
+                },
+            "basic_information":
+                {
+                    "full_name_vn": ocr_data.get('full_name'),
+                    "gender": dropdown(optional_gender) if optional_gender else None,
+                    "date_of_birth": date_string_to_other_date_string_format(ocr_data.get('date_of_birth'),
+                                                                             from_format='%d/%m/%Y'),
+                    "nationality": dropdown(optional_nationality) if optional_nationality else None,
+                    "place_of_birth": dropdown(optional_place_of_birth) if optional_place_of_birth else None,
+                    "identity_card_number": ocr_data.get('id_card_number'),
+                    "mrz_content": f"{ocr_data.get('mrz_1', '')}\n{ocr_data.get('mrz_2', '')}"
+                }
+        }
+    }
+
+    return passport_info

@@ -7,13 +7,13 @@ from starlette import status
 from app.settings.service import SERVICE
 
 
-class ServiceCard:
+class ServiceEKYC:
     session: Optional[aiohttp.ClientSession] = None
 
-    url = SERVICE["card"]["url"]
+    url = SERVICE["ekyc"]['url']
     headers = {
-        "AUTHORIZATION": SERVICE["card"]["authorization"],
-        "X-TRANSACTION-ID": SERVICE["card"]["x-transaction-id"]
+        "X-TRANSACTION-ID": SERVICE["ekyc"]['x-transaction-id'],
+        "AUTHORIZATION": SERVICE["ekyc"]['authorization']
     }
 
     def start(self):
@@ -23,12 +23,12 @@ class ServiceCard:
         await self.session.close()
         self.session = None
 
-    async def ocr_identity_document(self, file: bytes, filename: str, document_type: int) -> Tuple[bool, dict]:
+    async def ocr_identity_document(self, file: bytes, filename: str, identity_type: int) -> Tuple[bool, dict]:
         api_url = f"{self.url}/api/v1/card-service/ocr/"
 
         form_data = aiohttp.FormData()
         form_data.add_field("file", value=file, filename=filename)
-        form_data.add_field("type", value=str(document_type))
+        form_data.add_field("type", value=str(identity_type))
 
         is_success = True
 
@@ -40,4 +40,4 @@ class ServiceCard:
 
             response_body = await response.json()
 
-        return not is_success, response_body
+        return is_success, response_body
