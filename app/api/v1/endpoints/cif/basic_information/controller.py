@@ -15,7 +15,7 @@ class CtrBasicInformation(BaseController):
             cif_number_need_to_find: str,
             relationship_type: int
     ):
-        # check and get current customer
+        # RULE: chỉ cif_id đang khởi tạo mới được sử dụng API này
         # check current customer is initializing
         current_customer = self.call_repos(
             await repos_get_initializing_customer(
