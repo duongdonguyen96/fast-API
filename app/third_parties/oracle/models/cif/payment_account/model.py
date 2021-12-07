@@ -99,7 +99,7 @@ class JointAccountHolderAgreementAuthorization(Base):
                                         ForeignKey('crm_agreement_authorization.agreement_author_id'), primary_key=True,
                                         server_default=text("sys_guid() "), comment='Mã thỏa thuận - ủy quyền')
     joint_account_holder_id = Column('joint_account_holder_id',
-                                     ForeignKey('crm_joint_account_holder.joint_account_holder_id'),
-                                     comment='Mã Thông tin đồng chủ sở hữu'),
+                                     ForeignKey('crm_joint_account_holder.joint_account_holder_id'), primary_key=True,
+                                     comment='Mã Thông tin đồng chủ sở hữu')
     method_sign = Column(NUMBER(1, 0, False), comment='Phương thức kí')
     agreement_flag = Column(NUMBER(1, 0, False), comment='Cờ ủy quyền')
