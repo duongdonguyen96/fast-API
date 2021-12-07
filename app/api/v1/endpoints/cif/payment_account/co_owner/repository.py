@@ -81,7 +81,7 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
             AddressCountry, Customer.nationality_id == AddressCountry.id
         ).join(
             PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id
-        ).outerjoin(
+        ).join(
             CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id
         ).join(
             CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id
