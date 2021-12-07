@@ -115,6 +115,27 @@ class ServiceFile:
 
         return multi_file_download_response_body
 
+    async def is_exist_multi_file(self, uuids: List[str]) -> Optional[bool]:
+        """
+        Nếu tất cả UUID tồn tại thì trả về True
+        Nếu có ít nhất một UUID không tồn tại thì False
+        :param uuids:
+        :return:
+        """
+        api_url = f"{self.url}/api/v1/files/exist/?{'&'.join([f'uuid={uuid}' for uuid in uuids])}"
+
+        try:
+            async with self.session.get(url=api_url, headers=self.headers) as response:
+                logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
+
+                if response.status == status.HTTP_200_OK:
+                    return True
+                else:
+                    return False
+        except Exception as ex:
+            logger.error(str(ex))
+            return None
+
     @staticmethod
     def replace_with_cdn(file_url: str) -> str:
         file_url_parse_result = urlparse(file_url)

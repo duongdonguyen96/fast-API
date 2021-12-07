@@ -40,3 +40,11 @@ async def repos_download_multi_file(uuids: List[str]) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
 
     return ReposReturn(data=response)
+
+
+async def repos_check_is_exist_multi_file(uuids: List[str]) -> ReposReturn:
+    result = await service_file.is_exist_multi_file(uuids=uuids)
+    if result is None:
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE)
+
+    return ReposReturn(data=result)
