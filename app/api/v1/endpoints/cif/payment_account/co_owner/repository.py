@@ -90,7 +90,7 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
         ).join(
             CustomerRelationshipType,
             CustomerRelationshipType.id == CustomerPersonalRelationship.customer_relationship_type_id
-        ).outerjoin(
+        ).join(
             CustomerIdentityImage, and_(
                 CustomerIdentity.id == CustomerIdentityImage.identity_id,
                 CustomerIdentityImage.image_type_id == IMAGE_TYPE_SIGNATURE
@@ -186,6 +186,9 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
             AgreementAuthorization
         )
     ).scalars()
+
+    if not agreement_authorizations:
+        return ReposReturn(is_error=True, msg='AGREEMENT_AUTHORIZATIONS_NOT_EXIST', detail='agreement_authorizations')
 
     agreement_authorization = [{
         "id": agreement_authorization.id,
