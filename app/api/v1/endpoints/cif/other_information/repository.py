@@ -118,6 +118,8 @@ async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInfor
     if not is_success:
         return ReposReturn(is_error=True, msg=msg)
 
+    # TODO: đợi dữ liệu danh mục và cập nhật trạng thái ở bảng BusinessForm
+
     return ReposReturn(data={
         'created_at': now(),
         'created_by': 'system',
