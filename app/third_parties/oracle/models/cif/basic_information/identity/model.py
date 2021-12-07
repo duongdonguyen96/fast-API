@@ -114,8 +114,8 @@ sys_guid()
     similar_percent = Column(NUMBER(asdecimal=False), nullable=False, comment='Phần trăm tương đồng (range 0-100)')
     maker_id = Column(VARCHAR(36), nullable=False, comment='Mã người thực hiện')
     maker_at = Column(DateTime, nullable=False, comment='Thời gian thực hiện')
-    approved_by_id = Column(VARCHAR(36), comment='Mã người duyệt')
-    approved_at = Column(DateTime, comment='Thời gian duyệt')
+    approved_id = Column('approver_id', VARCHAR(36), comment='Mã người duyệt')
+    approved_at = Column('approver_at', DateTime, comment='Thời gian duyệt')
 
 
 class CustomerSubIdentity(Base):
