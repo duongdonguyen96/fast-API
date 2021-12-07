@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn, auto_commit
 from app.api.v1.endpoints.repository import (
+    get_optional_model_object_by_code_or_name,
     repos_get_model_object_by_id_or_code,
-    repos_get_optional_model_object_by_code_or_name,
     write_transaction_log_and_update_booking
 )
 from app.settings.event import service_ekyc, service_file
@@ -38,7 +38,12 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CONTACT_ADDRESS_CODE, EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
+    ADDRESS_COUNTRY_CODE_VN, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_FEMALE,
+    CRM_GENDER_TYPE_MALE, EKYC_GENDER_TYPE_FEMALE,
+    EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD,
+    EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD,
+    EKYC_IDENTITY_TYPE_FRONT_SIDE_CITIZEN_CARD,
+    EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE
 )
@@ -47,6 +52,7 @@ from app.utils.functions import (
     date_string_to_other_date_string_format, date_to_string, dropdown,
     generate_uuid, now
 )
+from app.utils.vietnamese_converter import convert_to_unsigned_vietnamese
 
 IDENTITY_LOGS_INFO = [
     {
@@ -354,6 +360,8 @@ async def repos_get_identity_log_list(
         "created_date": created_date,
         "identity_images": identity_images
     } for index, (created_date, identity_images) in enumerate(date__identity_images.items())]
+
+    identity_log_infos[0]["reference_flag"] = True
 
     return ReposReturn(data=identity_log_infos)
 
@@ -672,6 +680,24 @@ async def repos_upload_identity_document_and_ocr(
             ocr_data=ocr_response.get('data', {}),
             session=session
         )
+    elif identity_type == EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD:
+        response_data = await mapping_ekyc_back_side_identity_card_ocr_data(
+            image_url=file_response['file_url'],
+            ocr_data=ocr_response.get('data', {}),
+            session=session
+        )
+    elif identity_type == EKYC_IDENTITY_TYPE_FRONT_SIDE_CITIZEN_CARD:
+        response_data = await mapping_ekyc_front_side_citizen_card_ocr_data(
+            image_url=file_response['file_url'],
+            ocr_data=ocr_response.get('data', {}),
+            session=session
+        )
+    elif identity_type == EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD:
+        response_data = await mapping_ekyc_back_side_citizen_card_ocr_data(
+            image_url=file_response['file_url'],
+            ocr_data=ocr_response.get('data', {}),
+            session=session
+        )
     else:
         response_data = await mapping_ekyc_passport_ocr_data(
             image_url=file_response['file_url'],
@@ -683,9 +709,9 @@ async def repos_upload_identity_document_and_ocr(
 
 
 async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_data: dict, session: Session):
-    vietnamese_nationality = await repos_get_model_object_by_id_or_code(
+    repos_return_vietnamese_nationality = await repos_get_model_object_by_id_or_code(
         model_id=None,
-        model_code='VN',  # TODO: tạo constant,
+        model_code=ADDRESS_COUNTRY_CODE_VN,
         model=AddressCountry,
         loc='nationality:VN',
         session=session
@@ -697,7 +723,7 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
     except ValueError:
         place_of_origin = None
 
-    optional_place_of_origin = await repos_get_optional_model_object_by_code_or_name(
+    optional_place_of_origin = await get_optional_model_object_by_code_or_name(
         model_name=place_of_origin,
         model=AddressProvince,
         session=session
@@ -708,17 +734,17 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
     except ValueError:
         number_and_street = ward = district = province = ''
 
-    optional_province = await repos_get_optional_model_object_by_code_or_name(
+    optional_province = await get_optional_model_object_by_code_or_name(
         model_name=province,
         model=AddressProvince,
         session=session
     )
-    optional_district = await repos_get_optional_model_object_by_code_or_name(
+    optional_district = await get_optional_model_object_by_code_or_name(
         model_name=district,
         model=AddressDistrict,
         session=session
     )
-    optional_ward = await repos_get_optional_model_object_by_code_or_name(
+    optional_ward = await get_optional_model_object_by_code_or_name(
         model_name=ward,
         model=AddressWard,
         session=session
@@ -738,13 +764,14 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
         "ocr_result": {
             "identity_document": {
                 "identity_number": ocr_data.get('document_id'),
-                "expired_date": ''  # TODO: có thể CMND 12 số có
+                "expired_date": None  # TODO: có thể CMND 12 số có
             },
             "basic_information": {
                 "full_name_vn": ocr_data.get('full_name'),
                 "date_of_birth": date_string_to_other_date_string_format(ocr_data.get('date_of_birth'),
-                                                                         from_format='%d-%m-%Y'),
-                "nationality": dropdown(vietnamese_nationality),
+                                                                         from_format='%d/%m/%Y'),
+                "nationality": dropdown(repos_return_vietnamese_nationality.data)
+                if not repos_return_vietnamese_nationality.is_error else None,
                 "province": dropdown(optional_place_of_origin) if optional_place_of_origin else None,
             },
             "address_information": {
@@ -758,31 +785,31 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
 
 
 async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session: Session):
-    optional_place_of_issue = await repos_get_optional_model_object_by_code_or_name(
+    optional_place_of_issue = await get_optional_model_object_by_code_or_name(
         model_name=ocr_data.get('place_of_issue'),
         model=PlaceOfIssue,
         session=session
     )
 
-    optional_passport_code = await repos_get_optional_model_object_by_code_or_name(
+    optional_passport_code = await get_optional_model_object_by_code_or_name(
         model_name=ocr_data.get('passport_code'),
         model=PassportCode,
         session=session
     )
 
-    optional_gender = await repos_get_optional_model_object_by_code_or_name(
-        model_code='NU' if ocr_data.get('gender') == 'F' else 'NAM',  # TODO: tự tạo constant
+    optional_gender = await get_optional_model_object_by_code_or_name(
+        model_code=CRM_GENDER_TYPE_FEMALE if ocr_data.get('gender') == EKYC_GENDER_TYPE_FEMALE else CRM_GENDER_TYPE_MALE,
         model=CustomerGender,
         session=session
     )
 
-    optional_nationality = await repos_get_optional_model_object_by_code_or_name(
+    optional_nationality = await get_optional_model_object_by_code_or_name(
         model_name=ocr_data.get('nationality', '/').split('/')[0],  # Việt Nam/Vietnamese
         model=AddressCountry,
         session=session
     )
 
-    optional_place_of_birth = await repos_get_optional_model_object_by_code_or_name(
+    optional_place_of_birth = await get_optional_model_object_by_code_or_name(
         model_name=ocr_data.get('place_of_origin'),  # Việt Nam/Vietnamese
         model=AddressProvince,
         session=session
@@ -823,3 +850,157 @@ async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session
     }
 
     return passport_info
+
+
+async def mapping_ekyc_back_side_identity_card_ocr_data(image_url: str, ocr_data: dict, session: Session):
+    optional_ethnic = await get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('ethnicity'),
+        model=Nation,
+        session=session
+    )
+
+    optional_place_of_issue = await get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('place_of_issue'),
+        model=PlaceOfIssue,
+        session=session
+    )
+
+    optional_religion = await get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('religion'),
+        model=Religion,
+        session=session
+    )
+
+    back_side_identity_card_info = {
+        "back_side_information": {
+            "identity_image_url": image_url,
+        },
+        "ocr_result": {
+            "identity_document": {
+                "issued_date": date_string_to_other_date_string_format(ocr_data.get('date_of_issue'),
+                                                                       from_format='%d/%m/%Y'),
+                "place_of_issue": dropdown(optional_place_of_issue) if optional_place_of_issue else None,
+            },
+            "basic_information": {
+                "ethnic": dropdown(optional_ethnic) if optional_ethnic else None,
+                "religion": dropdown(optional_religion) if optional_ethnic else None,
+                "identity_characteristic": ocr_data.get('personal_identification'),
+            }
+        }
+    }
+
+    return back_side_identity_card_info
+
+
+async def mapping_ekyc_front_side_citizen_card_ocr_data(image_url: str, ocr_data: dict, session: Session):
+    optional_gender = await get_optional_model_object_by_code_or_name(
+        model_code=CRM_GENDER_TYPE_FEMALE if ocr_data.get(
+            'gender') == EKYC_GENDER_TYPE_FEMALE else CRM_GENDER_TYPE_MALE,
+        model=CustomerGender,
+        session=session
+    )
+
+    optional_nationality = await get_optional_model_object_by_code_or_name(
+        model_name=convert_to_unsigned_vietnamese(ocr_data.get('nationality', '/').split('/')[0]),
+        # Việt Nam/Vietnamese
+        model=AddressCountry,
+        session=session
+    )
+
+    try:
+        # TODO: tách tỉnh ra query. Hỏi thăm bên eKYC xem có case đặc biệt không
+        place_of_origin = ocr_data.get('place_of_origin', ', ').split(', ')[-1]
+    except ValueError:
+        place_of_origin = None
+
+    optional_place_of_origin = await get_optional_model_object_by_code_or_name(
+        model_name=place_of_origin,
+        model=AddressProvince,
+        session=session
+    )
+
+    optional_province = await get_optional_model_object_by_code_or_name(
+        model_code=ocr_data.get('address_info', {}).get('province_code'),
+        model=AddressProvince,
+        session=session
+    )
+    optional_district = await get_optional_model_object_by_code_or_name(
+        model_code=ocr_data.get('address_info', {}).get('district_code'),
+        model=AddressDistrict,
+        session=session
+    )
+    optional_ward = await get_optional_model_object_by_code_or_name(
+        model_code=ocr_data.get('address_info', {}).get('ward_code'),
+        model=AddressWard,
+        session=session
+    )
+    optional_number_and_street = ocr_data.get('address_info', {}).get('street_name')
+
+    resident_address = {
+        "province": dropdown(optional_province) if optional_province else None,
+        "district": dropdown(optional_district) if optional_district else None,
+        "ward": dropdown(optional_ward) if optional_ward else None,
+        "number_and_street": optional_number_and_street if optional_number_and_street else None
+    }
+
+    front_side_citizen_card_info = {
+        "front_side_information": {
+            "identity_image_url": image_url
+        },
+        "ocr_result": {
+            "identity_document": {
+                "identity_number": ocr_data.get('document_id') if ocr_data.get('document_id') else None,
+                "issued_date": date_string_to_other_date_string_format(ocr_data.get('date_of_issue'),
+                                                                       from_format='%d/%m/%Y'),
+                "expired_date": date_string_to_other_date_string_format(ocr_data.get('date_of_expiry'),
+                                                                        from_format='%d/%m/%Y')
+            },
+            "basic_information": {
+                "full_name_vn": ocr_data.get('full_name') if ocr_data.get('full_name') else None,
+                "gender": dropdown(optional_gender) if optional_gender else None,
+                "date_of_birth": date_string_to_other_date_string_format(ocr_data.get('date_of_birth'),
+                                                                         from_format='%d/%m/%Y'),
+                "nationality": dropdown(optional_nationality) if optional_nationality else None,
+                "province": dropdown(optional_place_of_origin) if optional_place_of_origin else None,
+            },
+            "address_information": {
+                "resident_address": resident_address,
+                "contact_address": resident_address
+            }
+        }
+    }
+
+    return front_side_citizen_card_info
+
+
+async def mapping_ekyc_back_side_citizen_card_ocr_data(image_url: str, ocr_data: dict, session: Session):
+
+    mrz_content1 = ocr_data.get('mrz_1') if ocr_data.get('mrz_1') else ''
+    mrz_content2 = ocr_data.get('mrz_2') if ocr_data.get('mrz_2') else ''
+    mrz_content3 = ocr_data.get('mrz_3') if ocr_data.get('mrz_3') else ''
+    optional_mrz_content = mrz_content1 + mrz_content2 + mrz_content3
+
+    optional_place_of_issue = await get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('place_of_issue'),
+        model=PlaceOfIssue,
+        session=session
+    )
+
+    back_side_identity_card_info = {
+        "back_side_information": {
+            "identity_image_url": image_url,
+        },
+        "ocr_result": {
+            "identity_document": {
+                "issued_date": date_string_to_other_date_string_format(ocr_data.get('date_of_issue'),
+                                                                       from_format='%d/%m/%Y'),
+                "place_of_issue": dropdown(optional_place_of_issue) if optional_place_of_issue else None,
+                "mrz_content": optional_mrz_content if optional_mrz_content else None,
+            },
+            "basic_information": {
+                "identity_characteristic": ocr_data.get('personal_identification'),
+            }
+        }
+    }
+
+    return back_side_identity_card_info
