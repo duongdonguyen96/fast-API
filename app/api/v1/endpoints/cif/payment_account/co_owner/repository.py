@@ -49,25 +49,7 @@ async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, creat
 
 
 async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
-    # query_data = session.execute(
-    #     select(
-    #         Customer,
-    #         CasaAccount,
-    #         JointAccountHolder
-    #     ).join(
-    #         CasaAccount, Customer.id == CasaAccount.customer_id
-    #     ).join(
-    #         JointAccountHolder, CasaAccount.id == JointAccountHolder.casa_account_id
-    #     ).filter(Customer.id == cif_id)
-    # ).all()
-    #
-    # first_row = query_data[0]
-    #
-    # data = {
-    #     "joint_account_holder_flag":first_row.JointAccountHolder.joint_account_holder_flag,
-    # }
 
-    # return ReposReturn(data=data)
     return ReposReturn(data={
         "joint_account_holder_flag": True,
         "number_of_joint_account_holder": 3,
