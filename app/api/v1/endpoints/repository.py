@@ -71,7 +71,7 @@ async def repos_get_model_objects_by_ids(model_ids: List[str], model: Base, loc:
 async def get_optional_model_object_by_code_or_name(
         model: Base, session: Session,
         model_code: Optional[str] = None, model_name: Optional[str] = None
-) -> ReposReturn:
+) -> Optional[object]:
     statement = None
 
     if model_code:
@@ -81,7 +81,7 @@ async def get_optional_model_object_by_code_or_name(
         statement = select(model).filter(func.lower(model.name) == func.lower(model_name))  # TODO: check it
 
     if statement is None:
-        return ReposReturn(data=None)
+        return None
 
     if hasattr(model, 'active_flag'):
         statement = statement.filter(model.active_flag == 1)
