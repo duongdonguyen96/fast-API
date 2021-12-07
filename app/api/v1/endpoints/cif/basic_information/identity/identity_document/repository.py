@@ -39,6 +39,7 @@ from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     ADDRESS_COUNTRY_CODE_VN, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_FEMALE,
     CRM_GENDER_TYPE_MALE, EKYC_GENDER_TYPE_FEMALE,
+    EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD,
     EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD,
     EKYC_IDENTITY_TYPE_FRONT_SIDE_CITIZEN_CARD,
     EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
@@ -638,6 +639,12 @@ async def repos_upload_identity_document_and_ocr(
             ocr_data=ocr_response.get('data', {}),
             session=session
         )
+    elif identity_type == EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD:
+        response_data = await mapping_ekyc_back_side_citizen_card_ocr_data(
+            image_url=file_response['file_url'],
+            ocr_data=ocr_response.get('data', {}),
+            session=session
+        )
     else:
         response_data = await mapping_ekyc_passport_ocr_data(
             image_url=file_response['file_url'],
@@ -822,8 +829,8 @@ async def mapping_ekyc_back_side_identity_card_ocr_data(image_url: str, ocr_data
                 "place_of_issue": dropdown(optional_place_of_issue) if optional_place_of_issue else None,
             },
             "basic_information": {
-                "ethnic": dropdown(optional_ethnic),
-                "religion": dropdown(optional_religion),
+                "ethnic": dropdown(optional_ethnic) if optional_ethnic else None,
+                "religion": dropdown(optional_religion) if optional_ethnic else None,
                 "identity_characteristic": ocr_data.get('personal_identification'),
             }
         }
@@ -911,3 +918,36 @@ async def mapping_ekyc_front_side_citizen_card_ocr_data(image_url: str, ocr_data
     }
 
     return front_side_citizen_card_info
+
+
+async def mapping_ekyc_back_side_citizen_card_ocr_data(image_url: str, ocr_data: dict, session: Session):
+
+    mrz_content1 = ocr_data.get('mrz_1') if ocr_data.get('mrz_1') else ''
+    mrz_content2 = ocr_data.get('mrz_2') if ocr_data.get('mrz_2') else ''
+    mrz_content3 = ocr_data.get('mrz_3') if ocr_data.get('mrz_3') else ''
+    optional_mrz_content = mrz_content1 + mrz_content2 + mrz_content3
+
+    optional_place_of_issue = await get_optional_model_object_by_code_or_name(
+        model_name=ocr_data.get('place_of_issue'),
+        model=PlaceOfIssue,
+        session=session
+    )
+
+    back_side_identity_card_info = {
+        "back_side_information": {
+            "identity_image_url": image_url,
+        },
+        "ocr_result": {
+            "identity_document": {
+                "issued_date": date_string_to_other_date_string_format(ocr_data.get('date_of_issue'),
+                                                                       from_format='%d/%m/%Y'),
+                "place_of_issue": dropdown(optional_place_of_issue) if optional_place_of_issue else None,
+                "mrz_content": optional_mrz_content if optional_mrz_content else None,
+            },
+            "basic_information": {
+                "identity_characteristic": ocr_data.get('personal_identification'),
+            }
+        }
+    }
+
+    return back_side_identity_card_info

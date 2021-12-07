@@ -152,4 +152,28 @@ class OCRFrontSideCitizenCardResponse(BaseSchema):
     front_side_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
     ocr_result: OCRResultFrontSideCitizenCardResponse = Field(...,
                                                               description="Phân tích OCR thông tin mặt trước CCCD")
+
+
+class BackSideCitizenCardResponse(BaseSchema):
+    identity_image_url: Optional[str] = Field(..., description="URL hình ảnh mặt sau CMND", nullable=True)
+
+
+class OCRBackSideIdentityDocumentCitizenCardResponse(BaseSchema):
+    issued_date: Optional[date] = Field(..., description="Ngày cấp", nullable=True)
+    place_of_issue: Optional[DropdownResponse] = Field(..., description="Nơi cấp", nullable=True)
+    mrz_content: Optional[str] = Field(..., description="Đặc điểm nhận dạng", nullable=True)
+
+
+class OCRBackSideBasicInformationCitizenCardResponse(BaseSchema):
+    identity_characteristic: Optional[str] = Field(..., description="Đặc điểm nhận dạng", nullable=True)
+
+
+class OCRResultBackSideCitizenCardResponse(BaseSchema):
+    identity_document: OCRBackSideIdentityDocumentCitizenCardResponse = Field(..., description="Giấy tờ định danh")
+    basic_information: OCRBackSideBasicInformationCitizenCardResponse = Field(..., description="Thông tin cơ bản")
+
+
+class OCRBackSideCitizenCardResponse(BaseSchema):
+    back_side_information: BackSideCitizenCardResponse = Field(..., description="Thông tin mặt sau")
+    ocr_result: OCRResultBackSideCitizenCardResponse = Field(..., description="Phân tích OCR mặt sau CCCD")
 ########################################################################################################################
