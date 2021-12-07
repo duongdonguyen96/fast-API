@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.cif.form.model import (
-    Booking, BookingCustomer, TransactionDaily
+    Booking, BookingAccount, BookingCustomer, TransactionAll, TransactionDaily
 )
 from app.utils.error_messages import ERROR_ID_NOT_EXIST
 from app.utils.functions import dropdown, generate_uuid, now
@@ -121,29 +121,51 @@ async def write_transaction_log_and_update_booking(description: str,
                                                    session: Session,
                                                    customer_id: Optional[str] = None,
                                                    account_id: Optional[str] = None,
+                                                   transaction_stage_id: str = 'BE_TEST'  # TODO: đợi dữ liệu danh mục
                                                    ) -> Optional[ReposReturn]:
-    booking = session.execute(
-        select(
-            Booking
-        )
-        .join(
-            BookingCustomer, and_(
-                Booking.id == BookingCustomer.id,
-                BookingCustomer.customer_id == customer_id
+    if customer_id:
+        booking = session.execute(
+            select(
+                Booking
             )
-        )
-    ).scalar()
+            .join(
+                BookingCustomer, and_(
+                    Booking.id == BookingCustomer.id,
+                    BookingCustomer.customer_id == customer_id
+                )
+            )
+        ).scalar()
+    elif account_id:
+        booking = session.execute(
+            select(
+                Booking
+            )
+            .join(
+                BookingAccount, and_(
+                    Booking.id == BookingAccount.id,
+                    BookingAccount.account_id == account_id
+                )
+            )
+        ).scalar()
+    else:
+        booking = None
 
-    # TODO: BookingAccount
     if not booking:
         return ReposReturn(is_error=True, detail='Can not found booking', loc='cif_id')
 
-    # TODO: TransactionDaily có thể mai mốt bị gộp thành TransactionAll
     previous_transaction = session.execute(
         select(
             TransactionDaily
         ).filter(transaction_id=booking.transaction_id)
     ).scalar()
+    if not previous_transaction:
+        # TransactionDaily sau một ngày sẽ bị đẩy vào TransactionAll
+        previous_transaction = session.execute(
+            select(
+                TransactionAll
+            ).filter(transaction_id=booking.transaction_id)
+        ).scalar()
+
     if not previous_transaction:
         return ReposReturn(is_error=True, detail='Can not found transaction', loc='cif_id')
 
@@ -152,7 +174,7 @@ async def write_transaction_log_and_update_booking(description: str,
     session.add(
         TransactionDaily(
             transaction_id=transaction_id,
-            transaction_stage_id='BE_TEST',  # TODO
+            transaction_stage_id=transaction_stage_id,
             data=log_data,
             transaction_parent_id=booking.transaction_id,
             transaction_root_id=previous_transaction.transaction_root_id,
