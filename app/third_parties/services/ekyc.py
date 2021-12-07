@@ -42,5 +42,6 @@ class ServiceEKYC:
                 response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
+            return False, {}
 
         return is_success, response_body

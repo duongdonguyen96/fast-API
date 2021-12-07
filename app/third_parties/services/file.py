@@ -91,6 +91,7 @@ class ServiceFile:
                 file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
         except Exception as ex:
             logger.error(str(ex))
+            return None
 
         return file_download_response_body
 
@@ -107,6 +108,7 @@ class ServiceFile:
                 multi_file_download_response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
+            return None
 
         for file_download_response_body in multi_file_download_response_body:
             file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
