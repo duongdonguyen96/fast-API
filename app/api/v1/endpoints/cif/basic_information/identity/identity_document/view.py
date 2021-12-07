@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from fastapi import APIRouter, Body, Depends, Path
+from fastapi import APIRouter, Body, Depends, File, Form, Path, UploadFile
 from starlette import status
 from starlette.requests import Request
 
@@ -9,6 +9,11 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.controller import (
     CtrIdentityDocument
+)
+from app.api.v1.endpoints.cif.basic_information.identity.identity_document.ocr_schema_response import (
+    OCRBackSideCitizenCardResponse, OCRBackSideIdentityCardResponse,
+    OCRFrontSideCitizenCardResponse, OCRFrontSideIdentityCardResponse,
+    OCRPassportResponse
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
@@ -19,6 +24,10 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schem
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
 from app.utils.constant.cif import (
+    EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD,
+    EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD,
+    EKYC_IDENTITY_TYPE_FRONT_SIDE_CITIZEN_CARD,
+    EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD
 )
 
@@ -69,7 +78,7 @@ async def view_list_logs(
 ):
     ctr_identity_document = CtrIdentityDocument(current_user)
 
-    logs_info = await ctr_identity_document.get_list_log(
+    logs_info = await ctr_identity_document.get_identity_log_list(
         cif_id=cif_id
     )
 
@@ -108,3 +117,48 @@ async def view_save(
 
     save_info = await CtrIdentityDocument(current_user).save_identity(identity_document_request)
     return ResponseData[SaveSuccessResponse](**save_info)
+
+
+@router_special.post(
+    path="/basic-information/identity/identity-document/ocr/",
+    name="1. GTĐD - A. GTĐD - Upload & OCR",
+    description="Upload ảnh giấy tờ tùy thân + Lấy thông tin OCR của giấy tờ tùy thân",
+    responses=swagger_response(
+        response_model=Union[
+            ResponseData[OCRFrontSideIdentityCardResponse],
+            ResponseData[OCRBackSideIdentityCardResponse],
+            ResponseData[OCRFrontSideCitizenCardResponse],
+            ResponseData[OCRBackSideCitizenCardResponse],
+            ResponseData[OCRPassportResponse],
+        ],
+        success_status_code=status.HTTP_200_OK
+    ),
+    tags=['[CIF] I. TTCN']
+)
+async def view_upload_identity_document_image(
+        identity_type: int = Form(..., description="""Loại giấy tờ định danh
+            \n`0` : Hộ chiếu
+            \n`1` : CMND mặt trước
+            \n`2` : CMND mặt sau
+            \n`3` : CCCD mặt trước
+            \n`4` : CCCD mặt sau
+        """),
+        image_file: UploadFile = File(..., description='File hình ảnh giấy tờ định danh'),
+        current_user=Depends(get_current_user_from_header())
+):
+    upload_info = await CtrIdentityDocument(current_user).upload_identity_document_and_ocr(
+        image_file=image_file,
+        identity_type=identity_type
+    )
+
+    # TODO: các loại khác
+    if identity_type == EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD:
+        return ResponseData[OCRFrontSideIdentityCardResponse](**upload_info)
+    elif identity_type == EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD:
+        return ResponseData[OCRBackSideIdentityCardResponse](**upload_info)
+    elif identity_type == EKYC_IDENTITY_TYPE_FRONT_SIDE_CITIZEN_CARD:
+        return ResponseData[OCRFrontSideCitizenCardResponse](**upload_info)
+    elif identity_type == EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD:
+        return ResponseData[OCRBackSideCitizenCardResponse](**upload_info)
+    else:
+        return ResponseData[OCRPassportResponse](**upload_info)

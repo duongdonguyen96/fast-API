@@ -30,6 +30,9 @@ def auto_commit(func):
         session = kwargs['session']
         try:
             result = await func(*args, **kwargs)
+            if result.is_error:
+                raise SQLAlchemyError(result.msg)
+
             session.commit()
             logger.info(f"Success calling db func: {func.__name__}")
             return result

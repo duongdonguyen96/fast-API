@@ -2,8 +2,9 @@ from typing import List
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.repository import (
-    repos_get_detail_sub_identity, repos_get_list_log,
-    repos_get_sub_identities_and_sub_identity_images, repos_save_sub_identity
+    repos_get_detail_sub_identity,
+    repos_get_sub_identities_and_sub_identity_images,
+    repos_get_sub_identity_log_list, repos_save_sub_identity
 )
 from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import (
     SubIdentityDocumentRequest
@@ -27,9 +28,12 @@ class CtrSubIdentityDocument(BaseController):
         )
         return self.response(data=detail_data)
 
-    async def get_list_log(self, cif_id: str):
+    async def get_sub_identity_log_list(self, cif_id: str):
         logs_data = self.call_repos(
-            await repos_get_list_log(cif_id=cif_id)
+            await repos_get_sub_identity_log_list(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
         )
         return self.response(data=logs_data)
 
