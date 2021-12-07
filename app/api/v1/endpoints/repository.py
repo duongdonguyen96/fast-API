@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from sqlalchemy import and_, func, select, update
 from sqlalchemy.orm import Session
@@ -122,7 +122,7 @@ async def write_transaction_log_and_update_booking(description: str,
                                                    customer_id: Optional[str] = None,
                                                    account_id: Optional[str] = None,
                                                    transaction_stage_id: str = 'BE_TEST'  # TODO: đợi dữ liệu danh mục
-                                                   ) -> Optional[ReposReturn]:
+                                                   ) -> Tuple[bool, Optional[str]]:
     if customer_id:
         booking = session.execute(
             select(
@@ -130,7 +130,7 @@ async def write_transaction_log_and_update_booking(description: str,
             )
             .join(
                 BookingCustomer, and_(
-                    Booking.id == BookingCustomer.id,
+                    Booking.id == BookingCustomer.booking_id,
                     BookingCustomer.customer_id == customer_id
                 )
             )
@@ -142,7 +142,7 @@ async def write_transaction_log_and_update_booking(description: str,
             )
             .join(
                 BookingAccount, and_(
-                    Booking.id == BookingAccount.id,
+                    Booking.id == BookingAccount.booking_id,
                     BookingAccount.account_id == account_id
                 )
             )
@@ -151,23 +151,23 @@ async def write_transaction_log_and_update_booking(description: str,
         booking = None
 
     if not booking:
-        return ReposReturn(is_error=True, detail='Can not found booking', loc='cif_id')
+        return False, 'Can not found booking'
 
     previous_transaction = session.execute(
         select(
             TransactionDaily
-        ).filter(transaction_id=booking.transaction_id)
+        ).filter(TransactionDaily.transaction_id == booking.transaction_id)
     ).scalar()
     if not previous_transaction:
         # TransactionDaily sau một ngày sẽ bị đẩy vào TransactionAll
         previous_transaction = session.execute(
             select(
                 TransactionAll
-            ).filter(transaction_id=booking.transaction_id)
+            ).filter(TransactionAll.transaction_id == booking.transaction_id)
         ).scalar()
 
     if not previous_transaction:
-        return ReposReturn(is_error=True, detail='Can not found transaction', loc='cif_id')
+        return False, 'Can not found transaction'
 
     # lưu log trong CRM_TRANSACTION_DAILY
     transaction_id = generate_uuid()
@@ -184,6 +184,8 @@ async def write_transaction_log_and_update_booking(description: str,
         )
     )
 
+    session.flush()
+
     # Cập nhật lại transaction_id trong Booking
     session.execute(
         update(
@@ -195,4 +197,4 @@ async def write_transaction_log_and_update_booking(description: str,
         )
     )
 
-    return None
+    return True, None
