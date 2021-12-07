@@ -1,6 +1,7 @@
 import json
 from typing import List, Optional
 
+from loguru import logger
 from sqlalchemy import and_, desc, select, update
 from sqlalchemy.orm import Session, aliased
 
@@ -15,8 +16,8 @@ from app.third_parties.oracle.models.cif.basic_information.contact.model import 
     CustomerAddress
 )
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerCompareImage, CustomerIdentity, CustomerIdentityImage,
-    CustomerIdentityImageTransaction
+    CustomerCompareImage, CustomerCompareImageTransaction, CustomerIdentity,
+    CustomerIdentityImage, CustomerIdentityImageTransaction
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -410,14 +411,17 @@ async def repos_save_identity(
         session.add(
             CustomerIdentity(**saving_customer_identity)
         )
-        await create_customer_identity_image_and_customer_compare_image(
+        is_error, message = await create_customer_identity_image_and_customer_compare_image(
             identity_id=new_identity_id,
             new_first_identity_image_id=new_first_identity_image_id,
             new_second_identity_image_id=new_second_identity_image_id,
             saving_customer_identity_images=saving_customer_identity_images,
             saving_customer_compare_image=saving_customer_compare_image,
+            is_create=True,
             session=session
         )
+        if is_error:
+            return ReposReturn(is_error=True, msg=message)
 
         if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
             # create new CustomerAddress for resident address
@@ -509,14 +513,17 @@ async def repos_save_identity(
         for saving_customer_identity_image in saving_customer_identity_images:
             saving_customer_identity_image['identity_id'] = identity_id
 
-        await create_customer_identity_image_and_customer_compare_image(
+        is_error, message = await create_customer_identity_image_and_customer_compare_image(
             identity_id=identity_id,
             new_first_identity_image_id=new_first_identity_image_id,
             new_second_identity_image_id=new_second_identity_image_id,
             saving_customer_identity_images=saving_customer_identity_images,
             saving_customer_compare_image=saving_customer_compare_image,
+            is_create=False,
             session=session
         )
+        if is_error:
+            return ReposReturn(is_error=True, msg=message)
 
         await write_transaction_log_and_update_booking(
             description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
@@ -570,34 +577,80 @@ async def repos_get_identity_information(customer_id: str, session: Session):
 
 
 async def create_customer_identity_image_and_customer_compare_image(
-    identity_id,
-    new_first_identity_image_id,
-    new_second_identity_image_id,
-    saving_customer_identity_images,
-    saving_customer_compare_image,
-    session: Session
+        identity_id,
+        new_first_identity_image_id,
+        new_second_identity_image_id,
+        saving_customer_identity_images,
+        saving_customer_compare_image,
+        is_create: bool,
+        session: Session
 ):
     # create new CustomerIdentityImage ảnh mặt trước hoặc hộ chiếu
-    saving_customer_identity_images[0]['id'] = new_first_identity_image_id
-    saving_customer_identity_images[0]['identity_id'] = identity_id
-    session.add(
-        CustomerIdentityImage(**saving_customer_identity_images[0])
-    )
+    new_first_identity_image = saving_customer_identity_images[0]
+    new_first_identity_image['id'] = new_first_identity_image_id
+    new_first_identity_image['identity_id'] = identity_id
+
+    session.add_all([
+        CustomerIdentityImage(**new_first_identity_image),
+        CustomerIdentityImageTransaction(**{
+            "identity_image_id": new_first_identity_image['id'],
+            "image_url": new_first_identity_image['image_url'],
+            "active_flag": True,
+            "maker_id": new_first_identity_image['maker_id'],
+            "maker_at": new_first_identity_image['maker_at']
+        })
+    ])
     # create new CustomerIdentityImage ảnh mặt sau
     if len(saving_customer_identity_images) > 1:
-        saving_customer_identity_images[1]['id'] = new_second_identity_image_id
-        saving_customer_identity_images[1]['identity_id'] = identity_id
-        session.add(
-            CustomerIdentityImage(**saving_customer_identity_images[1])
-        )
+        new_second_identity_image = saving_customer_identity_images[1]
+        new_second_identity_image['id'] = new_second_identity_image_id
+        new_second_identity_image['identity_id'] = identity_id
+        session.add_all([
+            CustomerIdentityImage(**new_second_identity_image),
+            CustomerIdentityImageTransaction(**{
+                "identity_image_id": new_second_identity_image['id'],
+                "image_url": new_second_identity_image['image_url'],
+                "active_flag": True,
+                "maker_id": new_second_identity_image['maker_id'],
+                "maker_at": new_second_identity_image['maker_at']
+            })
+        ])
     # create new CustomerCompareImage
+    compare_transaction_parent_id = None
+    saving_customer_compare_image['id'] = generate_uuid()
     saving_customer_compare_image['identity_id'] = identity_id
     saving_customer_compare_image['identity_image_id'] = new_first_identity_image_id
-    session.add(
-        CustomerCompareImage(**saving_customer_compare_image)
-    )
+    # Nếu cập nhật giấy tờ định danh, hình ảnh đối chiếu cập nhật lại
+    if not is_create:
+        try:
+            compare_transaction_parent_id = session.execute(
+                select(
+                    CustomerCompareImageTransaction.id
+                )
+                .join(CustomerIdentityImage,
+                      CustomerCompareImageTransaction.identity_image_id == CustomerIdentityImage.id)
+                .join(CustomerCompareImage,
+                      CustomerCompareImageTransaction.compare_image_id == CustomerCompareImage.id)
+                .order_by(desc(CustomerCompareImageTransaction.maker_at))
+            ).scalars().first()
+        except Exception as ex:
+            logger.error(str(ex))
+            return True, "Write Transaction Error"
 
-    return None
+    session.add_all([
+        CustomerCompareImage(**saving_customer_compare_image),
+        CustomerCompareImageTransaction(**{
+            "compare_transaction_parent_id": compare_transaction_parent_id,
+            "compare_image_id": saving_customer_compare_image['id'],
+            "identity_image_id": saving_customer_compare_image['identity_image_id'],
+            "compare_image_url": saving_customer_compare_image['compare_image_url'],
+            "similar_percent": saving_customer_compare_image['similar_percent'],
+            "maker_id": saving_customer_compare_image['maker_id'],
+            "maker_at": saving_customer_compare_image['maker_at']
+        }),
+    ])
+
+    return False, ""
 
 
 ########################################################################################################################
