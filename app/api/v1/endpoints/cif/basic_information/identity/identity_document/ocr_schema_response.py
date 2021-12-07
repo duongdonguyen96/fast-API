@@ -34,7 +34,6 @@ class OCRAddressIdentityCitizenCardResponse(BaseSchema):
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CMND)
 class OCRFrontSideDocumentIdentityCardResponse(BaseSchema):
     identity_number: Optional[str] = Field(..., description="Số GTĐD", nullable=True)
-    expired_date: Optional[date] = Field(..., description="Có giá trị đến", nullable=True)
 
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CMND)
@@ -125,4 +124,32 @@ class OCRPassportResponse(BaseSchema):
     passport_information: InformationPassportResponse = Field(..., description="Thông tin hộ chiếu")
     ocr_result: OCRResultPassportResponse = Field(..., description="Phân tích OCR")
 
+
+########################################################################################################################
+
+########################################################################################################################
+# Giấy tờ định danh - Hộ chiếu
+########################################################################################################################
+
+# III. Phân tích OCR (CCCD) -> Giấy tờ định danh
+class OCRFrontSideDocumentCitizenCardResponse(OCRFrontSideDocumentIdentityCardResponse):
+    expired_date: Optional[date] = Field(..., description="Có giá trị đến", nullable=True)
+
+
+# III. Phân tích OCR (CCCD) -> Thông tin cơ bản
+class OCRFrontSideBasicInfoCitizenCardResponse(OCRFrontSideBasicInfoIdentityCardResponse):
+    gender: Optional[DropdownResponse] = Field(..., description="Giới tính", nullable=True)
+
+
+# III. Phân tích OCR (CCCD)
+class OCRResultFrontSideCitizenCardResponse(BaseSchema):
+    identity_document: OCRFrontSideDocumentCitizenCardResponse = Field(..., description="Giấy tờ định danh")
+    basic_information: OCRFrontSideBasicInfoCitizenCardResponse = Field(..., description="Thông tin cơ bản")
+    address_information: OCRAddressIdentityCitizenCardResponse = Field(..., description="Thông tin địa chỉ")
+
+
+class OCRFrontSideCitizenCardResponse(BaseSchema):
+    front_side_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
+    ocr_result: OCRResultFrontSideCitizenCardResponse = Field(...,
+                                                              description="Phân tích OCR thông tin mặt trước CCCD")
 ########################################################################################################################
