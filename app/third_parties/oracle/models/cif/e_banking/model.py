@@ -74,6 +74,7 @@ class EBankingInfoAuthentication(Base):
     __tablename__ = 'crm_eb_info_authen'
     __table_args__ = {'comment': 'Liên kết thông tin tài khoản ib với hình thức xác thực'}
 
+    id = Column('eb_info_authen_id', primary_key=True, comment='Liên kết thông tin tài khoản ib với hình thức xác thực')
     e_banking_info_id = Column('eb_info_id', ForeignKey('crm_ebanking_info.eb_info_id'),
                                comment='Liên kết thông tin tài khoản ib với hình thức xác thực')
     method_authentication_id = Column('method_authen_id', ForeignKey('crm_method_authen.method_authen_id'),
@@ -111,8 +112,6 @@ class EBankingInfo(Base):
     active_account_flag = Column('eb_active_account_flag', NUMBER(1, 0, False),
                                  comment='Cờ tùy chọn trạng thái kích hoạt ebanking')
     account_payment_fee = Column('eb_account_payment_fee', VARCHAR(50), comment='Số tài khoản thanh toán phí')
-
-    method_authentication = relationship('MethodAuthentication', secondary='crm_eb_info_authen')
 
 
 class EBankingRegisterBalance(Base):
