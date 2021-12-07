@@ -57,6 +57,9 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
             CasaAccount.id == JointAccountHolder.casa_account_id
         ).filter(CasaAccount.customer_id == cif_id)
     ).all()
+    # check account_holder
+    if not account_holders:
+        return ReposReturn(is_error=True, msg='CASA_ACCOUNT_NOT_EXIST', loc='cif_id')
 
     # lấy list cif_number trong account_holder
     list_cif_number = []
