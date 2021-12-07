@@ -24,8 +24,7 @@ class BasicInformationResponse(BaseSchema):
     gender: DropdownResponse = Field(..., description='Giới tính của đồng sở hữu')
     nationality: DropdownResponse = Field(..., description='Quốc tịch của đồng sở hữu')
     mobile_number: str = Field(..., description='Số ĐTDD')
-    signature_1: SignatureResponse = Field(..., description='Mẫu chữ ký 1 của đồng sở hữu')
-    signature_2: SignatureResponse = Field(..., description='Mẫu chữ ký 2 của đồng sở hữu')
+    signature: List[SignatureResponse] = Field(..., description='Mẫu chữ ký 1 của đồng sở hữu')
 
 
 class IdentityDocumentResponse(BaseSchema):

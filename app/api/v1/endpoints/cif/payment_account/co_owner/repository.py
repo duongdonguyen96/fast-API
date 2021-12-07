@@ -245,6 +245,18 @@ async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str, sessi
             'resident_address': resident_address
         }
     }
+    customer__signature = {}
+    for signature in customer:
+        if signature.Customer.id not in customer__signature:
+            customer__signature[signature.Customer.id] = []
+        customer__signature[signature.Customer.id].append({
+            'id': signature.CustomerIdentityImage.id,
+            'image_url': signature.CustomerIdentityImage.image_url
+        })
+
+    signature = None
+    for customer_signature in customer__signature.values():
+        signature = customer_signature
 
     response_data['basic_information'].update(**{
         "full_name_vn": first_row.Customer.full_name_vn,
@@ -254,14 +266,7 @@ async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str, sessi
         "nationality": dropdown(first_row.AddressCountry),
         "gender": dropdown(first_row.CustomerGender),
         "mobile_number": first_row.Customer.mobile_number,
-        "signature_1": {
-            "id": first_row.CustomerIdentityImage.id,
-            "image_url": first_row.CustomerIdentityImage.image_url
-        },
-        "signature_2": {
-            "id": customer[1].CustomerIdentityImage.id,
-            "image_url": customer[1].CustomerIdentityImage.image_url
-        },
+        "signature": signature
     })
 
     response_data['identity_document'].update(**{
