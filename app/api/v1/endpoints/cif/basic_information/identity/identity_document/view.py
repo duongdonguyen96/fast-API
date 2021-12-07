@@ -127,7 +127,9 @@ async def view_save(
         response_model=Union[
             ResponseData[OCRFrontSideIdentityCardResponse],
             ResponseData[OCRBackSideIdentityCardResponse],
-            ResponseData[OCRPassportResponse]
+            ResponseData[OCRFrontSideCitizenCardResponse],
+            ResponseData[OCRBackSideCitizenCardResponse],
+            ResponseData[OCRPassportResponse],
         ],
         success_status_code=status.HTTP_200_OK
     ),
