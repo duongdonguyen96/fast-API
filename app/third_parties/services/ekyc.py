@@ -32,12 +32,17 @@ class ServiceEKYC:
 
         is_success = True
 
-        async with self.session.post(url=api_url, data=form_data, headers=self.headers) as response:
-            logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+        try:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
 
-            if response.status != status.HTTP_200_OK:
-                is_success = False
+                if response.status != status.HTTP_200_OK:
+                    is_success = False
 
-            response_body = await response.json()
+                response_body = await response.json()
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {}
 
+        # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body

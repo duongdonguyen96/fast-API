@@ -8,6 +8,9 @@ from app.api.base.except_custom import ExceptionHandle
 from app.api.base.repository import ReposReturn
 from app.api.base.schema import Error
 from app.api.base.validator import ValidatorReturn
+from app.api.v1.endpoints.file.repository import (
+    repos_check_is_exist_multi_file, repos_download_multi_file
+)
 from app.api.v1.endpoints.repository import (
     repos_get_model_object_by_id_or_code, repos_get_model_objects_by_ids
 )
@@ -85,6 +88,31 @@ class BaseController:
                 session=self.oracle_session
             )
         )
+
+    async def check_exist_multi_file(self, uuids: List[str]):
+        """
+        Hàm kiểm tra các file có tồn tại trên service file hay không
+        :param uuids:
+        :return:
+        """
+        is_exist = self.call_repos(await repos_check_is_exist_multi_file(uuids=uuids))
+        if not is_exist:
+            self.response_exception(
+                msg='',
+                loc='file_url',
+                detail='Can not found file in service file'
+            )
+
+    async def get_link_download_multi_file(self, uuids: List[str]) -> dict:
+        """
+        Hàm get link download file từ service file
+        :param uuids:
+        :return: dict, key là uuid, value là link download file đó
+        """
+        return {
+            info['uuid']: info['file_url']
+            for info in self.call_repos(await repos_download_multi_file(uuids=uuids))
+        }
 
     def append_error(self, msg: str, loc: str = "", detail: str = ""):
         """
