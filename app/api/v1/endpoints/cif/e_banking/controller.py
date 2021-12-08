@@ -25,7 +25,12 @@ class CtrEBanking(BaseController):
         return self.response(data=e_banking_data)
 
     async def ctr_balance_payment_account(self, cif_id: str):
-        payment_account_data = self.call_repos(await repos_get_list_balance_payment_account(cif_id))
+        payment_account_data = self.call_repos(
+            await repos_get_list_balance_payment_account(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
+        )
 
         return self.response(data=payment_account_data)
 

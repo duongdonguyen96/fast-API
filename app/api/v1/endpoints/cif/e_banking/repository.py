@@ -7,9 +7,13 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
 from app.third_parties.oracle.models.cif.e_banking.model import TdAccount
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    CasaAccount
+)
+from app.third_parties.oracle.models.master_data.account import AccountType
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+from app.utils.functions import dropdown, now
 
 
 async def repos_save_e_banking_data(cif_id: str, e_banking: EBankingRequest, created_by: str) -> ReposReturn:
@@ -406,24 +410,27 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
     })
 
 
-async def repos_get_list_balance_payment_account(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_list_balance_payment_account(cif_id: str, session: Session) -> ReposReturn:
+    balance_payments = session.execute(
+        select(
+            CasaAccount,
+            AccountType
+        ).join(
+            AccountType, CasaAccount.acc_type_id == AccountType.id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).all()
 
-    return ReposReturn(data=[
-        {
-            "id": "123",
-            "name": "231231321",
-            "product": "S-Free",
-            "checked_flag": True
-        },
-        {
-            "id": "2",
-            "name": "213213123123",
-            "product": "Lộc phát",
-            "checked_flag": False
-        }
-    ])
+    if not balance_payments:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    response_data = [{
+        "id": balance_payment.id,
+        "account_number": balance_payment.case_account_number,
+        "product_name": dropdown(account_type),
+        "checked_flag": balance_payment.acc_active_flag
+    } for balance_payment, account_type in balance_payments]
+
+    return ReposReturn(data=response_data)
 
 
 async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
