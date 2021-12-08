@@ -135,3 +135,8 @@ def is_valid_mobile_number(mobile_number: str) -> bool:
     regex = r'0([0-9]{9})$'
     found = re.match(regex, mobile_number)
     return True if found else False
+
+
+def parse_file_uuid(url: str) -> str:
+    matches = re.findall(r'/(\w{32})', url)
+    return matches[0] if uuid else ''
