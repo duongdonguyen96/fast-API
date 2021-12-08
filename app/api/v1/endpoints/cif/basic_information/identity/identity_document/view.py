@@ -11,9 +11,9 @@ from app.api.v1.endpoints.cif.basic_information.identity.identity_document.contr
     CtrIdentityDocument
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.ocr_schema_response import (
-    OCRBackSideCitizenCardResponse, OCRBackSideIdentityCardResponse,
-    OCRFrontSideCitizenCardResponse, OCRFrontSideIdentityCardResponse,
-    OCRPassportResponse
+    CompareSuccessResponse, OCRBackSideCitizenCardResponse,
+    OCRBackSideIdentityCardResponse, OCRFrontSideCitizenCardResponse,
+    OCRFrontSideIdentityCardResponse, OCRPassportResponse
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
     CitizenCardSaveRequest, IdentityCardSaveRequest, PassportSaveRequest
@@ -88,6 +88,7 @@ async def view_list_logs(
 
 ########################################################################################################################
 
+# router_special dùng để khai báo cho việc sử dụng các api khi cif_id chưa có
 router_special = APIRouter()
 
 
@@ -162,3 +163,27 @@ async def view_upload_identity_document_image(
         return ResponseData[OCRBackSideCitizenCardResponse](**upload_info)
     else:
         return ResponseData[OCRPassportResponse](**upload_info)
+
+
+@router_special.post(
+    path="/basic-information/identity/identity-document/compare-face/",
+    name="1. GTĐD - A. GTĐD - So Sánh Khuôn Mặt",
+    description="So sánh độ chính xác khuôn mặt trong giấy tờ tùy thân và khuôn mặt chụp thực tế",
+    responses=swagger_response(
+        response_model=ResponseData[CompareSuccessResponse],
+        success_status_code=status.HTTP_200_OK
+    ),
+    tags=['[CIF] I. TTCN']
+)
+async def view_compare_face(
+        face_image: UploadFile = File(..., description="URL hình ảnh khuôn mặt đối chiếu"),
+        identity_image_uuid: str = File(...,
+                                        description='ID hình ảnh giấy tờ định danh có được sau khi gọi API '
+                                        '`Upload ảnh giấy tờ tùy thân + Lấy thông tin OCR của giấy tờ tùy thân`'),
+        current_user=Depends(get_current_user_from_header())
+):
+    face_compare_info = await CtrIdentityDocument(current_user).compare_face(
+        face_image=face_image,
+        identity_image_uuid=identity_image_uuid
+    )
+    return ResponseData[CompareSuccessResponse](**face_compare_info)
