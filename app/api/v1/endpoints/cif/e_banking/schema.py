@@ -250,8 +250,10 @@ class EBankingNotificationRequest(DropdownRequest):
 
 
 class RegisterBalanceCasaRequest(BaseSchema):
-    mobile_number: str = Field(..., description='Số điện thoại')
-    primary_mobile_number: DropdownRequest = Field(..., description='Loại SĐT')
+    account_id: str = Field(..., description='Số tài khoản')
+    # EBankingRegisterBalance.name (Tên Đăng ký Biến động số dư các loại tài khoản)
+    account_name: str = Field(..., description='Tên tài khoản')
+    primary_phone_number: str = Field(..., description='Số điện thoại')
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
     e_banking_notifications: List[EBankingNotificationRequest] = Field(..., description='Tùy chọn thông báo')
 
@@ -300,8 +302,9 @@ class PaymentFeeRequest(DropdownRequest):
 class AccountInformationRequest(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
-    e_banking_reset_password_methods: List[ResetPasswordMethodRequest] = Field(
-        ..., description='Hình thức nhận mật khẩu kích hoạt'
+    is_confirm_password_by_email: bool = Field(
+        ...,
+        description='Có chọn hình thức nhận mật khẩu kích hoạt bằng email không?'
     )
     method_authentication: List[MethodAuthenticationRequest] = Field(..., description='Hình thức xác thực')
     payment_fee: List[PaymentFeeRequest] = Field(..., description='Thanh toán phí')
