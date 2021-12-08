@@ -50,13 +50,6 @@ class CtrEBanking(BaseController):
                 loc="change_of_balance_payment_account -> customer_contact_types"
             )
 
-            # lưu hình thức nhận thông báo taì khoản thanh toàn (TKTT) I -> 1
-            insert_data.extend([EBankingRegisterBalanceOption(
-                customer_id=cif_id,
-                e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
-                customer_contact_type_id=contact_type.id
-            ) for contact_type in contact_types])
-
             register_balance_casas = change_of_balance_payment_account.register_balance_casas
 
             # kiểm tra tùy chọn thông báo / loại quan hệ / tài khoản ở mục I có tồn tại hay không ?
@@ -85,6 +78,13 @@ class CtrEBanking(BaseController):
                 model_ids=casa_account_ids,
                 loc="register_balance_casas -> account_id"
             )
+
+            # lưu hình thức nhận thông báo taì khoản thanh toàn (TKTT) I -> 1
+            insert_data.extend([EBankingRegisterBalanceOption(
+                customer_id=cif_id,
+                e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
+                customer_contact_type_id=contact_type.id
+            ) for contact_type in contact_types])
 
             for register_balance_casa in register_balance_casas:
                 # lưu I -> 2 -> b (primary) Thông tin người nhận thông báo
