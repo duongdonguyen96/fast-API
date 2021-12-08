@@ -27,6 +27,17 @@ class CtrFingerPrint(BaseController):
         fingerprints.extend(finger_request.fingerprint_1)
         fingerprints.extend(finger_request.fingerprint_2)
 
+        # các uuid cần phải gọi qua service file để check
+        image_uuids = []
+
+        for fingerprint in fingerprints:
+            uuid = parse_file_uuid(fingerprint.image_url)
+            fingerprint.image_url = uuid
+            image_uuids.append(uuid)
+
+        # gọi qua service file để check exist list uuid
+        await self.check_exist_multi_file(uuids=image_uuids)
+
         hand_side_ids = []
         finger_type_ids = []
 
@@ -43,7 +54,7 @@ class CtrFingerPrint(BaseController):
         list_data_insert = [{
             'identity_id': identity.id,
             'image_type_id': IMAGE_TYPE_FINGERPRINT,
-            'image_url': parse_file_uuid(item.image_url),
+            'image_url': item.image_url,
             'hand_side_id': item.hand_side.id,
             'finger_type_id': item.finger_type.id,
             'vector_data': None,
