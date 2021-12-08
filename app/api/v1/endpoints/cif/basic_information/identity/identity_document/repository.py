@@ -47,7 +47,9 @@ from app.utils.constant.cif import (
     IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE
 )
-from app.utils.error_messages import ERROR_CALL_SERVICE, ERROR_CIF_ID_NOT_EXIST
+from app.utils.error_messages import (
+    ERROR_CALL_SERVICE_EKYC, ERROR_CALL_SERVICE_FILE, ERROR_CIF_ID_NOT_EXIST
+)
 from app.utils.functions import (
     date_string_to_other_date_string_format, date_to_string, dropdown,
     generate_uuid, now
@@ -668,11 +670,11 @@ async def repos_upload_identity_document_and_ocr(
         identity_type=identity_type
     )
     if not is_success:
-        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE, detail=ocr_response.get('message', ''))
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_EKYC, detail=ocr_response.get('message', ''))
 
     file_response = await service_file.upload_file(file=image_file, name=image_file_name)
     if not file_response:
-        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE, detail='Call to service file failed')
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_FILE)
 
     if identity_type == EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD:
         response_data = await mapping_ekyc_front_side_identity_card_ocr_data(
@@ -1012,13 +1014,14 @@ async def repos_compare_face(face_image_data: bytes, identity_image_uuid: str, s
     is_success_add_face, add_face_info = await service_ekyc.add_face(file=face_image_data)
 
     if not is_success_add_face:
-        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE, detail=add_face_info.get('message', ''))
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_EKYC, detail=add_face_info.get('message', ''))
 
     face_uuid = add_face_info.get('data').get('uuid')
     is_success, compare_face_info = await service_ekyc.compare_face(face_uuid, identity_image_uuid)
 
     if not is_success:
-        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE, detail=compare_face_info.get('message', 'compare'))
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_EKYC,
+                           detail=compare_face_info.get('message', 'compare'))
 
     return ReposReturn(data={
         "similar_percent": compare_face_info.get('data').get('similarity_percent')
