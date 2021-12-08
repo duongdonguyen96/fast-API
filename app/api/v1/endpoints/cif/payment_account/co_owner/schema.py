@@ -12,7 +12,7 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
 class SignatureResponse(BaseSchema):
-    id: str = Field(..., description='Id hình ảnh định danh')
+    id: str = Field(..., description='Id giấy tờ định danh')
     image_url: str = Field(..., description='Hình ảnh mẫu chữ ký')
 
 
@@ -24,7 +24,7 @@ class BasicInformationResponse(BaseSchema):
     gender: DropdownResponse = Field(..., description='Giới tính của đồng sở hữu')
     nationality: DropdownResponse = Field(..., description='Quốc tịch của đồng sở hữu')
     mobile_number: str = Field(..., description='Số ĐTDD')
-    signature: List[SignatureResponse] = Field(..., description='Mẫu chữ ký 1 của đồng sở hữu')
+    signature: List[SignatureResponse] = Field(..., description='Mẫu chữ ký của đồng sở hữu')
 
 
 class IdentityDocumentResponse(BaseSchema):
@@ -56,10 +56,8 @@ class SignatureAgreementAuthorResponse(BaseSchema):
 class AgreementAuthorResponse(BaseSchema):
     id: str = Field(..., description='Mã danh mục thỏa thuận và uỷ quyền')
     code: str = Field(..., description='Code danh mục thỏa thuận và uỷ quyền')
-    content: str = Field(..., description='Nội dung của danh mục thỏa thuận và uỷ quyền')
-    agreement_flag: bool = Field(..., description='Thỏa thuận chữ ký các hồ sơ chứng từ.`True`: Có , `False`: Không')
-    method_sign: DropdownResponse = Field(..., description='Phương thức ký')
-    signature_list: List[SignatureAgreementAuthorResponse] = Field(..., description='Chữ ký của đồng sở hữu')
+    name: str = Field(..., description='Nội dung của danh mục thỏa thuận và uỷ quyền')
+    active_flag: bool = Field(..., description='Thỏa thuận chữ ký các hồ sơ chứng từ.`True`: Có , `False`: Không')
 
 
 class AccountHolderSuccessResponse(BaseSchema):
