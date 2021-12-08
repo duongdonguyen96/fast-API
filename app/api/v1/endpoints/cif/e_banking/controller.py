@@ -35,7 +35,12 @@ class CtrEBanking(BaseController):
         return self.response(data=detail_reset_password_data)
 
     async def ctr_balance_saving_account(self, cif_id: str):
-        balance_saving_account_data = self.call_repos(await repos_balance_saving_account_data(cif_id))
+        balance_saving_account_data = self.call_repos(
+            await repos_balance_saving_account_data(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
+        )
 
         return self.response_paging(
             data=balance_saving_account_data,
