@@ -15,7 +15,7 @@ from app.utils.constant.cif import (
     ACTIVE_FLAG_CREATE_FINGERPRINT, FRONT_FLAG_CREATE_FINGERPRINT,
     IMAGE_TYPE_FINGERPRINT
 )
-from app.utils.functions import now
+from app.utils.functions import now, parse_file_uuid
 
 
 class CtrFingerPrint(BaseController):
@@ -43,7 +43,7 @@ class CtrFingerPrint(BaseController):
         list_data_insert = [{
             'identity_id': identity.id,
             'image_type_id': IMAGE_TYPE_FINGERPRINT,
-            'image_url': item.image_url,
+            'image_url': parse_file_uuid(item.image_url),
             'hand_side_id': item.hand_side.id,
             'finger_type_id': item.finger_type.id,
             'vector_data': None,
