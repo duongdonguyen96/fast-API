@@ -177,3 +177,13 @@ class OCRBackSideCitizenCardResponse(BaseSchema):
     back_side_information: BackSideCitizenCardResponse = Field(..., description="Thông tin mặt sau")
     ocr_result: OCRResultBackSideCitizenCardResponse = Field(..., description="Phân tích OCR mặt sau CCCD")
 ########################################################################################################################
+
+
+########################################################################################################################
+# So sánh khuôn mặt đối chiếu với khuôn mặt trên giấy tờ định danh
+########################################################################################################################
+class CompareSuccessResponse(BaseSchema):
+    similar_percent: float = Field(
+        ...,
+        description="Tỉ lệ chính xác giữa khuôn mặt đối chiếu với khuôn mặt trên giấy tờ định danh"
+    )
