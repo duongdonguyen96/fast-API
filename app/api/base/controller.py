@@ -95,6 +95,13 @@ class BaseController:
         :param uuids:
         :return:
         """
+        if any([True if not uuid else False for uuid in uuids]):
+            self.response_exception(
+                msg='',
+                loc='file_url',
+                detail='File uuid is not valid'
+            )
+
         is_exist = self.call_repos(await repos_check_is_exist_multi_file(uuids=uuids))
         if not is_exist:
             self.response_exception(
