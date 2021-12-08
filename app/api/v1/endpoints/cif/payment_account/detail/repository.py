@@ -83,9 +83,9 @@ NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
 }
 
 
-async def repos_detail_payment_account(cif_id: str):
+async def repos_detail_payment_account(cif_id: str, session: Session):
     if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
     return ReposReturn(data=NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL)
 

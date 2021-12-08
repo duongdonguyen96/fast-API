@@ -16,7 +16,13 @@ from app.utils.functions import now
 
 class CtrPaymentAccount(BaseController):
     async def detail(self, cif_id: str):
-        detail_payment_account_info = self.call_repos(await repos_detail_payment_account(cif_id=cif_id))
+
+        detail_payment_account_info = self.call_repos(
+            await repos_detail_payment_account(
+                cif_id=cif_id,
+                session=self.oracle_session)
+        )
+
         return self.response(data=detail_payment_account_info)
 
     async def save(self,
@@ -67,8 +73,7 @@ class CtrPaymentAccount(BaseController):
             "acc_active_flag": 1,
             "created_at": now(),
             "updated_at": now(),
-        }
-        ]
+        }]
 
         save_payment_account_info = self.call_repos(
             await repos_save_payment_account(
