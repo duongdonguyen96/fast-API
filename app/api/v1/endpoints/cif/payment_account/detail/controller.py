@@ -9,8 +9,13 @@ from app.api.v1.endpoints.cif.payment_account.detail.schema import (
 
 class CtrPaymentAccount(BaseController):
     async def detail(self, cif_id: str):
-        detail_payment_account_info = self.call_repos(await repos_detail_payment_account(cif_id=cif_id))
-        return self.response(data=detail_payment_account_info)
+        detail_payment_account_info = self.call_repos(
+            await repos_detail_payment_account(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
+        )
+        return self.response(detail_payment_account_info)
 
     async def save(self, cif_id, payment_account_save_request: SavePaymentAccountRequest):
         save_payment_account_info = self.call_repos(await repos_save_payment_account(

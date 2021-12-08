@@ -29,6 +29,7 @@ class PaymentAccountResponse(BaseSchema):
     account_salary_organization_name: Optional[str] = Field(..., description="Chủ tài khoản chi lương", nullable=True)
 
 
+
 ########################################################################################################################
 # Request Body
 ########################################################################################################################

@@ -8,7 +8,7 @@ from app.utils.functions import now
 async def repos_debit_card(cif_id: str) -> ReposReturn:
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data={
-            "issue_debit_card": {
+            "issue_debit_carxd": {
                 "register_flag": True,
                 "physical_card_type": True,
                 "physical_issuance_type": {
@@ -173,9 +173,9 @@ async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest) -> 
 
 async def repos_get_list_debit_card(
         cif_id: str,
-        branch_of_card_id: str, # noqa
-        issuance_fee_id: str, # noqa
-        annual_fee_id: str # noqa
+        branch_of_card_id: str,  # noqa
+        issuance_fee_id: str,  # noqa
+        annual_fee_id: str  # noqa
 ) -> ReposReturn:
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data=[
