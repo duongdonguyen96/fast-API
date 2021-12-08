@@ -73,9 +73,11 @@ EKYC_GENDER_TYPE_FEMALE = 'F'
 
 # Dùng trong cho field e_banking_register_account_type(col_name=eb_reg_account_type)
 EBANKING_ACCOUNT_TYPE_CHECKING = 'DD'
+EBANKING_ACCOUNT_TYPE_SAVING = 'FD'
 
 EBANKING_ACCOUNT_TYPE = {
-    EBANKING_ACCOUNT_TYPE_CHECKING: "Tài khoản thanh toán"
+    EBANKING_ACCOUNT_TYPE_CHECKING: "Tài khoản thanh toán",
+    EBANKING_ACCOUNT_TYPE_SAVING: "Tài khoản tiết kiệm"
 }
 
 EBANKING_ACTIVE_PASSWORD_EMAIL = "Email"

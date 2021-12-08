@@ -9,8 +9,7 @@ from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
 from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingInfo, EBankingInfoAuthentication,
     EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
-    EBankingRegisterBalanceFd, EBankingRegisterBalanceNotification,
-    EBankingRegisterBalanceOption
+    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption
 )
 from app.third_parties.oracle.models.cif.payment_account.model import (
     CasaAccount
@@ -28,7 +27,7 @@ from app.utils.constant.cif import (
     EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
     EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
 )
-from app.utils.functions import generate_uuid
+from app.utils.functions import generate_uuid, now
 
 
 class CtrEBanking(BaseController):
@@ -53,17 +52,17 @@ class CtrEBanking(BaseController):
             register_balance_casas = change_of_balance_payment_account.register_balance_casas
 
             # kiểm tra tùy chọn thông báo / loại quan hệ / tài khoản ở mục I có tồn tại hay không ?
-            notification_ids, relationship_ids, casa_account_ids = set(), set(), []
+            notification_ids, relationship_ids, casa_account_ids = list(), set(), []
             for register_balance_casa in register_balance_casas:
                 for notification in register_balance_casa.e_banking_notifications:
-                    notification_ids.add(notification.id)
+                    notification_ids.append(notification.id)
                 for relationship in register_balance_casa.notification_casa_relationships:
                     relationship_ids.add(relationship.relationship_type.id)
                 casa_account_ids.append(register_balance_casa.account_id)
             # kiểm tra tùy chọn thông báo ở mục I có tồn tại hay không ?
             await self.get_model_objects_by_ids(
                 model=EBankingNotification,
-                model_ids=list(notification_ids),
+                model_ids=notification_ids,
                 loc="change_of_balance_payment_account -> register_balance_casas -> e_banking_notifications"
             )
             # kiểm tra loại quan hệ ở mục I có tồn tại hay không ?
@@ -83,7 +82,8 @@ class CtrEBanking(BaseController):
             insert_data.extend([EBankingRegisterBalanceOption(
                 customer_id=cif_id,
                 e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
-                customer_contact_type_id=contact_type.id
+                customer_contact_type_id=contact_type.id,
+                created_at=now()
             ) for contact_type in contact_types])
 
             for register_balance_casa in register_balance_casas:
@@ -129,14 +129,16 @@ class CtrEBanking(BaseController):
                 loc="change_of_balance_saving_account -> customer_contact_types"
             )
 
+            # lưu II -> 1 Loại thông báo biến động số
             insert_data.extend([EBankingRegisterBalanceOption(
                 customer_id=cif_id,
                 e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
-                customer_contact_type_id=contact_type.id
+                customer_contact_type_id=contact_type.id,
+                created_at=now()
             ) for contact_type in contact_types])
 
-            insert_data.extend([EBankingRegisterBalanceFd(
-                td_account_id=td_account.id,
+            insert_data.extend([EBankingRegisterBalance(
+                account_id=td_account.id,
                 customer_id=cif_id,
             ) for td_account in change_of_balance_saving_account.range.td_accounts if td_account.checked_flag])
 
