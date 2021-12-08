@@ -15,7 +15,7 @@ from app.third_parties.oracle.models.master_data.customer import (
 )
 from app.third_parties.oracle.models.master_data.identity import ImageType
 from app.third_parties.oracle.models.master_data.others import KYCLevel
-from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.constant.cif import CIF_ID_TEST, CUSTOMER_COMPLETED_FLAG
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST, ERROR_CIF_NUMBER_NOT_EXIST
 )
@@ -267,7 +267,10 @@ async def repos_get_customers_by_cif_numbers(
     customers = session.execute(
         select(
             Customer
-        ).filter(Customer.cif_number.in_(cif_numbers))
+        ).filter(
+            Customer.cif_number.in_(cif_numbers),
+            Customer.complete_flag == CUSTOMER_COMPLETED_FLAG
+        )
     ).scalars().all()
 
     if not customers or len(cif_numbers) != len(customers):
