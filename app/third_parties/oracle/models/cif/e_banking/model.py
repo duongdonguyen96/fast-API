@@ -152,7 +152,8 @@ class EBankingRegisterBalanceOption(Base):
 
     id = Column('eb_reg_balance_option_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "))
     customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
-    customer_contact_type_id = Column(ForeignKey('crm_cust_contact_type.cust_contact_type_id'), nullable=False,
+    customer_contact_type_id = Column('cust_contact_type_id',
+                                      ForeignKey('crm_cust_contact_type.cust_contact_type_id'), nullable=False,
                                       comment='Mã loại xác thực ( ott/sms/token,..)')
     e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50), nullable=False,
                                              comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')
