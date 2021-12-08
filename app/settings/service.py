@@ -4,7 +4,8 @@ SERVICE = {
     "file": {
         "url": os.getenv("SERVICE_FILE_URL"),
         "server-auth": os.getenv("SERVICE_FILE_SERVICE_AUTH"),
-        "authorization": "bearer 3"
+        "authorization": "bearer 3",
+        "service_file_cdn": os.getenv("SERVICE_FILE_CDN")
     },
     "file-upload": {
         "file_limit": int(os.getenv("FILE_LIMIT", 10)),
