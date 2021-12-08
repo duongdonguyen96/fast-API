@@ -326,7 +326,7 @@ class EBankingRequest(BaseSchema):
 
 class BalanceSavingAccountsResponse(BaseSchema):
     id: str = Field(..., description='Mã định danh tài khoản')
-    number: str = Field(..., description='Số tài khoản')
+    account_number: str = Field(..., description='Số tài khoản')
     name: str = Field(..., description='Tên người sở hữu tài khoản')
     checked_flag: bool = Field(..., description='Trạng thái đăng ký. `False`: Không. `True`: Có')
 
