@@ -11,7 +11,8 @@ from app.api.v1.schemas.utils import DropdownResponse
 ############################################################
 
 
-class SignatureResponse(DropdownResponse):
+class SignatureResponse(BaseSchema):
+    id: str = Field(..., description='Id hình ảnh định danh')
     image_url: str = Field(..., description='Hình ảnh mẫu chữ ký')
 
 
@@ -23,19 +24,19 @@ class BasicInformationResponse(BaseSchema):
     gender: DropdownResponse = Field(..., description='Giới tính của đồng sở hữu')
     nationality: DropdownResponse = Field(..., description='Quốc tịch của đồng sở hữu')
     mobile_number: str = Field(..., description='Số ĐTDD')
-    signature_1: SignatureResponse = Field(..., description='Mẫu chữ ký 1 của đồng sở hữu')
-    signature_2: SignatureResponse = Field(..., description='Mẫu chữ ký 2 của đồng sở hữu')
+    signature: List[SignatureResponse] = Field(..., description='Mẫu chữ ký 1 của đồng sở hữu')
 
 
 class IdentityDocumentResponse(BaseSchema):
     identity_number: str = Field(..., description='Số CMND/CCCD/HC')
+    identity_type: DropdownResponse = Field(..., description='Loại giấy tờ định danh')
     issued_date: date = Field(..., description='Ngày cấp')
     expired_date: date = Field(..., description='Ngày hết hạn')
     place_of_issue: DropdownResponse = Field(..., description='Nơi cấp')
 
 
 class AddressInformationResponse(BaseSchema):
-    content_address: str = Field(..., description='Địa chỉ liên hệ')
+    contact_address: str = Field(..., description='Địa chỉ liên hệ')
     resident_address: str = Field(..., description='Địa chỉ thường trú')
 
 

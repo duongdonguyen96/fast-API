@@ -32,21 +32,25 @@ class ServiceFile:
         form_data.add_field('file', value=file, filename=name)
         form_data.add_field('return_download_file_url_flag', value=str(return_download_file_url_flag))
 
-        async with self.session.post(
-                url=api_url,
-                data=form_data,
-                headers=self.headers
-        ) as response:
-            logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
+        try:
+            async with self.session.post(
+                    url=api_url,
+                    data=form_data,
+                    headers=self.headers
+            ) as response:
+                logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
 
-            if response.status != status.HTTP_201_CREATED:
-                return None
+                if response.status != status.HTTP_201_CREATED:
+                    return None
 
-            upload_file_response_body = await response.json()
-            if upload_file_response_body['file_url']:
-                upload_file_response_body['file_url'] = self.replace_with_cdn(upload_file_response_body['file_url'])
+                upload_file_response_body = await response.json()
+                if upload_file_response_body['file_url']:
+                    upload_file_response_body['file_url'] = self.replace_with_cdn(upload_file_response_body['file_url'])
 
-            return upload_file_response_body
+                return upload_file_response_body
+        except Exception as ex:
+            logger.error(str(ex))
+            return None
 
     async def upload_file(self, file: bytes, name: str, return_download_file_url_flag: bool = True) -> Optional[dict]:
         return await self.__call_upload_file(
@@ -75,33 +79,62 @@ class ServiceFile:
     async def download_file(self, uuid: str) -> Optional[dict]:
         api_url = f"{self.url}/api/v1/files/{uuid}/download/"
 
-        async with self.session.get(url=api_url, headers=self.headers) as response:
-            logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
+        try:
+            async with self.session.get(url=api_url, headers=self.headers) as response:
+                logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
 
-            if response.status != status.HTTP_200_OK:
-                return None
+                if response.status != status.HTTP_200_OK:
+                    return None
 
-            file_download_response_body = await response.json()
+                file_download_response_body = await response.json()
 
-            file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
+                file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
+        except Exception as ex:
+            logger.error(str(ex))
+            return None
 
         return file_download_response_body
 
     async def download_multi_file(self, uuids: List[str]) -> Optional[List[dict]]:
         api_url = f"{self.url}/api/v1/files/download/"
 
-        async with self.session.get(url=api_url, headers=self.headers, params={'uuid': uuids}) as response:
-            logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
+        try:
+            async with self.session.get(url=api_url, headers=self.headers, params={'uuid': uuids}) as response:
+                logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
 
-            if response.status != status.HTTP_200_OK:
-                return None
+                if response.status != status.HTTP_200_OK:
+                    return None
 
-            multi_file_download_response_body = await response.json()
+                multi_file_download_response_body = await response.json()
+        except Exception as ex:
+            logger.error(str(ex))
+            return None
 
         for file_download_response_body in multi_file_download_response_body:
             file_download_response_body['file_url'] = self.replace_with_cdn(file_download_response_body['file_url'])
 
         return multi_file_download_response_body
+
+    async def is_exist_multi_file(self, uuids: List[str]) -> Optional[bool]:
+        """
+        Nếu tất cả UUID tồn tại thì trả về True
+        Nếu có ít nhất một UUID không tồn tại thì False
+        :param uuids:
+        :return:
+        """
+        api_url = f"{self.url}/api/v1/files/exist/?{'&'.join([f'uuid={uuid}' for uuid in uuids])}"
+
+        try:
+            async with self.session.get(url=api_url, headers=self.headers) as response:
+                logger.log("SERVICE", f"[FILE] {response.status} : {api_url}")
+
+                if response.status == status.HTTP_200_OK:
+                    return True
+                else:
+                    return False
+        except Exception as ex:
+            logger.error(str(ex))
+            return None
 
     @staticmethod
     def replace_with_cdn(file_url: str) -> str:
