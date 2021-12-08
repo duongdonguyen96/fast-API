@@ -1,8 +1,8 @@
-from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, Table, text
+from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, text
 from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
-from app.third_parties.oracle.base import Base, metadata
+from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.cif.basic_information.model import (  # noqa
     Customer
 )
@@ -50,47 +50,15 @@ class EBankingReceiverNotificationRelationship(Base):
     full_name = Column(VARCHAR(100), nullable=False, comment='Tên đầy đủ')
 
 
-t_crm_eb_reg_balance_fd_noti = Table(
-    'crm_eb_reg_balance_fd_noti', metadata,
-    Column('eb_notify_id', ForeignKey('crm_eb_notification.eb_notify_id'), comment='Mã Danh mục tùy chọn thông báo'),
-    Column('customer_id', ForeignKey('crm_eb_reg_balance_fd_option.customer_id')),
-    comment='Tùy chọn thông báo - Tài khoản tiết kiệm'
-)
+class EBankingInfoAuthentication(Base):
+    __tablename__ = 'crm_eb_info_authen'
+    __table_args__ = {'comment': 'Liên kết thông tin tài khoản ib với hình thức xác thực'}
 
-
-class EBankingRegisterBalanceFdOption(Base):
-    __tablename__ = 'crm_eb_reg_balance_fd_option'
-    __table_args__ = {'comment': 'Hình thức thông báo: OTT, SMS'}
-
-    customer_id = Column(VARCHAR(36), primary_key=True, comment='Mã khách hàng')
-    customer_contact_type_id = Column('cust_contact_type_id', VARCHAR(36), nullable=False, comment='Mã LOẠI LIÊN HỆ')
-    created_at = Column(DateTime, nullable=False, comment='Ngày tạo')
-    updated_at = Column(DateTime, comment='Ngày cập nhật')
-
-    e_banking_notification = relationship('EBankingNotification', secondary='crm_eb_reg_balance_fd_noti')
-
-
-t_crm_eb_info_authen = Table(
-    'crm_eb_info_authen', metadata,
-    Column('eb_info_id', ForeignKey('crm_ebanking_info.eb_info_id'),
-           comment='Liên kết thông tin tài khoản ib với hình thức xác thực'),
-    Column('method_authen_id', ForeignKey('crm_method_authen.method_authen_id'),
-           comment='Danh mục Hình thức xác thực Vân tay Khuôn mặt SMS SOFT TOKEN HARD TOKEN'),
-    comment='Liên kết thông tin tài khoản ib với hình thức xác thực'
-)
-
-
-class EBankingRegisterBalanceFd(Base):
-    __tablename__ = 'crm_eb_reg_balance_fd'
-    __table_args__ = {'comment': 'Đăng ký Biến động số dư các loại tài khoản Tiết kiệm'}
-
-    id = Column('reg_balance_fd_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
-                comment='Mã Đăng ký Biến động số dư các loại tài khoản Tiết kiệm')
-    td_account_id = Column(ForeignKey('crm_td_account.td_account_id'), comment='Mã Tài khoản Tiết kiệm')
-    customer_id = Column(ForeignKey('crm_eb_reg_balance_fd_option.customer_id'))
-
-    customer = relationship('EBankingRegisterBalanceFdOption')  # TODO: check
-    td_account = relationship('TdAccount')
+    id = Column('eb_info_authen_id', primary_key=True, comment='Liên kết thông tin tài khoản ib với hình thức xác thực')
+    e_banking_info_id = Column('eb_info_id', ForeignKey('crm_ebanking_info.eb_info_id'),
+                               comment='Liên kết thông tin tài khoản ib với hình thức xác thực')
+    method_authentication_id = Column('method_authen_id', ForeignKey('crm_method_authen.method_authen_id'),
+                                      comment='Danh mục Hình thức xác thực Vân tay Khuôn mặt SMS SOFT TOKEN HARD TOKEN')
 
 
 class EBankingInfo(Base):
@@ -111,8 +79,6 @@ class EBankingInfo(Base):
     active_account_flag = Column('eb_active_account_flag', NUMBER(1, 0, False),
                                  comment='Cờ tùy chọn trạng thái kích hoạt ebanking')
     account_payment_fee = Column('eb_account_payment_fee', VARCHAR(50), comment='Số tài khoản thanh toán phí')
-
-    method_authentication = relationship('MethodAuthentication', secondary='crm_eb_info_authen')
 
 
 class EBankingRegisterBalance(Base):
@@ -153,7 +119,8 @@ class EBankingRegisterBalanceOption(Base):
 
     id = Column('eb_reg_balance_option_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "))
     customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
-    customer_contact_type_id = Column(ForeignKey('crm_cust_contact_type.cust_contact_type_id'), nullable=False,
+    customer_contact_type_id = Column('cust_contact_type_id',
+                                      ForeignKey('crm_cust_contact_type.cust_contact_type_id'), nullable=False,
                                       comment='Mã loại xác thực ( ott/sms/token,..)')
     e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50), nullable=False,
                                              comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')

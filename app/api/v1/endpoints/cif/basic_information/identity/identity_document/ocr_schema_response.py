@@ -34,7 +34,6 @@ class OCRAddressIdentityCitizenCardResponse(BaseSchema):
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CMND)
 class OCRFrontSideDocumentIdentityCardResponse(BaseSchema):
     identity_number: Optional[str] = Field(..., description="Số GTĐD", nullable=True)
-    expired_date: Optional[date] = Field(..., description="Có giá trị đến", nullable=True)
 
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CMND)
@@ -46,7 +45,7 @@ class OCRFrontSideBasicInfoIdentityCardResponse(BaseSchema):
 
 
 # III. Phân tích OCR (CMND)
-class OCRResultIdentityCardResponse(BaseSchema):
+class OCRResultFrontSideIdentityCardResponse(BaseSchema):
     identity_document: OCRFrontSideDocumentIdentityCardResponse = Field(..., description="Giấy tờ định danh")
     basic_information: OCRFrontSideBasicInfoIdentityCardResponse = Field(..., description="Thông tin cơ bản")
     address_information: OCRAddressIdentityCitizenCardResponse = Field(..., description="Thông tin địa chỉ")
@@ -55,7 +54,33 @@ class OCRResultIdentityCardResponse(BaseSchema):
 # RESPONSE CMND
 class OCRFrontSideIdentityCardResponse(BaseSchema):
     front_side_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
-    ocr_result: OCRResultIdentityCardResponse = Field(..., description="Phân tích OCR")
+    ocr_result: OCRResultFrontSideIdentityCardResponse = Field(...,
+                                                               description="Phân tích OCR thông tin mặt trước CMND")
+
+
+class BackSideIdentityCardResponse(BaseSchema):
+    identity_image_url: Optional[str] = Field(..., description="URL hình ảnh mặt sau CMND", nullable=True)
+
+
+class OCRBackSideIdentityDocumentIdentityCardResponse(BaseSchema):
+    issued_date: Optional[date] = Field(..., description="Ngày cấp", nullable=True)
+    place_of_issue: Optional[DropdownResponse] = Field(..., description="Nơi cấp", nullable=True)
+
+
+class OCRBackSideBasicInformationIdentityCardResponse(BaseSchema):
+    ethnic: Optional[DropdownResponse] = Field(..., description="Dân tộc", nullable=True)
+    religion: Optional[DropdownResponse] = Field(..., description="Tôn giáo", nullable=True)
+    identity_characteristic: Optional[str] = Field(..., description="Đặc điểm nhận dạng", nullable=True)
+
+
+class OCRResultBackSideIdentityCardResponse(BaseSchema):
+    identity_document: OCRBackSideIdentityDocumentIdentityCardResponse = Field(..., description="Giấy tờ định danh")
+    basic_information: OCRBackSideBasicInformationIdentityCardResponse = Field(..., description="Thông tin cơ bản")
+
+
+class OCRBackSideIdentityCardResponse(BaseSchema):
+    back_side_information: BackSideIdentityCardResponse = Field(..., description="Thông tin mặt sau")
+    ocr_result: OCRResultBackSideIdentityCardResponse = Field(..., description="Phân tích OCR mặt sau CMND")
 
 
 ########################################################################################################################
@@ -99,4 +124,56 @@ class OCRPassportResponse(BaseSchema):
     passport_information: InformationPassportResponse = Field(..., description="Thông tin hộ chiếu")
     ocr_result: OCRResultPassportResponse = Field(..., description="Phân tích OCR")
 
+
+########################################################################################################################
+
+########################################################################################################################
+# Giấy tờ định danh - Hộ chiếu
+########################################################################################################################
+
+# III. Phân tích OCR (CCCD) -> Giấy tờ định danh
+class OCRFrontSideDocumentCitizenCardResponse(OCRFrontSideDocumentIdentityCardResponse):
+    expired_date: Optional[date] = Field(..., description="Có giá trị đến", nullable=True)
+
+
+# III. Phân tích OCR (CCCD) -> Thông tin cơ bản
+class OCRFrontSideBasicInfoCitizenCardResponse(OCRFrontSideBasicInfoIdentityCardResponse):
+    gender: Optional[DropdownResponse] = Field(..., description="Giới tính", nullable=True)
+
+
+# III. Phân tích OCR (CCCD)
+class OCRResultFrontSideCitizenCardResponse(BaseSchema):
+    identity_document: OCRFrontSideDocumentCitizenCardResponse = Field(..., description="Giấy tờ định danh")
+    basic_information: OCRFrontSideBasicInfoCitizenCardResponse = Field(..., description="Thông tin cơ bản")
+    address_information: OCRAddressIdentityCitizenCardResponse = Field(..., description="Thông tin địa chỉ")
+
+
+class OCRFrontSideCitizenCardResponse(BaseSchema):
+    front_side_information: FrontSideIdentityCitizenCardResponse = Field(..., description="Thông tin mặt trước")
+    ocr_result: OCRResultFrontSideCitizenCardResponse = Field(...,
+                                                              description="Phân tích OCR thông tin mặt trước CCCD")
+
+
+class BackSideCitizenCardResponse(BaseSchema):
+    identity_image_url: Optional[str] = Field(..., description="URL hình ảnh mặt sau CMND", nullable=True)
+
+
+class OCRBackSideIdentityDocumentCitizenCardResponse(BaseSchema):
+    issued_date: Optional[date] = Field(..., description="Ngày cấp", nullable=True)
+    place_of_issue: Optional[DropdownResponse] = Field(..., description="Nơi cấp", nullable=True)
+    mrz_content: Optional[str] = Field(..., description="Đặc điểm nhận dạng", nullable=True)
+
+
+class OCRBackSideBasicInformationCitizenCardResponse(BaseSchema):
+    identity_characteristic: Optional[str] = Field(..., description="Đặc điểm nhận dạng", nullable=True)
+
+
+class OCRResultBackSideCitizenCardResponse(BaseSchema):
+    identity_document: OCRBackSideIdentityDocumentCitizenCardResponse = Field(..., description="Giấy tờ định danh")
+    basic_information: OCRBackSideBasicInformationCitizenCardResponse = Field(..., description="Thông tin cơ bản")
+
+
+class OCRBackSideCitizenCardResponse(BaseSchema):
+    back_side_information: BackSideCitizenCardResponse = Field(..., description="Thông tin mặt sau")
+    ocr_result: OCRResultBackSideCitizenCardResponse = Field(..., description="Phân tích OCR mặt sau CCCD")
 ########################################################################################################################
