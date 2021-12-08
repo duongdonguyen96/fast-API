@@ -68,9 +68,9 @@ MESSAGE_STATUS = {
     ERROR_RELATIONSHIP_TYPE_ID_NOT_EXIST: "Relationship type does not exist",
     ERROR_RELATION_CUSTOMER_SELF_RELATED: "Customer can not relate to himself/herself",
     ERROR_RELATIONSHIP_EXIST: "guardian/customer relationship existed",
-    ERROR_CASA_ACCOUNT_NOT_EXIST: "Casa_account not exist",
-    ERROR_CUSTOMER_INDIVIDUAL_INFO: "Customer_individual_info is not exist",
-    ERROR_CUSTOMER_IDENTITY: "Customer_identity is not exist",
-    ERROR_CUSTOMER_IDENTITY_IMAGE: "Customer_identity_image is not exist",
-    ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST: "Agreement_authorizations is not exist"
+    ERROR_CASA_ACCOUNT_NOT_EXIST: "casa_account not exist",
+    ERROR_CUSTOMER_INDIVIDUAL_INFO: "customer_individual_info is not exist",
+    ERROR_CUSTOMER_IDENTITY: "customer_identity is not exist",
+    ERROR_CUSTOMER_IDENTITY_IMAGE: "customer_identity_image is not exist",
+    ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST: "agreement_authorizations is not exist"
 }
