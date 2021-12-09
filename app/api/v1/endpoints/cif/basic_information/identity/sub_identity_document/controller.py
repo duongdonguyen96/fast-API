@@ -77,10 +77,12 @@ class CtrSubIdentityDocument(BaseController):
 
         create_sub_identities = []
         create_sub_identity_images = []
+        create_customer_sub_identity_image_transactions = []
 
         update_sub_identities = []
         update_sub_identity_images = []
         update_sub_identities_ids = []
+        update_customer_sub_identity_image_transactions = []
 
         for sub_identity in sub_identity_request:
             customer_sub_identity = {
@@ -108,6 +110,12 @@ class CtrSubIdentityDocument(BaseController):
                 "updater_id": saved_by,
                 "updater_at": now()
             }
+            customer_sub_identity_image_transaction = {
+                "image_url": customer_sub_identity_image["image_url"],
+                "active_flag": True,
+                "maker_id": saved_by,
+                "maker_at": now()
+            }
 
             # Cập nhật
             if sub_identity.id:
@@ -128,6 +136,9 @@ class CtrSubIdentityDocument(BaseController):
                 customer_sub_identity_image['id'] = old_sub_identity_id__image_ids[sub_identity.id]
                 update_sub_identity_images.append(customer_sub_identity_image)
 
+                customer_sub_identity_image_transaction['identity_image_id'] = customer_sub_identity_image['id']
+                update_customer_sub_identity_image_transactions.append(customer_sub_identity_image_transaction)
+
             # Tạo mới
             else:
                 sub_identity_id = generate_uuid()
@@ -136,7 +147,11 @@ class CtrSubIdentityDocument(BaseController):
                 create_sub_identities.append(customer_sub_identity)
 
                 customer_sub_identity_image['identity_id'] = sub_identity_id
+                customer_sub_identity_image['id'] = generate_uuid()
                 create_sub_identity_images.append(customer_sub_identity_image)
+
+                customer_sub_identity_image_transaction['identity_image_id'] = customer_sub_identity_image['id']
+                create_customer_sub_identity_image_transactions.append(customer_sub_identity_image_transaction)
 
         # những SubIdentity id tồn tại trong hệ thống mà không gửi lên -> xóa
         for old_sub_identity, _ in old_sub_identities_and_sub_identity_images:
@@ -149,8 +164,10 @@ class CtrSubIdentityDocument(BaseController):
                 delete_sub_identity_ids=delete_sub_identity_ids,
                 create_sub_identities=create_sub_identities,
                 create_sub_identity_images=create_sub_identity_images,
+                create_customer_sub_identity_image_transactions=create_customer_sub_identity_image_transactions,
                 update_sub_identities=update_sub_identities,
                 update_sub_identity_images=update_sub_identity_images,
+                update_customer_sub_identity_image_transactions=update_customer_sub_identity_image_transactions,
                 session=self.oracle_session
             )
         )
