@@ -51,8 +51,7 @@ from app.utils.error_messages import (
     ERROR_CALL_SERVICE_EKYC, ERROR_CALL_SERVICE_FILE, ERROR_CIF_ID_NOT_EXIST
 )
 from app.utils.functions import (
-    date_string_to_other_date_string_format, date_to_string, dropdown,
-    generate_uuid, now
+    date_string_to_other_date_string_format, dropdown, generate_uuid, now
 )
 from app.utils.vietnamese_converter import convert_to_unsigned_vietnamese
 
@@ -324,11 +323,13 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
 
 ########################################################################################################################
 
-
-async def repos_get_identity_log_list(
+########################################################################################################################
+# Lịch sử thay đổi giấy tờ định danh
+########################################################################################################################
+async def repos_get_identity_image_transactions(
         cif_id: str,
         session: Session
-) -> ReposReturn:
+):
     identity_image_transactions = session.execute(
         select(
             CustomerIdentityImageTransaction,
@@ -341,31 +342,7 @@ async def repos_get_identity_log_list(
         .order_by(desc(CustomerIdentityImageTransaction.maker_at))
     ).scalars().all()
 
-    identity_log_infos = []
-    if not identity_image_transactions:
-        return ReposReturn(data=identity_log_infos)
-
-    date__identity_images = {}
-
-    for identity_image_transaction in identity_image_transactions:
-        maker_at = date_to_string(identity_image_transaction.maker_at)
-
-        if maker_at not in date__identity_images.keys():
-            date__identity_images[maker_at] = []
-
-        date__identity_images[maker_at].append({
-            "image_url": identity_image_transaction.image_url
-        })
-
-    identity_log_infos = [{
-        "reference_flag": True if index == 0 else False,
-        "created_date": created_date,
-        "identity_images": identity_images
-    } for index, (created_date, identity_images) in enumerate(date__identity_images.items())]
-
-    identity_log_infos[0]["reference_flag"] = True
-
-    return ReposReturn(data=identity_log_infos)
+    return ReposReturn(data=identity_image_transactions)
 
 
 ########################################################################################################################
