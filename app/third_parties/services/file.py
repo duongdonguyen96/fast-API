@@ -13,6 +13,7 @@ class ServiceFile:
     session: Optional[aiohttp.ClientSession] = None
 
     url = SERVICE["file"]['url']
+    cdn = SERVICE["file"]['service_file_cdn']
     headers = {
         "server-auth": SERVICE["file"]['server-auth'],
         "AUTHORIZATION": SERVICE["file"]['authorization']
@@ -136,9 +137,11 @@ class ServiceFile:
             logger.error(str(ex))
             return None
 
-    @staticmethod
-    def replace_with_cdn(file_url: str) -> str:
-        file_url_parse_result = urlparse(file_url)
+    def replace_with_cdn(self, file_url: str) -> str:
+        if self.cdn:
+            file_url_parse_result = urlparse(file_url)
 
-        # Thay thế link tải file từ service bằng CDN config theo dự án
-        return file_url.replace(f'{file_url_parse_result.scheme}://{file_url_parse_result.netloc}', '/cdn')
+            # Thay thế link tải file từ service bằng CDN config theo dự án
+            return file_url.replace(f'{file_url_parse_result.scheme}://{file_url_parse_result.netloc}', self.cdn)
+        else:
+            return file_url

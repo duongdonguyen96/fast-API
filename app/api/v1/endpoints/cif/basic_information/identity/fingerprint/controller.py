@@ -15,7 +15,7 @@ from app.utils.constant.cif import (
     ACTIVE_FLAG_CREATE_FINGERPRINT, FRONT_FLAG_CREATE_FINGERPRINT,
     IMAGE_TYPE_FINGERPRINT
 )
-from app.utils.functions import now
+from app.utils.functions import now, parse_file_uuid
 
 
 class CtrFingerPrint(BaseController):
@@ -26,6 +26,17 @@ class CtrFingerPrint(BaseController):
         fingerprints = []
         fingerprints.extend(finger_request.fingerprint_1)
         fingerprints.extend(finger_request.fingerprint_2)
+
+        # các uuid cần phải gọi qua service file để check
+        image_uuids = []
+
+        for fingerprint in fingerprints:
+            uuid = parse_file_uuid(fingerprint.image_url)
+            fingerprint.image_url = uuid
+            image_uuids.append(uuid)
+
+        # gọi qua service file để check exist list uuid
+        await self.check_exist_multi_file(uuids=image_uuids)
 
         hand_side_ids = []
         finger_type_ids = []
