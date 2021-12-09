@@ -11,9 +11,6 @@ from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
     EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption
 )
-from app.third_parties.oracle.models.cif.payment_account.model import (
-    CasaAccount
-)
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerContactType, CustomerRelationshipType
 )
@@ -71,13 +68,15 @@ class CtrEBanking(BaseController):
                 model_ids=list(relationship_ids),
                 loc="notification_casa_relationships -> relationship_type -> id"
             )
-            # kiểm tra tài khoản ở mục I có tồn tại hay không ?
-            await self.get_model_objects_by_ids(
-                model=CasaAccount,
-                model_ids=casa_account_ids,
-                loc="register_balance_casas -> account_id"
-            )
 
+            """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
+            # # kiểm tra tài khoản ở mục I có tồn tại hay không ?
+            # await self.get_model_objects_by_ids(
+            #     model=CasaAccount,
+            #     model_ids=casa_account_ids,
+            #     loc="register_balance_casas -> account_id"
+            # )
+            #
             # lưu hình thức nhận thông báo taì khoản thanh toàn (TKTT) I -> 1
             insert_data.extend([EBankingRegisterBalanceOption(
                 customer_id=cif_id,
@@ -137,10 +136,11 @@ class CtrEBanking(BaseController):
                 created_at=now()
             ) for contact_type in contact_types])
 
-            insert_data.extend([EBankingRegisterBalance(
-                account_id=td_account.id,
-                customer_id=cif_id,
-            ) for td_account in change_of_balance_saving_account.range.td_accounts if td_account.checked_flag])
+            """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
+            # insert_data.extend([EBankingRegisterBalance(
+            #     account_id=td_account.id,
+            #     customer_id=cif_id,
+            # ) for td_account in change_of_balance_saving_account.range.td_accounts if td_account.checked_flag])
 
             # kiểm tra tùy chọn thông báo ở mục II có tồn tại hay không ?
             await self.get_model_objects_by_ids(
