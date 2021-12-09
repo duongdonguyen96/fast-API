@@ -75,7 +75,7 @@ class CtrEBanking(BaseController):
             await self.get_model_objects_by_ids(
                 model=CasaAccount,
                 model_ids=casa_account_ids,
-                loc="register_balance_casas -> account_id"
+                loc="register_balance_casa -> account_id"
             )
 
             # lưu hình thức nhận thông báo taì khoản thanh toàn (TKTT) I -> 1
