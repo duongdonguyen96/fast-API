@@ -22,20 +22,6 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
 
-<<<<<<< HEAD
-async def repos_debit_card(cif_id: str) -> ReposReturn:
-    if cif_id == CIF_ID_TEST:
-        return ReposReturn(data={
-            "issue_debit_carxd": {
-                "register_flag": True,
-                "physical_card_type": True,
-                "physical_issuance_type": {
-                    "id": "1",
-                    "code": "NORMAL",
-                    "name": "Thông thường"
-                },
-                "customer_type": {
-=======
 async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
 
     branch_province = aliased(AddressProvince, name='branch_province')
@@ -123,11 +109,7 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
             "annual_fee": dropdown(issuance_fee),
             "debit_card_types": [
                 {
-<<<<<<< HEAD
->>>>>>> c44ebff7dd794083041391289ef6719d372bb6c3
-=======
->>>>>>> 95bd5af443967ac0e810f2e94f75c77fba9e3474
->>>>>>> develop
+
                     "id": "1",
                     "code": "MDTC1",
                     "name": "VISA",
