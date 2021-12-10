@@ -13,9 +13,8 @@ from app.third_parties.oracle.models.cif.basic_information.identity.model import
 from app.third_parties.oracle.models.master_data.identity import (
     FingerType, HandSide
 )
-from app.utils.constant.cif import HAND_SIDE_LEFT_CODE
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown, now
+from app.utils.functions import now
 
 
 @auto_commit
@@ -67,21 +66,4 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
     if not query_data:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
-    fingerprint_1 = []
-    fingerprint_2 = []
-
-    for customer_identity_image, hand_side, finger_print in query_data:
-        fingerprint = {
-            'image_url': customer_identity_image.image_url,
-            'hand_side': dropdown(hand_side),
-            'finger_type': dropdown(finger_print)
-        }
-        if hand_side.code == HAND_SIDE_LEFT_CODE:
-            fingerprint_1.append(fingerprint)
-        else:
-            fingerprint_2.append(fingerprint)
-
-    return ReposReturn(data={
-        'fingerprint_1': fingerprint_1,
-        'fingerprint_2': fingerprint_2,
-    })
+    return ReposReturn(data=query_data)

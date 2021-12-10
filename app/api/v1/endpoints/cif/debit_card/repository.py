@@ -123,7 +123,11 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
             "annual_fee": dropdown(issuance_fee),
             "debit_card_types": [
                 {
+<<<<<<< HEAD
 >>>>>>> c44ebff7dd794083041391289ef6719d372bb6c3
+=======
+>>>>>>> 95bd5af443967ac0e810f2e94f75c77fba9e3474
+>>>>>>> develop
                     "id": "1",
                     "code": "MDTC1",
                     "name": "VISA",
