@@ -282,8 +282,7 @@ class BalanceSavingAccountRequest(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     customer_contact_types: List[ContactTypeRequest] = Field(..., description='Hình thức nhận thông báo')
     mobile_number: str = Field(..., description='Số điện thoại')
-    """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
-    # range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
+    range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
     e_banking_notifications: List[EBankingNotificationResponse] = Field(
         ...,
         min_items=1,
