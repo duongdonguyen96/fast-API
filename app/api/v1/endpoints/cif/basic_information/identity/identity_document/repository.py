@@ -472,8 +472,6 @@ async def repos_save_identity(
             )
         ])
 
-    # TODO: Lưu Log lịch sử thay đổi GTDD
-
     # Update
     else:
         # Cập nhật 1 cif_number đã tồn tại
@@ -534,8 +532,6 @@ async def repos_save_identity(
             customer_id=customer_id
         )
 
-    # TODO: Lưu Log lịch sử thay đổi GTDD
-
     return ReposReturn(data={
         "cif_id": customer_id
     })
@@ -587,6 +583,9 @@ async def create_customer_identity_image_and_customer_compare_image(
         is_create: bool,
         session: Session
 ):
+    """
+        Tạo giấy tờ định danh và lưu log
+    """
     # create new CustomerIdentityImage ảnh mặt trước hoặc hộ chiếu
     new_first_identity_image = saving_customer_identity_images[0]
     new_first_identity_image['id'] = new_first_identity_image_id
