@@ -103,14 +103,16 @@ class EBankingRegisterBalanceNotification(Base):
     __table_args__ = {'comment': 'Tùy chọn thông báo - Tài khoản thanh toán/TKTK'}
 
     id = Column('eb_reg_balance_casa_noti_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "))
-    e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50), nullable=False,
-                                             comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')
-    customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
+    # e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50), nullable=False,
+    #                                          comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')
+    # customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
     eb_notify_id = Column(ForeignKey('crm_eb_notification.eb_notify_id'), nullable=False,
                           comment='Mã Danh mục tùy chọn thông báo')
 
     customer = relationship('Customer')
     e_banking_notify = relationship('EBankingNotification')
+
+    eb_reg_balance_id = Column(ForeignKey('crm_eb_reg_balance.id'), nullable=False, comment='ID Bảng Đăng ký Biến động số dư các loại tài khoản Thanh toán/ Tiết kiệm')
 
 
 class EBankingRegisterBalanceOption(Base):
