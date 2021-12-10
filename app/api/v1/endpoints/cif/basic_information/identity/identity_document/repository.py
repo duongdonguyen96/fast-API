@@ -760,7 +760,8 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
 
     front_side_identity_card_info = {
         "front_side_information": {
-            "identity_image_url": image_url
+            "identity_image_url": image_url,
+            "identity_avatar_image_uuid": ocr_data.get('avatar_image') if ocr_data.get('avatar_image') else None
         },
         "ocr_result": {
             "identity_document": {
@@ -818,7 +819,8 @@ async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session
 
     passport_info = {
         "passport_information": {
-            "identity_image_url": image_url
+            "identity_image_url": image_url,
+            "identity_avatar_image_uuid": ocr_data.get('avatar_image') if ocr_data.get('avatar_image') else None
         },
         "ocr_result": {
             "identity_document":
@@ -946,7 +948,8 @@ async def mapping_ekyc_front_side_citizen_card_ocr_data(image_url: str, ocr_data
 
     front_side_citizen_card_info = {
         "front_side_information": {
-            "identity_image_url": image_url
+            "identity_image_url": image_url,
+            "identity_avatar_image_uuid": ocr_data.get('avatar_image') if ocr_data.get('avatar_image') else None
         },
         "ocr_result": {
             "identity_document": {
