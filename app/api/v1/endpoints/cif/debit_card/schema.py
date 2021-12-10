@@ -88,7 +88,7 @@ class NameOnCardRequest(BaseSchema):
 
 class IssueDebitRequest(BaseSchema):
     register_flag: bool = Field(..., description="Đăng kí thẻ ghi nợ, `True`: đăng kí, `False`: không đăng kí ")
-    physical_card_type: bool = Field(..., description="TÍnh vật lý, `True`: thẻ vật lý, `False`: thẻ phi vật lý")
+    physical_card_type: DropdownRequest = Field(..., description="TÍnh vật lý")
     physical_issuance_type: DropdownRequest = Field(..., description="Hình thức phát hành")
     customer_type: DropdownRequest = Field(..., description="Nhóm khách hàng")
     payment_online_flag: bool = Field(..., description="Mở chức năng thanh toán online, `True`: có, `False`: không")
@@ -110,7 +110,7 @@ class CardDeliveryAddressRequest(BaseSchema):
 class SubDebitCardRequest(BaseSchema):
     cif_number: str = Field(..., description="Số cif")
     name_on_card: NameOnCardRequest = Field(..., description="Tên trên thẻ")
-    physical_card_type: bool = Field(..., description="TÍnh vật lý, `True`: thẻ vật lý, `False`: thẻ phi vật lý")
+    physical_card_type: DropdownRequest = Field(..., description="TÍnh vật lý")
     card_issuance_type: DropdownRequest = Field(..., description="Hình thức phát hành")
     payment_online_flag: bool = Field(..., description="Mở chức năng thanh toán online, `True`: có, `False`: không")
     card_delivery_address: CardDeliveryAddressRequest = Field(..., description="Địa chỉ giao nhận thẻ")
@@ -128,7 +128,7 @@ class DebitCardRequest(BaseSchema):
     issue_debit_card: IssueDebitRequest = Field(..., description="Phát hành thẻ ghi nợ ")
     information_debit_card: InformationDebitCardRequest = Field(..., description="Thông tin thẻ ")
     card_delivery_address: CardDeliveryAddressRequest = Field(..., description="Địa chỉ nhân thẻ ")
-    information_sub_debit_card: InformationSubDebitCardRequest = Field(..., description="Thông tin thẻ phụ")
+    information_sub_debit_card: InformationSubDebitCardRequest = Field(None, description="Thông tin thẻ phụ")
 
 
 class ListCardTypeResponse(BaseSchema):

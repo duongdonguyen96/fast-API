@@ -1,5 +1,9 @@
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
+from sqlalchemy.orm import Session
+
+from app.api.base.repository import ReposReturn, auto_commit
+from app.third_parties.oracle.models.cif.debit_card.model import (
+    CardDeliveryAddress, DebitCard
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
@@ -10,7 +14,18 @@ async def repos_debit_card(cif_id: str) -> ReposReturn:
         return ReposReturn(data={
             "issue_debit_card": {
                 "register_flag": True,
-                "physical_card_type": True,
+                "physical_card_type": [
+                    {
+                        "id": "1",
+                        "code": "1",
+                        "name": "Physic"
+                    },
+                    {
+                        "id": "2",
+                        "code": "2",
+                        "name": "Non-Physic"
+                    }
+                ],
                 "physical_issuance_type": {
                     "id": "1",
                     "code": "NORMAL",
@@ -159,23 +174,39 @@ async def repos_debit_card(cif_id: str) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
 
-async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest) -> ReposReturn:  # noqa
-    if cif_id == CIF_ID_TEST:
-        return ReposReturn(data={
-            'created_at': now(),
-            'created_by': 'system',
-            'updated_at': now(),
-            'updated_by': 'system'
-        })
-    else:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+@auto_commit
+async def repos_add_debit_card(
+        cif_id: str,
+        data_card_delivery_address,
+        data_debit_card,
+        list_sub_delivery_address,
+        list_sub_debit_card,
+        session: Session) -> ReposReturn:
+    session.add_all([
+        CardDeliveryAddress(**data_card_delivery_address),
+
+        DebitCard(**data_debit_card),
+
+    ])
+
+    session.flush()
+    session.bulk_save_objects(
+        [CardDeliveryAddress(**list_sub_delivery_address) for list_sub_delivery_address in list_sub_delivery_address])
+    session.bulk_save_objects([DebitCard(**list_sub_debit_card) for list_sub_debit_card in list_sub_debit_card])
+
+    return ReposReturn(data={
+        'created_at': now(),
+        'created_by': 'system',
+        'updated_at': now(),
+        'updated_by': 'system'
+    })
 
 
 async def repos_get_list_debit_card(
         cif_id: str,
-        branch_of_card_id: str, # noqa
-        issuance_fee_id: str, # noqa
-        annual_fee_id: str # noqa
+        branch_of_card_id: str,  # noqa
+        issuance_fee_id: str,  # noqa
+        annual_fee_id: str  # noqa
 ) -> ReposReturn:
     if cif_id == CIF_ID_TEST:
         return ReposReturn(data=[
