@@ -13,9 +13,9 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.utils.constant.cif import (
     ACTIVE_FLAG_CREATE_FINGERPRINT, FRONT_FLAG_CREATE_FINGERPRINT,
-    IMAGE_TYPE_FINGERPRINT
+    HAND_SIDE_LEFT_CODE, IMAGE_TYPE_FINGERPRINT
 )
-from app.utils.functions import now, parse_file_uuid
+from app.utils.functions import dropdown, now, parse_file_uuid
 
 
 class CtrFingerPrint(BaseController):
@@ -76,4 +76,22 @@ class CtrFingerPrint(BaseController):
 
     async def ctr_get_fingerprint(self, cif_id: str):
         fingerprint_data = self.call_repos(await repos_get_data_finger(cif_id, self.oracle_session))
-        return self.response(data=fingerprint_data)
+
+        fingerprint_1 = []
+        fingerprint_2 = []
+
+        for customer_identity_image, hand_side, finger_print in fingerprint_data:
+            fingerprint = {
+                'image_url': customer_identity_image.image_url,
+                'hand_side': dropdown(hand_side),
+                'finger_type': dropdown(finger_print)
+            }
+            if hand_side.code == HAND_SIDE_LEFT_CODE:
+                fingerprint_1.append(fingerprint)
+            else:
+                fingerprint_2.append(fingerprint)
+
+        return self.response(data={
+            'fingerprint_1': fingerprint_1,
+            'fingerprint_2': fingerprint_2
+        })
