@@ -7,7 +7,8 @@ from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
 
 class CtrDebitCard(BaseController):
     async def ctr_debit_card(self, cif_id: str):
-        debit_card = self.call_repos(await repos_debit_card(cif_id))
+
+        debit_card = self.call_repos(await repos_debit_card(cif_id, self.oracle_session))
         return self.response(debit_card)
 
     async def ctr_add_debit_card(self, cif_id: str, debt_card_req: DebitCardRequest):
