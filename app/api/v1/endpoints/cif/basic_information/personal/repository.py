@@ -1,9 +1,13 @@
+import json
 from typing import List
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerContactTypeData
 )
@@ -50,9 +54,11 @@ async def repos_save_personal(
         data_update_customer: dict,
         data_update_customer_individual: dict,
         list_contact_type_data: List,
+        log_data: json,
         session: Session,
         created_by: str
 ) -> ReposReturn:
+
     session.execute(
         update(
             Customer,
@@ -72,8 +78,17 @@ async def repos_save_personal(
             CustomerContactTypeData
         ).filter(CustomerContactTypeData.customer_id == cif_id)
     )
+
     # tạo mới contact type data
     session.bulk_save_objects([CustomerContactTypeData(**data_insert) for data_insert in list_contact_type_data])
+
+    # Lưu log thông tin cá nhân
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Thông tin cá nhân -> Thông tin cá nhân -- Cập nhật",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
 
     return ReposReturn(data={
         "cif_id": cif_id,
