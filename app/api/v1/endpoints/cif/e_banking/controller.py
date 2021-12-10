@@ -11,6 +11,9 @@ from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
     EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption
 )
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    CasaAccount
+)
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerContactType, CustomerRelationshipType
 )
@@ -69,14 +72,13 @@ class CtrEBanking(BaseController):
                 loc="notification_casa_relationships -> relationship_type -> id"
             )
 
-            """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
-            # # kiểm tra tài khoản ở mục I có tồn tại hay không ?
-            # await self.get_model_objects_by_ids(
-            #     model=CasaAccount,
-            #     model_ids=casa_account_ids,
-            #     loc="register_balance_casas -> account_id"
-            # )
-            #
+            # kiểm tra tài khoản ở mục I có tồn tại hay không ?
+            await self.get_model_objects_by_ids(
+                model=CasaAccount,
+                model_ids=casa_account_ids,
+                loc="register_balance_casas -> account_id"
+            )
+
             # lưu hình thức nhận thông báo taì khoản thanh toàn (TKTT) I -> 1
             insert_data.extend([EBankingRegisterBalanceOption(
                 customer_id=cif_id,
@@ -136,7 +138,7 @@ class CtrEBanking(BaseController):
                 created_at=now()
             ) for contact_type in contact_types])
 
-            """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
+            # lưu II -> 3
             # insert_data.extend([EBankingRegisterBalance(
             #     account_id=td_account.id,
             #     customer_id=cif_id,
@@ -165,7 +167,6 @@ class CtrEBanking(BaseController):
         account_information = e_banking.e_banking_information.account_information
         # Tùy chọn tài khoản
         optional_e_banking_account = e_banking.e_banking_information.optional_e_banking_account
-        has_fee = None
         if account_information.register_flag:
             # kiểm tra hình thức xác thực có tồn tại hay không ?
             auth_method_ids = [method.id for method in account_information.method_authentication if method.checked_flag]

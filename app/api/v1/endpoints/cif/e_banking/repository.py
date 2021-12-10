@@ -1,11 +1,16 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
-from app.third_parties.oracle.models.cif.e_banking.model import TdAccount
+from app.third_parties.oracle.models.cif.e_banking.model import (
+    EBankingInfo, EBankingInfoAuthentication,
+    EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
+    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption,
+    TdAccount
+)
 from app.third_parties.oracle.models.cif.payment_account.model import (
     CasaAccount
 )
@@ -22,6 +27,47 @@ async def repos_save_e_banking_data(
         created_by: str,
         session: Session,
 ) -> ReposReturn:
+    # clear old data
+    e_banking_reg_balance = session.execute(select(
+        EBankingRegisterBalance
+    ).filter(
+        EBankingRegisterBalance.customer_id == cif_id,
+    )).first()
+
+    session.execute(delete(
+        EBankingReceiverNotificationRelationship
+    ).filter(
+        EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id == e_banking_reg_balance.EBankingRegisterBalance.id,
+    ))
+
+    session.execute(delete(e_banking_reg_balance))
+
+    session.execute(delete(
+        EBankingRegisterBalanceOption
+    ).filter(
+        EBankingRegisterBalanceOption.customer_id == cif_id,
+    ))
+
+    session.execute(delete(
+        EBankingRegisterBalanceNotification
+    ).filter(
+        EBankingRegisterBalanceNotification.customer_id == cif_id,
+    ))
+
+    e_banking_info = session.execute(select(
+        EBankingInfo
+    ).filter(
+        EBankingInfo.customer_id == cif_id,
+    )).first()
+
+    session.execute(delete(
+        EBankingInfoAuthentication
+    ).filter(
+        EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
+    ))
+
+    session.execute(delete(e_banking_info.EBankingInfo))
+
     session.bulk_save_objects(insert_data)
     return ReposReturn(data={
         "cif_id": cif_id,
@@ -262,37 +308,6 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                 }
             ],
             "mobile_number": "2541365822",
-            "range": {
-                "td_accounts": [
-                    {
-                        "id": "1",
-                        "number": "001_03042021_00000001",
-                        "name": "Trần Văn Quốc Khánh",
-                        "checked_flag": False
-                    },
-                    {
-                        "id": "2",
-                        "number": "001_03042021_00000001",
-                        "name": "Võ văn tùng",
-                        "checked_flag": True
-                    },
-                    {
-                        "id": "3",
-                        "number": "001_03042021_00000001",
-                        "name": "Trần Thị Sen",
-                        "checked_flag": True
-                    },
-                    {
-                        "id": "1",
-                        "number": "001_03042021_00000001",
-                        "name": "Trần Văn Quốc Khánh",
-                        "checked_flag": True
-                    }
-                ],
-                "page": 2,
-                "limit": 2,
-                "total_page": 30
-            },
             "e_banking_notifications": [
                 {
                     "id": "1",
