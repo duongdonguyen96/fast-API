@@ -67,6 +67,7 @@ class CtrFingerPrint(BaseController):
         data = self.call_repos(
             await repos_save_fingerprint(
                 cif_id=cif_id,
+                log_data=finger_request.json(),
                 session=self.oracle_session,
                 list_data_insert=list_data_insert,
                 created_by=self.current_user.full_name_vn

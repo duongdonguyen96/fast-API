@@ -1,7 +1,12 @@
+import json
+
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
+from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity, CustomerIdentityImage
 )
@@ -12,15 +17,23 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
 
+@auto_commit
 async def repos_save_fingerprint(
         cif_id: str,
+        log_data: json,
         session: Session,
         list_data_insert: list,
         created_by: str
 ) -> ReposReturn:
-    data_insert = [CustomerIdentityImage(**data_insert) for data_insert in list_data_insert]
-    session.bulk_save_objects(data_insert)
-    session.commit()
+
+    session.bulk_save_objects([CustomerIdentityImage(**data_insert) for data_insert in list_data_insert])
+
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Thông tin cá nhân -> Khuôn mặt -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
 
     return ReposReturn(data={
         "cif_id": cif_id,
