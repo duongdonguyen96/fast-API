@@ -88,9 +88,9 @@ class EBankingRegisterBalance(Base):
     id = Column('eb_reg_balance_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã Đăng ký Biến động số dư các loại tài khoản ')
     account_id = Column(VARCHAR(36), comment='Số tài khoản ')
-    # e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50),
-    #                                          comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')
-    # customer_id = Column(ForeignKey('crm_customer.customer_id'), comment='Mã khách hàng')
+    e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50),
+                                             comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')
+    customer_id = Column(ForeignKey('crm_customer.customer_id'), comment='Mã khách hàng')
     name = Column('eb_reg_balance_name', VARCHAR(100), comment='Tên Đăng ký Biến động số dư các loại tài khoản ')
     mobile_number = Column('mobile_num', VARCHAR(10), comment='Số điện thoại')
     full_name = Column(VARCHAR(100), comment='Tên đầy đủ')
@@ -103,16 +103,16 @@ class EBankingRegisterBalanceNotification(Base):
     __table_args__ = {'comment': 'Tùy chọn thông báo - Tài khoản thanh toán/TKTK'}
 
     id = Column('eb_reg_balance_casa_noti_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "))
-    e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50), nullable=False,
-                                             comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')
-    customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
+    # e_banking_register_account_type = Column('eb_reg_account_type', VARCHAR(50), nullable=False,
+    #                                          comment='Loại tài khoản ( tài khoản tiết kiệm, tài khoản thanh tóan, ..)')
+    # customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
     eb_notify_id = Column(ForeignKey('crm_eb_notification.eb_notify_id'), nullable=False,
                           comment='Mã Danh mục tùy chọn thông báo')
+    eb_reg_balance_id = Column(ForeignKey('crm_eb_reg_balance.eb_reg_balance_id'), nullable=False, comment='ID Bảng Đăng ký Biến động số dư các loại tài khoản Thanh toán/ Tiết kiệm')
 
-    customer = relationship('Customer')
+    # customer = relationship('Customer')
     e_banking_notify = relationship('EBankingNotification')
-
-    eb_reg_balance_id = Column(ForeignKey('crm_eb_reg_balance.id'), nullable=False, comment='ID Bảng Đăng ký Biến động số dư các loại tài khoản Thanh toán/ Tiết kiệm')
+    eb_reg_balance = relationship('EBankingRegisterBalance')
 
 
 class EBankingRegisterBalanceOption(Base):
