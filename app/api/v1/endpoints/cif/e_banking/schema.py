@@ -118,8 +118,8 @@ class EBankingResponse(BaseSchema):
 ################################################################
 class ListBalancePaymentAccountResponse(BaseSchema):
     id: str = Field(..., description='Mã định danh tài khoản thanh toán')
-    name: str = Field(..., description='Số tài khoản thanh toán')
-    product: str = Field(..., description='Tên sản phẩm tài khoản thanh toán')
+    account_number: str = Field(..., description='Số tài khoản thanh toán')
+    product_name: DropdownResponse = Field(..., description='Tên sản phẩm tài khoản thanh toán')
     checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
@@ -326,7 +326,7 @@ class EBankingRequest(BaseSchema):
 
 class BalanceSavingAccountsResponse(BaseSchema):
     id: str = Field(..., description='Mã định danh tài khoản')
-    number: str = Field(..., description='Số tài khoản')
+    account_number: str = Field(..., description='Số tài khoản')
     name: str = Field(..., description='Tên người sở hữu tài khoản')
     checked_flag: bool = Field(..., description='Trạng thái đăng ký. `False`: Không. `True`: Có')
 

@@ -42,7 +42,7 @@ async def view_detail(
     name="A. Chi tiết tài khoản thanh toán",
     description="Lưu",
     responses=swagger_response(
-        response_model=ResponseData[SavePaymentAccountRequest],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     )
 )

@@ -1,10 +1,9 @@
-from sqlalchemy import and_, select
+from typing import List
+
+from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
-    AccountHolderRequest
-)
+from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -20,6 +19,10 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.cif.basic_information.personal.model import (
     CustomerIndividualInfo
 )
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    AgreementAuthorization, CasaAccount, JointAccountHolder,
+    JointAccountHolderAgreementAuthorization
+)
 from app.third_parties.oracle.models.master_data.address import AddressCountry
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerGender, CustomerRelationshipType
@@ -28,18 +31,80 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE, IMAGE_TYPE_CODE_SIGNATURE,
+    CONTACT_ADDRESS_CODE, IMAGE_TYPE_CODE_SIGNATURE, IMAGE_TYPE_SIGNATURE,
     RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
-    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST
+    ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CASA_ACCOUNT_NOT_EXIST,
+    ERROR_CIF_NUMBER_EXIST, ERROR_CUSTOMER_IDENTITY,
+    ERROR_CUSTOMER_IDENTITY_IMAGE, ERROR_CUSTOMER_INDIVIDUAL_INFO
 )
 from app.utils.functions import dropdown, now
 
 
-async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, created_by: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_check_list_cif_number(list_cif_number_request: list, session: Session) -> ReposReturn:
+    list_customer = session.execute(
+        select(
+            Customer
+        ).filter(Customer.cif_number.in_(list_cif_number_request))
+    ).all()
+
+    if not list_customer:
+        return ReposReturn(is_error=True, msg='CIF_NUMBER_NOT_EXIT')
+
+    return ReposReturn(data=list_customer)
+
+
+async def repos_get_casa_account(cif_id: str, session: Session) -> ReposReturn:
+    casa_account = session.execute(
+        select(
+            CasaAccount.id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).scalar()
+
+    return ReposReturn(data=casa_account)
+
+
+@auto_commit
+async def repos_save_co_owner(
+        cif_id: str,
+        save_account_holder: List,
+        save_account_agree: List,
+        session: Session,
+        created_by: str
+) -> ReposReturn:
+    # lấy danh sách account holder để xóa
+    account_holder_ids = session.execute(
+        select(
+            JointAccountHolder.id
+        ).join(
+            CasaAccount, and_(
+                JointAccountHolder.casa_account_id == CasaAccount.id,
+                CasaAccount.customer_id == cif_id
+            )
+        )
+    ).scalars().all()
+
+    # xóa JointAccountHolderAgreementAuthorization
+    session.execute(
+        delete(
+            JointAccountHolderAgreementAuthorization
+        ).filter(
+            JointAccountHolderAgreementAuthorization.joint_account_holder_id.in_(account_holder_ids)
+        )
+    )
+
+    # xóa account holder
+    session.execute(
+        delete(
+            JointAccountHolder
+        ).filter(JointAccountHolder.id.in_(account_holder_ids))
+    )
+
+    session.bulk_save_objects([JointAccountHolder(**data_insert) for data_insert in save_account_holder])
+
+    session.bulk_save_objects(
+        [JointAccountHolderAgreementAuthorization(**data_insert) for data_insert in save_account_agree])
 
     return ReposReturn(data={
         "cif_id": cif_id,
@@ -49,105 +114,171 @@ async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, creat
 
 
 async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
+    # lấy dữ liệu các đồng sở hữu của tài khoản thanh toán theo cif_id
+    account_holders = session.execute(
+        select(
+            JointAccountHolder
+        ).join(
+            CasaAccount,
+            CasaAccount.id == JointAccountHolder.casa_account_id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).all()
 
-    return ReposReturn(data={
-        "joint_account_holder_flag": True,
-        "number_of_joint_account_holder": 3,
-        "joint_account_holders": [
-            {
-                "id": "1",
-                "full_name_vn": "Trần Ngọc An",
+    # check account_holder
+    if not account_holders:
+        return ReposReturn(is_error=True, msg=ERROR_CASA_ACCOUNT_NOT_EXIST, loc='cif_id')
+
+    # lấy list cif_number trong account_holder
+    list_cif_number = []
+    for account_holder in account_holders:
+        list_cif_number.append(account_holder.JointAccountHolder.cif_num)
+
+    # lấy dữ liệu customer theo số cif_number
+    customers = session.execute(
+        select(
+            Customer,
+            AddressCountry,
+            CustomerIdentity,
+            CustomerIdentityImage,
+            CustomerIndividualInfo,
+            CustomerGender,
+            PlaceOfIssue,
+            CustomerIdentityType,
+            CustomerPersonalRelationship,
+            CustomerRelationshipType
+        ).join(
+            CustomerIdentity, Customer.id == CustomerIdentity.customer_id
+        ).join(
+            AddressCountry, Customer.nationality_id == AddressCountry.id
+        ).join(
+            PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id
+        ).join(
+            CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id
+        ).join(
+            CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id
+        ).join(
+            CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id
+        ).join(
+            CustomerPersonalRelationship, Customer.id == CustomerPersonalRelationship.customer_id
+        ).join(
+            CustomerRelationshipType,
+            CustomerRelationshipType.id == CustomerPersonalRelationship.customer_relationship_type_id
+        ).join(
+            CustomerIdentityImage, and_(
+                CustomerIdentity.id == CustomerIdentityImage.identity_id,
+                CustomerIdentityImage.image_type_id == IMAGE_TYPE_SIGNATURE
+            )
+        ).filter(Customer.cif_number.in_(list_cif_number))
+    ).all()
+
+    if not customers:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc='cif_number')
+
+    customer_address = session.execute(
+        select(
+            CustomerAddress,
+        ).join(
+            Customer, CustomerAddress.customer_id == Customer.id
+        ).filter(Customer.cif_number.in_(list_cif_number))
+    ).all()
+
+    # lấy data address
+    address_information = {}
+    for row in customer_address:
+        if row.CustomerAddress.customer_id not in address_information:
+            address_information[row.CustomerAddress.customer_id] = {
+                "contact_address": None,
+                "resident_address": None
+            }
+
+        if row.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
+            address_information[row.CustomerAddress.customer_id]["contact_address"] = row.CustomerAddress.address
+
+        if row.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE:
+            address_information[row.CustomerAddress.customer_id]["resident_address"] = row.CustomerAddress.address
+
+    # lấy data customer
+    address = None
+    signature = None
+    customer__signature = {}
+    account__holder = {}
+    for customer in customers:
+        if not customer.CustomerIndividualInfo:
+            return ReposReturn(is_error=True, msg=ERROR_CUSTOMER_INDIVIDUAL_INFO, loc=f'{customer.Customer.id}')
+
+        if not customer.CustomerIdentity:
+            return ReposReturn(is_error=True, msg=ERROR_CUSTOMER_IDENTITY, loc=f'{customer.Customer.id}')
+        # gán lại giá trị cho address
+        for key, values in address_information.items():
+            if customer.Customer.id == key:
+                address = values
+
+        if not customer.CustomerIdentityImage:
+            return ReposReturn(is_error=True, msg=ERROR_CUSTOMER_IDENTITY_IMAGE, loc=f'{customer.Customer.id}')
+        # lấy danh sách chữ ký theo từng customer_id
+        if customer.Customer.id not in customer__signature:
+            customer__signature[customer.Customer.id] = []
+
+        customer__signature[customer.Customer.id].append({
+            "id": customer.CustomerIdentityImage.id,
+            "image_url": customer.CustomerIdentityImage.image_url
+        })
+        # gán giá trị cho chứ ký
+        for key, values in customer__signature.items():
+            if customer.Customer.id == key:
+                signature = values
+
+        # lấy giá trị customer_account_holder theo customer_id
+        if customer.Customer.id not in account__holder:
+            account__holder[customer.Customer.id] = {}
+
+            account__holder[customer.Customer.id].update(**{
+                "id": customer.Customer.id,
+                "full_name_vn": customer.Customer.full_name_vn,
                 "basic_information": {
-                    "cif_number": "0298472",
-                    "customer_relationship": {
-                        "id": "1",
-                        "code": "code",
-                        "name": "Chị gái"
-                    },
-                    "full_name_vn": "TRẦN NGỌC AN",
-                    "date_of_birth": "1990-02-20",
-                    "gender": {
-                        "id": "1",
-                        "code": "Code",
-                        "name": "Nữ"
-                    },
-                    "nationality": {
-                        "id": "1",
-                        "code": "Code",
-                        "name": "Việt Nam"
-                    },
-                    "mobile_number": "08675968221",
-                    "signature_1": {
-                        "id": "1",
-                        "code": "code",
-                        "name": "mẫu chứ ký 1",
-                        "image_url": "https://example.com/abc.png"
-                    },
-                    "signature_2": {
-                        "id": "2",
-                        "code": "code",
-                        "name": "mẫu chứ ký 2",
-                        "image_url": "https://example.com/abc.png"
-                    }
+                    "cif_number": customer.Customer.cif_number,
+                    "full_name_vn": customer.Customer.full_name_vn,
+                    "customer_relationship": dropdown(customer.CustomerRelationshipType),
+                    "date_of_birth": customer.CustomerIndividualInfo.date_of_birth,
+                    "gender": dropdown(customer.CustomerGender),
+                    "nationality": dropdown(customer.AddressCountry),
+                    "mobile_number": customer.Customer.mobile_number,
+                    "signature": signature
                 },
                 "identity_document": {
-                    "identity_number": "254136582",
-                    "issued_date": "1990-02-20",
-                    "expired_date": "1990-02-20",
-                    "place_of_issue": {
-                        "id": "1",
-                        "code": "code",
-                        "name": "TP. Hồ Chí Minh"
-                    }
+                    "identity_number": customer.CustomerIdentity.identity_num,
+                    "identity_type": dropdown(customer.CustomerIdentityType),
+                    "issued_date": customer.CustomerIdentity.issued_date,
+                    "expired_date": customer.CustomerIdentity.expired_date,
+                    "place_of_issue": dropdown(customer.PlaceOfIssue)
                 },
-                "address_information": {
-                    "content_address": "48 Phó Cơ Điều, Phường 12, Quận 5, Thành phố Hồ Chí Minh",
-                    "resident_address": "6, Q.6, 279 Lê Quang Sung, Phường 6, Quận 6, Thành phố Hồ Chí Minh"
-                }
-            }
-        ],
-        "agreement_authorization": [
-            {
-                "id": "1",
-                "code": "code",
-                "content": "Rút tiền (tiền mặt/chuyển khoản) tại quầy; Đề nghị SCB cung "
-                           "ứng Séc trắng và nhận Séc trắng tại SCB; Phát hành Séc;"
-                           " Đóng tài khoản (bao gồm Thẻ ghi Nợ và dịch vụ Ngân hàng điện tử kết nối với tài khoản)"
-                           " và xử lý số dư sau khi đóng tài khoản; Xác nhận số dư tài khoản; "
-                           "Tạm khóa/Phong tỏa tài khoản; Đề nghị SCB phát hành Thẻ ghi Nợ kết nối với "
-                           "tài khoản thanh toán chung tại SCB.",
-                "agreement_flag": True,
-                "method_sign": {
-                    "id": "1",
-                    "code": "code",
-                    "name": "Phương thức 3"
-                },
-                "signature_list": [
-                    {
-                        "id": "1",
-                        "full_name_vn": "Nguyễn Anh Đào"
-                    },
-                    {
-                        "id": "2",
-                        "full_name_vn": "Lê Văn A"
-                    }
-                ]
-            },
-            {
-                "id": "2",
-                "code": "code2",
-                "content": "Giao dịch chấm dứt tạm khóa, chấm dứt phong tỏa tài khoản và các giao dịch phát sinh khác "
-                           "ngoài nội dung nêu tại Nội dung 1: Chữ ký của tất cả các đồng chủ tài khoản.",
-                "agreement_flag": True,
-                "method_sign": {
-                    "id": "1",
-                    "code": "code",
-                    "name": "Phương thức 2"
-                },
-                "signature_list": []
-            }
-        ]
-    })
+                "address_information": address,
+            })
+
+    agreement_authorizations = session.execute(
+        select(
+            AgreementAuthorization
+        )
+    ).scalars()
+
+    if not agreement_authorizations:
+        return ReposReturn(is_error=True, msg=ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, loc='agreement_authorizations')
+
+    agreement_authorization = [{
+        "id": agreement_authorization.id,
+        "code": agreement_authorization.code,
+        "name": agreement_authorization.name,
+        "active_flag": agreement_authorization.active_flag,
+    } for agreement_authorization in agreement_authorizations]
+
+    response_data = {
+        "joint_account_holder_flag": account_holders[0].JointAccountHolder.joint_account_holder_flag,
+        "number_of_joint_account_holder": len(account_holders),
+        "joint_account_holders": [customer for customer in account__holder.values()],
+        "agreement_authorization": agreement_authorization
+    }
+
+    return ReposReturn(data=response_data)
 
 
 async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str, session: Session):

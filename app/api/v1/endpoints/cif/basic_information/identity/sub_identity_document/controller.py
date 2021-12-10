@@ -19,14 +19,21 @@ from app.utils.functions import generate_uuid, now
 
 class CtrSubIdentityDocument(BaseController):
     async def get_detail_sub_identity(self, cif_id: str):
-
-        detail_data = self.call_repos(
+        detail_datas = self.call_repos(
             await repos_get_detail_sub_identity(
                 cif_id=cif_id,
                 session=self.oracle_session
             )
         )
-        return self.response(data=detail_data)
+        image_uuids = [detail_data['sub_identity_document_image_url'] for detail_data in detail_datas]
+        # gọi đến service file để lấy link download
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+
+        for detail_data in detail_datas:
+            sub_identity_document_image_url = detail_data['sub_identity_document_image_url']
+            detail_data['sub_identity_document_image_url'] = uuid__link_downloads[sub_identity_document_image_url]
+
+        return self.response(data=detail_datas)
 
     async def get_sub_identity_log_list(self, cif_id: str):
         logs_data = self.call_repos(

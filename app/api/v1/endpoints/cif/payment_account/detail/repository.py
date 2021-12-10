@@ -1,15 +1,10 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.payment_account.detail.schema import (
-    SavePaymentAccountRequest
-)
+from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.payment_account.model import CasaAccount
 from app.third_parties.oracle.models.master_data.account import AccountClass, AccountType
 from app.third_parties.oracle.models.master_data.others import Currency
-from app.utils.constant.cif import CIF_ID_TEST
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now, dropdown
 
 NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
@@ -61,19 +56,16 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
         ).join(
             Currency,
             CasaAccount.currency_id == Currency.id)
-        .join(
+            .join(
             AccountClass,
             CasaAccount.acc_class_id == AccountClass.id)
-        .join(
+            .join(
             AccountType,
             CasaAccount.acc_type_id == AccountType.id)
-        .filter(
+            .filter(
             CasaAccount.customer_id == cif_id
         )
     ).first()
-
-    if not details:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
     return ReposReturn(data={
         "self_selected_account_flag": details.CasaAccount.self_selected_account_flag,
@@ -102,13 +94,15 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
     })
 
 
+@auto_commit
 async def repos_save_payment_account(
         cif_id: str,
-        payment_account_save_request: SavePaymentAccountRequest,
-        created_by
+        list_data_insert: list,
+        created_by: str,
+        session: Session,
 ):
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    data_insert = [CasaAccount(**casa_acc) for casa_acc in list_data_insert]
+    session.bulk_save_objects(data_insert)
 
     return ReposReturn(data={
         "cif_id": cif_id,
