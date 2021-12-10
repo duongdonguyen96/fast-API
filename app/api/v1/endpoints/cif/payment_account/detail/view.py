@@ -31,7 +31,6 @@ async def view_detail(
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
     detail_customer_relationship_info = await CtrPaymentAccount().detail(cif_id)
-    print(detail_customer_relationship_info)
     return ResponseData[PaymentAccountResponse](
         **detail_customer_relationship_info
     )

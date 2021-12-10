@@ -56,13 +56,13 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
         ).join(
             Currency,
             CasaAccount.currency_id == Currency.id)
-            .join(
+        .join(
             AccountClass,
             CasaAccount.acc_class_id == AccountClass.id)
-            .join(
+        .join(
             AccountType,
             CasaAccount.acc_type_id == AccountType.id)
-            .filter(
+        .filter(
             CasaAccount.customer_id == cif_id
         )
     ).first()

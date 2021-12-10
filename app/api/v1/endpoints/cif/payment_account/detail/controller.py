@@ -15,6 +15,7 @@ from app.utils.functions import now
 
 
 class CtrPaymentAccount(BaseController):
+
     async def detail(self, cif_id: str):
         detail_payment_account_info = self.call_repos(
             await repos_detail_payment_account(
@@ -22,6 +23,7 @@ class CtrPaymentAccount(BaseController):
                 session=self.oracle_session
             )
         )
+
         return self.response(detail_payment_account_info)
 
     async def save(self,
