@@ -95,6 +95,20 @@ class BaseController:
         :param uuids:
         :return:
         """
+        if len(uuids) != len(set(uuids)):
+            self.response_exception(
+                msg='',
+                loc='file_url',
+                detail='File uuid is duplicated'
+            )
+
+        if any([True if not uuid else False for uuid in uuids]):
+            self.response_exception(
+                msg='',
+                loc='file_url',
+                detail='File uuid is not valid'
+            )
+
         is_exist = self.call_repos(await repos_check_is_exist_multi_file(uuids=uuids))
         if not is_exist:
             self.response_exception(
@@ -109,6 +123,9 @@ class BaseController:
         :param uuids:
         :return: dict, key là uuid, value là link download file đó
         """
+
+        # FIXME: service file không cho download các uuid trùng nhau, dữ liệu đang test nên có thể trùng uuid
+        uuids = list(set(uuids))
         return {
             info['uuid']: info['file_url']
             for info in self.call_repos(await repos_download_multi_file(uuids=uuids))

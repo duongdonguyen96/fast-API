@@ -137,6 +137,6 @@ def is_valid_mobile_number(mobile_number: str) -> bool:
     return True if found else False
 
 
-def parse_file_uuid(url: str) -> str:
+def parse_file_uuid(url: str, default='') -> str:
     matches = re.findall(r'/(\w{32})', url)
-    return matches[0] if uuid else ''
+    return matches[0] if matches else default

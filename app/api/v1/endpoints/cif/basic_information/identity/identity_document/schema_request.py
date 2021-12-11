@@ -167,3 +167,11 @@ class PassportSaveRequest(BaseSchema):
     identity_document_type: DropdownRequest = Field(..., description="Loại giấy tờ định danh")
     passport_information: InformationPassportRequest = Field(..., description="Thông tin hộ chiếu")
     ocr_result: OCRResultPassportRequest = Field(..., description="Phân tích OCR")
+
+
+########################################################################################################################
+# Others
+########################################################################################################################
+# So sánh khuôn mặt
+class FaceCompareRequest(BaseSchema):
+    face_image_url: str = Field(..., description="URL hình ảnh khuôn mặt đối chiếu")
