@@ -449,8 +449,6 @@ async def repos_save_identity(
             )
         ])
 
-    # TODO: Lưu Log lịch sử thay đổi GTDD
-
     # Update
     else:
         # Cập nhật 1 cif_number đã tồn tại
@@ -511,8 +509,6 @@ async def repos_save_identity(
             customer_id=customer_id
         )
 
-    # TODO: Lưu Log lịch sử thay đổi GTDD
-
     return ReposReturn(data={
         "cif_id": customer_id
     })
@@ -564,6 +560,9 @@ async def create_customer_identity_image_and_customer_compare_image(
         is_create: bool,
         session: Session
 ):
+    """
+        Tạo giấy tờ định danh và lưu log
+    """
     # create new CustomerIdentityImage ảnh mặt trước hoặc hộ chiếu
     new_first_identity_image = saving_customer_identity_images[0]
     new_first_identity_image['id'] = new_first_identity_image_id
@@ -738,7 +737,8 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
 
     front_side_identity_card_info = {
         "front_side_information": {
-            "identity_image_url": image_url
+            "identity_image_url": image_url,
+            "identity_avatar_image_uuid": ocr_data.get('avatar_image') if ocr_data.get('avatar_image') else None
         },
         "ocr_result": {
             "identity_document": {
@@ -796,7 +796,8 @@ async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session
 
     passport_info = {
         "passport_information": {
-            "identity_image_url": image_url
+            "identity_image_url": image_url,
+            "identity_avatar_image_uuid": ocr_data.get('avatar_image') if ocr_data.get('avatar_image') else None
         },
         "ocr_result": {
             "identity_document":
@@ -924,7 +925,8 @@ async def mapping_ekyc_front_side_citizen_card_ocr_data(image_url: str, ocr_data
 
     front_side_citizen_card_info = {
         "front_side_information": {
-            "identity_image_url": image_url
+            "identity_image_url": image_url,
+            "identity_avatar_image_uuid": ocr_data.get('avatar_image') if ocr_data.get('avatar_image') else None
         },
         "ocr_result": {
             "identity_document": {

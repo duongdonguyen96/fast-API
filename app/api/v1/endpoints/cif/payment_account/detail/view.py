@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
 
@@ -26,14 +28,9 @@ router = APIRouter()
 )
 async def view_detail(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        current_user=Depends(get_current_user_from_header())
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
-    ctr_customer_relationship = CtrPaymentAccount(current_user)
-
-    detail_customer_relationship_info = await ctr_customer_relationship.detail(
-        cif_id=cif_id
-    )
-
+    detail_customer_relationship_info = await CtrPaymentAccount().detail(cif_id)
     return ResponseData[PaymentAccountResponse](
         **detail_customer_relationship_info
     )
