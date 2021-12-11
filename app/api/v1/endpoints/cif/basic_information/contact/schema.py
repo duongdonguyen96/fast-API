@@ -16,24 +16,24 @@ class DomesticAddressResponse(BaseSchema):
     province: OptionalDropdownResponse = Field(..., description="Tỉnh/Thành phố")
     district: OptionalDropdownResponse = Field(..., description="Quận/Huyện")
     ward: OptionalDropdownResponse = Field(..., description="Phường/Xã")
-    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường")
+    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường", nullable=True)
 
 
 class ForeignAddressResponse(BaseSchema):
     country: OptionalDropdownResponse = Field(..., description="Quốc gia/Khu vực")
-    address_1: Optional[str] = Field(..., description="Địa chỉ 1")
-    address_2: Optional[str] = Field(..., description="Địa chỉ 2")
+    address_1: Optional[str] = Field(..., description="Địa chỉ 1", nullable=True)
+    address_2: Optional[str] = Field(..., description="Địa chỉ 2", nullable=True)
     province: OptionalDropdownResponse = Field(..., description="Thành phố")
     state: OptionalDropdownResponse = Field(..., description="Tỉnh/Bang")
-    zip_code: Optional[str] = Field(..., description="Mã bưu chính")
+    zip_code: Optional[str] = Field(..., description="Mã bưu chính", nullable=True)
 
 
 class ResidentAddressResponse(BaseSchema):
     domestic_flag: bool = Field(..., description="""Cờ địa chỉ trong nước
     \n`flag` = `True` => Địa chỉ trong nước
     \n`flag` = `False` => Địa chỉ nước ngoài""")
-    domestic_address: Optional[DomesticAddressResponse] = Field(..., description="Địa chỉ trong nước")
-    foreign_address: Optional[ForeignAddressResponse] = Field(..., description="Địa chỉ nước ngoài")
+    domestic_address: Optional[DomesticAddressResponse] = Field(..., description="Địa chỉ trong nước", nullable=True)
+    foreign_address: Optional[ForeignAddressResponse] = Field(..., description="Địa chỉ nước ngoài", nullable=True)
 
 
 class CareerInformationContactInformationResponse(BaseSchema):
@@ -68,16 +68,16 @@ class DomesticAddressRequest(BaseSchema):
     province: OpionalDropdownRequest = Field(..., description="Tỉnh/Thành phố")
     district: OpionalDropdownRequest = Field(..., description="Quận/Huyện")
     ward: OpionalDropdownRequest = Field(..., description="Phường/Xã")
-    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường")
+    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường", nullable=True)
 
 
 class ForeignAddressRequest(BaseSchema):
     country: OpionalDropdownRequest = Field(..., description="Quốc gia/Khu vực")
-    address_1: Optional[str] = Field(..., description="Địa chỉ 1")
-    address_2: Optional[str] = Field(..., description="Địa chỉ 2")
+    address_1: Optional[str] = Field(..., description="Địa chỉ 1", nullable=True)
+    address_2: Optional[str] = Field(..., description="Địa chỉ 2", nullable=True)
     province: OpionalDropdownRequest = Field(..., description="Thành phố")
     state: OpionalDropdownRequest = Field(..., description="Tỉnh/Bang")
-    zip_code: Optional[str] = Field(..., description="Mã bưu chính")
+    zip_code: Optional[str] = Field(..., description="Mã bưu chính", nullable=True)
 
 
 class ResidentAddressContactInformationRequest(BaseSchema):

@@ -1,14 +1,74 @@
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.e_banking.schema import EBankingRequest
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
+
+from app.api.base.repository import ReposReturn, auto_commit
+from app.third_parties.oracle.models.cif.basic_information.model import (
+    Customer
+)
+from app.third_parties.oracle.models.cif.e_banking.model import (
+    EBankingInfo, EBankingInfoAuthentication,
+    EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
+    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption,
+    TdAccount
+)
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    CasaAccount
+)
+from app.third_parties.oracle.models.master_data.account import AccountType
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+from app.utils.functions import dropdown, now
 
 
-async def repos_save_e_banking_data(cif_id: str, e_banking: EBankingRequest, created_by: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+@auto_commit
+async def repos_save_e_banking_data(
+        cif_id: str,
+        insert_data,
+        created_by: str,
+        session: Session,
+) -> ReposReturn:
+    # clear old data
+    e_banking_reg_balance = session.execute(select(
+        EBankingRegisterBalance
+    ).filter(
+        EBankingRegisterBalance.customer_id == cif_id,
+    )).first()
 
+    session.execute(delete(
+        EBankingReceiverNotificationRelationship
+    ).filter(
+        EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id == e_banking_reg_balance.EBankingRegisterBalance.id,
+    ))
+
+    session.execute(delete(e_banking_reg_balance))
+
+    session.execute(delete(
+        EBankingRegisterBalanceOption
+    ).filter(
+        EBankingRegisterBalanceOption.customer_id == cif_id,
+    ))
+
+    session.execute(delete(
+        EBankingRegisterBalanceNotification
+    ).filter(
+        EBankingRegisterBalanceNotification.customer_id == cif_id,
+    ))
+
+    e_banking_info = session.execute(select(
+        EBankingInfo
+    ).filter(
+        EBankingInfo.customer_id == cif_id,
+    )).first()
+
+    session.execute(delete(
+        EBankingInfoAuthentication
+    ).filter(
+        EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
+    ))
+
+    session.execute(delete(e_banking_info.EBankingInfo))
+
+    session.bulk_save_objects(insert_data)
     return ReposReturn(data={
         "cif_id": cif_id,
         "created_at": now(),
@@ -170,14 +230,10 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
             ],
             "register_balance_casas": [
                 {
-                    "id": "1",
-                    "mobile_number": "25168385251",
+                    "account_id": "1",
+                    "checking_account_name": "TKTT1",
+                    "primary_phone_number": "25168385251",
                     "full_name_vn": "TRẦN MINH HUYỀN",
-                    "primary_mobile_number": {
-                        "id": "1",
-                        "code": "code",
-                        "name": "SDT Chính"
-                    },
                     "notification_casa_relationships": [
                         {
                             "id": "1",
@@ -252,37 +308,6 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                 }
             ],
             "mobile_number": "2541365822",
-            "range": {
-                "td_accounts": [
-                    {
-                        "id": "1",
-                        "number": "001_03042021_00000001",
-                        "name": "Trần Văn Quốc Khánh",
-                        "checked_flag": False
-                    },
-                    {
-                        "id": "2",
-                        "number": "001_03042021_00000001",
-                        "name": "Võ văn tùng",
-                        "checked_flag": True
-                    },
-                    {
-                        "id": "3",
-                        "number": "001_03042021_00000001",
-                        "name": "Trần Thị Sen",
-                        "checked_flag": True
-                    },
-                    {
-                        "id": "1",
-                        "number": "001_03042021_00000001",
-                        "name": "Trần Văn Quốc Khánh",
-                        "checked_flag": True
-                    }
-                ],
-                "page": 2,
-                "limit": 2,
-                "total_page": 30
-            },
             "e_banking_notifications": [
                 {
                     "id": "1",
@@ -321,7 +346,7 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                 "register_flag": True,
                 "account_name": "0325614879",
                 "checked_flag": True,
-                "e_banking_reset_password_methods": [
+                "e_banking_confirm_password_methods": [
                     {
                         "id": "1",
                         "code": "SMS",
@@ -340,53 +365,57 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
                         "id": "1",
                         "code": "VAN_TAY",
                         "name": "Vân tay",
-                        "checked_flag": False
+                        "checked_flag": False,
+                        "payment_fee": None
                     },
                     {
                         "id": "2",
                         "code": "KHUON_MAT",
                         "name": "Khuôn mặt",
-                        "checked_flag": False
+                        "checked_flag": False,
+                        "payment_fee": None
                     },
                     {
                         "id": "3",
                         "code": "SMS",
                         "name": "SMS",
-                        "checked_flag": True
+                        "checked_flag": True,
+                        "payment_fee": None
                     },
                     {
                         "id": "4",
                         "code": "SOFT_TOKEN",
                         "name": "SOFT TOKEN",
-                        "checked_flag": True
+                        "checked_flag": True,
+                        "payment_fee": None
                     },
                     {
                         "id": "5",
                         "code": "HARD_TOKEN",
                         "name": "HARD TOKEN",
-                        "checked_flag": True
+                        "checked_flag": True,
+                        "payment_fee": [
+                            {
+                                "id": "1",
+                                "name": "Trích từ tài khoản",
+                                "checked_flag": True,
+                                "number": {
+                                    "id": "1",
+                                    "name": "023587412599634"
+                                }
+                            },
+                            {
+                                "id": "2",
+                                "name": "Tiền mặt",
+                                "checked_flag": False,
+                                "number": {
+                                    "id": None,
+                                    "name": None
+                                }
+                            }
+                        ]
                     }
                 ],
-                "payment_fee": [
-                    {
-                        "id": "1",
-                        "name": "Trích từ tài khoản",
-                        "checked_flag": True,
-                        "number": {
-                            "id": "1",
-                            "name": "023587412599634"
-                        }
-                    },
-                    {
-                        "id": "2",
-                        "name": "Tiền mặt",
-                        "checked_flag": False,
-                        "number": {
-                            "id": None,
-                            "name": None
-                        }
-                    }
-                ]
             },
             "optional_e_banking_account": {
                 "reset_password_flag": True,
@@ -399,24 +428,27 @@ async def repos_get_e_banking_data(cif_id: str) -> ReposReturn:
     })
 
 
-async def repos_get_list_balance_payment_account(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_list_balance_payment_account(cif_id: str, session: Session) -> ReposReturn:
+    balance_payments = session.execute(
+        select(
+            CasaAccount,
+            AccountType
+        ).join(
+            AccountType, CasaAccount.acc_type_id == AccountType.id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).all()
 
-    return ReposReturn(data=[
-        {
-            "id": "123",
-            "name": "231231321",
-            "product": "S-Free",
-            "checked_flag": True
-        },
-        {
-            "id": "2",
-            "name": "213213123123",
-            "product": "Lộc phát",
-            "checked_flag": False
-        }
-    ])
+    if not balance_payments:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    response_data = [{
+        "id": balance_payment.id,
+        "account_number": balance_payment.case_account_number,
+        "product_name": dropdown(account_type),
+        "checked_flag": balance_payment.acc_active_flag
+    } for balance_payment, account_type in balance_payments]
+
+    return ReposReturn(data=response_data)
 
 
 async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
@@ -426,36 +458,27 @@ async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
     return ReposReturn(data=DETAIL_RESET_PASSWORD_E_BANKING_DATA)
 
 
-async def repos_balance_saving_account_data(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_balance_saving_account_data(cif_id: str, session: Session) -> ReposReturn:
+    saving_account = session.execute(
+        select(
+            Customer,
+            TdAccount
+        ).filter(Customer.id == cif_id)
+    ).all()
 
-    return ReposReturn(data=[
+    if not saving_account:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    response_data = [
         {
-            "id": "1",
-            "number": "001_03042021_00000001",
-            "name": "Trần Văn Quốc Khánh",
-            "checked_flag": False
-        },
-        {
-            "id": "2",
-            "number": "001_03042021_00000001",
-            "name": "Võ văn tùng",
-            "checked_flag": True
-        },
-        {
-            "id": "3",
-            "number": "001_03042021_00000001",
-            "name": "Trần Thị Sen",
-            "checked_flag": True
-        },
-        {
-            "id": "1",
-            "number": "001_03042021_00000001",
-            "name": "Trần Văn Quốc Khánh",
-            "checked_flag": True
-        }
-    ])
+            "id": td_account.id,
+            "account_number": td_account.td_account_number,
+            "name": customer.full_name_vn,
+            "checked_flag": td_account.active_flag
+
+        } for customer, td_account in saving_account]
+
+    return ReposReturn(data=response_data)
 
 
 async def repos_get_detail_reset_password_teller(cif_id: str) -> ReposReturn:

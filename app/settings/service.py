@@ -4,11 +4,17 @@ SERVICE = {
     "file": {
         "url": os.getenv("SERVICE_FILE_URL"),
         "server-auth": os.getenv("SERVICE_FILE_SERVICE_AUTH"),
-        "authorization": "bearer 3"
+        "authorization": "bearer 3",
+        "service_file_cdn": os.getenv("SERVICE_FILE_CDN")
     },
     "file-upload": {
         "file_limit": int(os.getenv("FILE_LIMIT", 10)),
         "file_size_max": int(os.getenv("FILE_SIZE_MAX", 5000000))
+    },
+    "ekyc": {
+        "url": os.getenv("SERVICE_EKYC_URL"),
+        "x-transaction-id": "CRM_TEST",
+        "authorization": f"bearer {os.getenv('SERVICE_EKYC_BEARER_TOKEN')}",
     },
     "template": {
         "url": os.getenv("SERVICE_TEMPLATE_URL"),

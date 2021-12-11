@@ -1,13 +1,13 @@
 import json
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, func, select, update
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.cif.form.model import (
-    Booking, BookingCustomer, TransactionDaily
+    Booking, BookingAccount, BookingCustomer, TransactionAll, TransactionDaily
 )
 from app.utils.error_messages import ERROR_ID_NOT_EXIST
 from app.utils.functions import dropdown, generate_uuid, now
@@ -68,6 +68,27 @@ async def repos_get_model_objects_by_ids(model_ids: List[str], model: Base, loc:
     return ReposReturn(data=objs)
 
 
+async def get_optional_model_object_by_code_or_name(
+        model: Base, session: Session,
+        model_code: Optional[str] = None, model_name: Optional[str] = None
+) -> Optional[object]:
+    statement = None
+
+    if model_code:
+        statement = select(model).filter(model.code == model_code)
+
+    if model_name:
+        statement = select(model).filter(func.lower(model.name) == func.lower(model_name))  # TODO: check it
+
+    if statement is None:
+        return None
+
+    if hasattr(model, 'active_flag'):
+        statement = statement.filter(model.active_flag == 1)
+
+    return session.execute(statement).scalar()
+
+
 async def repos_get_data_model_config(session: Session, model: Base, country_id: Optional[str] = None,
                                       province_id: Optional[str] = None, district_id: Optional[str] = None):
     list_data_engine = select(model)
@@ -100,38 +121,60 @@ async def write_transaction_log_and_update_booking(description: str,
                                                    session: Session,
                                                    customer_id: Optional[str] = None,
                                                    account_id: Optional[str] = None,
-                                                   ) -> Optional[ReposReturn]:
-    booking = session.execute(
-        select(
-            Booking
-        )
-        .join(
-            BookingCustomer, and_(
-                Booking.id == BookingCustomer.id,
-                BookingCustomer.customer_id == customer_id
+                                                   transaction_stage_id: str = 'BE_TEST'  # TODO: đợi dữ liệu danh mục
+                                                   ) -> Tuple[bool, Optional[str]]:
+    if customer_id:
+        booking = session.execute(
+            select(
+                Booking
             )
-        )
-    ).scalar()
+            .join(
+                BookingCustomer, and_(
+                    Booking.id == BookingCustomer.booking_id,
+                    BookingCustomer.customer_id == customer_id
+                )
+            )
+        ).scalar()
+    elif account_id:
+        booking = session.execute(
+            select(
+                Booking
+            )
+            .join(
+                BookingAccount, and_(
+                    Booking.id == BookingAccount.booking_id,
+                    BookingAccount.account_id == account_id
+                )
+            )
+        ).scalar()
+    else:
+        booking = None
 
-    # TODO: BookingAccount
     if not booking:
-        return ReposReturn(is_error=True, detail='Can not found booking', loc='cif_id')
+        return False, 'Can not found booking'
 
-    # TODO: TransactionDaily có thể mai mốt bị gộp thành TransactionAll
     previous_transaction = session.execute(
         select(
             TransactionDaily
-        ).filter(transaction_id=booking.transaction_id)
+        ).filter(TransactionDaily.transaction_id == booking.transaction_id)
     ).scalar()
     if not previous_transaction:
-        return ReposReturn(is_error=True, detail='Can not found transaction', loc='cif_id')
+        # TransactionDaily sau một ngày sẽ bị đẩy vào TransactionAll
+        previous_transaction = session.execute(
+            select(
+                TransactionAll
+            ).filter(TransactionAll.transaction_id == booking.transaction_id)
+        ).scalar()
+
+    if not previous_transaction:
+        return False, 'Can not found transaction'
 
     # lưu log trong CRM_TRANSACTION_DAILY
     transaction_id = generate_uuid()
     session.add(
         TransactionDaily(
             transaction_id=transaction_id,
-            transaction_stage_id='BE_TEST',  # TODO
+            transaction_stage_id=transaction_stage_id,
             data=log_data,
             transaction_parent_id=booking.transaction_id,
             transaction_root_id=previous_transaction.transaction_root_id,
@@ -140,6 +183,8 @@ async def write_transaction_log_and_update_booking(description: str,
             updated_at=now()
         )
     )
+
+    session.flush()
 
     # Cập nhật lại transaction_id trong Booking
     session.execute(
@@ -152,4 +197,4 @@ async def write_transaction_log_and_update_booking(description: str,
         )
     )
 
-    return None
+    return True, None

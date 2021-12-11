@@ -1,9 +1,12 @@
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
+from app.api.base.repository import ReposReturn, auto_commit
 from app.api.v1.endpoints.cif.other_information.schema import (
     OtherInformationUpdateRequest
+)
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -66,6 +69,7 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
     })
 
 
+@auto_commit
 async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInformationUpdateRequest,
                                   session: Session) -> ReposReturn:
 
@@ -95,10 +99,26 @@ async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInfor
             }
         )
 
+    # xóa dữ liệu cũ
+    session.execute(
+        delete(
+            CustomerEmployee
+        ).filter(CustomerEmployee.customer_id == cif_id)
+    )
+
     data_insert = [CustomerEmployee(**data_insert) for data_insert in new_customer_employees]
     session.bulk_save_objects(data_insert)
 
-    session.commit()
+    is_success, msg = await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Thông tin khác -> Cập nhật",
+        log_data=update_other_info_req.json(),
+        session=session,
+        customer_id=cif_id
+    )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=msg)
+
+    # TODO: đợi dữ liệu danh mục và cập nhật trạng thái ở bảng BusinessForm
 
     return ReposReturn(data={
         'created_at': now(),

@@ -1,4 +1,4 @@
-exclude: 'requirements|docs|node_modules|migrations|.git|.tox|env.example.yaml|.pre-commit-config.yaml|fake_data|LOS.postman_collection.json'
+exclude: 'requirements|docs|node_modules|migrations|.git|.tox|env.example.yaml|.pre-commit-config.yaml|fake_data|LOS.postman_collection.json|main.py'
 default_stages: [commit]
 fail_fast: true
 repos:
