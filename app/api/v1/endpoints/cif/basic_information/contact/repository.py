@@ -157,14 +157,14 @@ async def repos_save_contact_information(
         )
 
         # update booking & log
-        fail_result = await write_transaction_log_and_update_booking(
+        fail_result, message = await write_transaction_log_and_update_booking(
             description="Tạo CIF -> Thông tin cá nhân -> Thông tin liên lạc -- Cập nhật",
             log_data=log_data,
             session=session,
             customer_id=cif_id
         )
-        if fail_result:
-            return fail_result
+        if not fail_result:
+            return ReposReturn(is_error=True, msg=message)
 
     return ReposReturn(data={
         "cif_id": cif_id
@@ -181,18 +181,18 @@ async def repos_get_customer_addresses(cif_id: str, session: Session):
 
 
 async def repos_get_customer_professional_and_identity_and_address(cif_id: str, session: Session):
-    customer_professional = session.execute(
+    customer_professional_and_identity_and_address = session.execute(
         select(
             Customer,
             CustomerProfessional,
             CustomerIdentity,
             CustomerAddress
         )
-        .join(CustomerProfessional, and_(
+        .outerjoin(CustomerProfessional, and_(
             Customer.customer_professional_id == CustomerProfessional.id,
         ))
         .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
         .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
         .filter(Customer.id == cif_id)
     ).all()
-    return ReposReturn(data=customer_professional)
+    return ReposReturn(data=customer_professional_and_identity_and_address)

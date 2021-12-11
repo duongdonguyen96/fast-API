@@ -282,9 +282,6 @@ class CtrContactInformation(BaseController):
         if is_create:
             # Tạo thông tin nghề nghiệp khách hàng
             customer_professional_id = generate_uuid()
-            customer_professional.update({
-                "id": customer_professional_id
-            })
         else:
             customer_professional_id = customer_professional.id
 
