@@ -95,41 +95,50 @@ class CtrDebitCard(BaseController):
             model_id=debt_card_req.card_delivery_address.delivery_address.ward.id,
             loc="ward",
         )
-
+        sub_card_physical_ids = []
+        sub_card_issuance_ids = []
+        sub_card_delivery_province_ids = []
+        sub_card_delivery_district_ids = []
+        sub_card_delivery_ward_ids = []
         # check information sub debit card
         for sub_card in debt_card_req.information_sub_debit_card.sub_debit_cards:
-            # check sub cardType exist
-            await self.get_model_object_by_id(
-                model=CardType,
-                model_id=sub_card.physical_card_type.id,
-                loc="sub card type",
-            )
-            # check physical_issuance_type exist
-            await self.get_model_object_by_id(
-                model=CardIssuanceType,
-                model_id=sub_card.card_issuance_type.id,
-                loc="sub physical_issuance_type ",
-            )
-            # check sub province
-            await self.get_model_object_by_id(
-                model=AddressProvince,
-                model_id=sub_card.card_delivery_address.delivery_address.province.id,
-                loc=" sub province",
-            )
+            sub_card_physical_ids.append(sub_card.physical_card_type.id)
+            sub_card_issuance_ids.append(sub_card.card_issuance_type.id)
+            sub_card_delivery_province_ids.append(sub_card.card_delivery_address.delivery_address.province.id)
+            sub_card_delivery_district_ids.append(sub_card.card_delivery_address.delivery_address.district.id)
+            sub_card_delivery_ward_ids.append(sub_card.card_delivery_address.delivery_address.ward.id)
+        # check sub cardType exist
+        await self.get_model_objects_by_ids(
+            model_ids=sub_card_physical_ids,
+            model=CardType,
+            loc="sub card type",
+        )
+        # check physical_issuance_type exist
+        await self.get_model_objects_by_ids(
+            model=CardIssuanceType,
+            model_ids=sub_card_issuance_ids,
+            loc="sub physical_issuance_type ",
+        )
+        # check sub province
+        await self.get_model_objects_by_ids(
+            model=AddressProvince,
+            model_ids=sub_card_delivery_province_ids,
+            loc=" sub province",
+        )
 
-            # check sub district
-            await self.get_model_object_by_id(
-                model=AddressDistrict,
-                model_id=sub_card.card_delivery_address.delivery_address.district.id,
-                loc="sub district",
-            )
+        # check sub district
+        await self.get_model_objects_by_ids(
+            model=AddressDistrict,
+            model_ids=sub_card_delivery_district_ids,
+            loc="sub district",
+        )
 
-            # check sub ward
-            await self.get_model_object_by_id(
-                model=AddressWard,
-                model_id=sub_card.card_delivery_address.delivery_address.ward.id,
-                loc=" sub ward",
-            )
+        # check sub ward
+        await self.get_model_objects_by_ids(
+            model=AddressWard,
+            model_ids=sub_card_delivery_ward_ids,
+            loc=" sub ward",
+        )
 
         data_card_delivery_address = {
             "id": generate_uuid(),
