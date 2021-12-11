@@ -4,7 +4,7 @@ from typing import List
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
+from app.api.v1.schemas.utils import DropdownResponse
 
 ############################################################
 # Response
@@ -76,14 +76,14 @@ class AccountRequest(BaseSchema):
 
 
 class SignatureAgreementAuthorRequest(BaseSchema):
-    id: str = Field(..., description='Mã định danh của đồng sở hữu')
+    cif_number: str = Field(..., description='Mã định danh của đồng sở hữu')
     full_name_vn: str = Field(..., description='Tên tiếng việt của đồng sở hữu')
 
 
 class AgreementAuthorRequest(BaseSchema):
     id: str = Field(..., description='Mã danh mục thỏa thuận và uỷ quyền')
     agreement_flag: bool = Field(..., description='Thỏa thuận chữ ký các hồ sơ chứng từ.`True`: Có , `False`: Không')
-    method_sign: DropdownRequest = Field(..., description='Phương thức ký')
+    method_sign: int = Field(..., description='Phương thức ký')
     signature_list: List[SignatureAgreementAuthorRequest] = Field(..., description='Chữ ký của đồng sở hữu')
 
 

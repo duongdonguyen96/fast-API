@@ -1,10 +1,9 @@
-from sqlalchemy import and_, select
+from typing import List
+
+from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
-    AccountHolderRequest
-)
+from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -21,7 +20,8 @@ from app.third_parties.oracle.models.cif.basic_information.personal.model import
     CustomerIndividualInfo
 )
 from app.third_parties.oracle.models.cif.payment_account.model import (
-    AgreementAuthorization, CasaAccount, JointAccountHolder
+    AgreementAuthorization, CasaAccount, JointAccountHolder,
+    JointAccountHolderAgreementAuthorization
 )
 from app.third_parties.oracle.models.master_data.address import AddressCountry
 from app.third_parties.oracle.models.master_data.customer import (
@@ -31,20 +31,80 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE, IMAGE_TYPE_CODE_SIGNATURE,
-    IMAGE_TYPE_SIGNATURE, RESIDENT_ADDRESS_CODE
+    CONTACT_ADDRESS_CODE, IMAGE_TYPE_CODE_SIGNATURE, IMAGE_TYPE_SIGNATURE,
+    RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
     ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CASA_ACCOUNT_NOT_EXIST,
-    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST, ERROR_CUSTOMER_IDENTITY,
+    ERROR_CIF_NUMBER_EXIST, ERROR_CUSTOMER_IDENTITY,
     ERROR_CUSTOMER_IDENTITY_IMAGE, ERROR_CUSTOMER_INDIVIDUAL_INFO
 )
 from app.utils.functions import dropdown, now
 
 
-async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, created_by: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_check_list_cif_number(list_cif_number_request: list, session: Session) -> ReposReturn:
+    list_customer = session.execute(
+        select(
+            Customer
+        ).filter(Customer.cif_number.in_(list_cif_number_request))
+    ).all()
+
+    if not list_customer:
+        return ReposReturn(is_error=True, msg='CIF_NUMBER_NOT_EXIT')
+
+    return ReposReturn(data=list_customer)
+
+
+async def repos_get_casa_account(cif_id: str, session: Session) -> ReposReturn:
+    casa_account = session.execute(
+        select(
+            CasaAccount.id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).scalar()
+
+    return ReposReturn(data=casa_account)
+
+
+@auto_commit
+async def repos_save_co_owner(
+        cif_id: str,
+        save_account_holder: List,
+        save_account_agree: List,
+        session: Session,
+        created_by: str
+) -> ReposReturn:
+    # lấy danh sách account holder để xóa
+    account_holder_ids = session.execute(
+        select(
+            JointAccountHolder.id
+        ).join(
+            CasaAccount, and_(
+                JointAccountHolder.casa_account_id == CasaAccount.id,
+                CasaAccount.customer_id == cif_id
+            )
+        )
+    ).scalars().all()
+
+    # xóa JointAccountHolderAgreementAuthorization
+    session.execute(
+        delete(
+            JointAccountHolderAgreementAuthorization
+        ).filter(
+            JointAccountHolderAgreementAuthorization.joint_account_holder_id.in_(account_holder_ids)
+        )
+    )
+
+    # xóa account holder
+    session.execute(
+        delete(
+            JointAccountHolder
+        ).filter(JointAccountHolder.id.in_(account_holder_ids))
+    )
+
+    session.bulk_save_objects([JointAccountHolder(**data_insert) for data_insert in save_account_holder])
+
+    session.bulk_save_objects(
+        [JointAccountHolderAgreementAuthorization(**data_insert) for data_insert in save_account_agree])
 
     return ReposReturn(data={
         "cif_id": cif_id,
