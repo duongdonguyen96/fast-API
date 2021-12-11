@@ -15,20 +15,20 @@ from app.utils.functions import now
 
 
 class CtrPaymentAccount(BaseController):
-    async def detail(self, cif_id: str):
 
+    async def detail(self, cif_id: str):
         detail_payment_account_info = self.call_repos(
             await repos_detail_payment_account(
                 cif_id=cif_id,
-                session=self.oracle_session)
+                session=self.oracle_session
+            )
         )
 
-        return self.response(data=detail_payment_account_info)
+        return self.response(detail_payment_account_info)
 
     async def save(self,
                    cif_id,
                    payment_account_save_request: SavePaymentAccountRequest):
-
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
 
         # check currency exist

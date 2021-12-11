@@ -132,6 +132,7 @@ class CtrPersonal(BaseController):
                 data_update_customer=data_update_customer,
                 data_update_customer_individual=data_update_customer_individual,
                 list_contact_type_data=list_contact_type_data,
+                log_data=personal_request.json(),
                 session=self.oracle_session,
                 created_by=self.current_user.full_name_vn
             )

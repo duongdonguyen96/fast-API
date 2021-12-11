@@ -13,6 +13,9 @@ from app.api.v1.schemas.utils import DropdownResponse
 # I. Thông tin mặt trước CMND, CCCD
 class FrontSideIdentityCitizenCardResponse(BaseSchema):
     identity_image_url: str = Field(..., description="URL hình ảnh mặt trước CMND/CCCD")
+    identity_avatar_image_uuid: Optional[str] = Field(
+        ..., description="Hình ảnh chân dung trên GTĐD dùng để so sánh với khuôn mặt"
+    )
 
 
 class AddressResponse(BaseSchema):
@@ -90,6 +93,9 @@ class OCRBackSideIdentityCardResponse(BaseSchema):
 # I. Thông tin Hộ chiếu
 class InformationPassportResponse(BaseSchema):
     identity_image_url: str = Field(..., description="URL hình ảnh Hộ chiếu")
+    identity_avatar_image_uuid: Optional[str] = Field(
+        ..., description="Hình ảnh chân dung trên GTĐD dùng để so sánh với khuôn mặt"
+    )
 
 
 # II. Phân tích OCR -> 1. Giấy tờ định danh (Hộ Chiếu)
