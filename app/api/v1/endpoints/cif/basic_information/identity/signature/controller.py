@@ -11,7 +11,7 @@ from app.api.v1.endpoints.cif.repository import (
 from app.utils.constant.cif import (
     ACTIVE_FLAG_CREATE_SIGNATURE, IMAGE_TYPE_SIGNATURE
 )
-from app.utils.functions import now
+from app.utils.functions import datetime_to_date, now
 
 
 class CtrSignature(BaseController):
@@ -54,4 +54,27 @@ class CtrSignature(BaseController):
     async def ctr_get_signature(self, cif_id: str):
         signature_data = self.call_repos(await repos_get_signature_data(cif_id=cif_id, session=self.oracle_session))
 
-        return self.response(data=signature_data)
+        image_uuids = [signature.image_url for signature in signature_data]
+
+        # gọi đến service file để lấy link download
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+
+        date__signatures = {}
+        for customer_identity_image in signature_data:
+            signature = {
+                'identity_image_id': customer_identity_image.id,
+                'image_url': customer_identity_image.image_url,
+                'active_flag': customer_identity_image.active_flag
+            }
+            date_str = datetime_to_date(customer_identity_image.maker_at)
+
+            if date_str not in date__signatures:
+                date__signatures[date_str] = []
+            # gán lại image_url từ uuid query trong db thành link download
+            signature['image_url'] = uuid__link_downloads[signature['image_url']]
+            date__signatures[date_str].append(signature)
+
+        return self.response(data=[{
+            'created_date': data_str,
+            'signature': signature
+        } for data_str, signature in date__signatures.items()])
