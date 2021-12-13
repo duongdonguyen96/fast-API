@@ -7,7 +7,7 @@ from app.api.v1.endpoints.cif.basic_information.fatca.schema import (
 )
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
 from app.third_parties.oracle.models.master_data.others import FatcaCategory
-from app.utils.functions import generate_uuid, now
+from app.utils.functions import generate_uuid, now, parse_file_uuid
 
 
 class CtrFatca(BaseController):
@@ -22,9 +22,17 @@ class CtrFatca(BaseController):
 
         # lấy list fatca_category_id trong document_information
         in_document_fatca_category_ids = []
+        image_uuids = []
         for document in fatca_request.document_information:
             for fatca_document in document.documents:
                 in_document_fatca_category_ids.append(fatca_document.id)
+                # lấy uuids từ url request
+                uuid = parse_file_uuid(fatca_document.url)
+                fatca_document.url = uuid
+                image_uuids.append(uuid)
+
+        # gọi service file check exist list uuid
+        await self.check_exist_multi_file(uuids=image_uuids)
 
         # RULE: Nếu Fatca info chọn có thì phải có document gửi lên
         for fatca in fatca_request.fatca_information:
@@ -72,6 +80,7 @@ class CtrFatca(BaseController):
                 cif_id=cif_id,
                 list_data_insert_fatca=list_data_insert_fatca,
                 list_data_insert_fatca_document=list_data_insert_fatca_document,
+                log_data=fatca_request.json(),
                 session=self.oracle_session,
             )
         )

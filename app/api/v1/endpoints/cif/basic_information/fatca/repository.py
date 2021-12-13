@@ -1,9 +1,13 @@
+import json
 from typing import List
 
 from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.fatca.model import (
     CustomerFatca, CustomerFatcaDocument
 )
@@ -19,8 +23,10 @@ async def repos_save_fatca_document(
         cif_id: str,
         list_data_insert_fatca_document: List,
         list_data_insert_fatca: List,
+        log_data: json,
         session: Session,
 ) -> ReposReturn:
+
     # list fatca_id cần xóa trong bảng fatca_document
     customer_fatca_id = session.execute(
         select(
@@ -39,11 +45,15 @@ async def repos_save_fatca_document(
         ).filter(CustomerFatca.customer_id == cif_id)
     )
 
-    fatca_data = [CustomerFatca(**data_insert) for data_insert in list_data_insert_fatca]
-    session.bulk_save_objects(fatca_data)
+    session.bulk_save_objects([CustomerFatca(**data_insert) for data_insert in list_data_insert_fatca])
+    session.bulk_save_objects([CustomerFatcaDocument(**data_insert) for data_insert in list_data_insert_fatca_document])
 
-    fatca_document_data = [CustomerFatcaDocument(**data_insert) for data_insert in list_data_insert_fatca_document]
-    session.bulk_save_objects(fatca_document_data)
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Thông tin cá nhân -> Thông tin FATCA -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
 
     return ReposReturn(data={
         "cif_id": cif_id
