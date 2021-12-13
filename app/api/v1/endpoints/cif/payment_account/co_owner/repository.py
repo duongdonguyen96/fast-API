@@ -36,8 +36,7 @@ from app.utils.constant.cif import (
 )
 from app.utils.error_messages import (
     ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CASA_ACCOUNT_NOT_EXIST,
-    ERROR_CIF_NUMBER_EXIST, ERROR_CUSTOMER_IDENTITY,
-    ERROR_CUSTOMER_IDENTITY_IMAGE, ERROR_CUSTOMER_INDIVIDUAL_INFO
+    ERROR_CIF_NUMBER_EXIST
 )
 from app.utils.functions import dropdown, now
 
@@ -113,7 +112,7 @@ async def repos_save_co_owner(
     })
 
 
-async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
+async def repos_get_list_cif_number(cif_id: str, session: Session):
     # lấy dữ liệu các đồng sở hữu của tài khoản thanh toán theo cif_id
     account_holders = session.execute(
         select(
@@ -133,6 +132,10 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
     for account_holder in account_holders:
         list_cif_number.append(account_holder.JointAccountHolder.cif_num)
 
+    return account_holders, list_cif_number
+
+
+async def repos_get_customer_by_cif_number(list_cif_number: List[str], session: Session) -> ReposReturn:
     # lấy dữ liệu customer theo số cif_number
     customers = session.execute(
         select(
@@ -174,6 +177,10 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
     if not customers:
         return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc='cif_number')
 
+    return ReposReturn(data=customers)
+
+
+async def repos_get_customer_address(list_cif_number: List[str], session: Session) -> ReposReturn:
     customer_address = session.execute(
         select(
             CustomerAddress,
@@ -182,79 +189,10 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
         ).filter(Customer.cif_number.in_(list_cif_number))
     ).all()
 
-    # lấy data address
-    address_information = {}
-    for row in customer_address:
-        if row.CustomerAddress.customer_id not in address_information:
-            address_information[row.CustomerAddress.customer_id] = {
-                "contact_address": None,
-                "resident_address": None
-            }
+    return ReposReturn(data=customer_address)
 
-        if row.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
-            address_information[row.CustomerAddress.customer_id]["contact_address"] = row.CustomerAddress.address
 
-        if row.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE:
-            address_information[row.CustomerAddress.customer_id]["resident_address"] = row.CustomerAddress.address
-
-    # lấy data customer
-    address = None
-    signature = None
-    customer__signature = {}
-    account__holder = {}
-    for customer in customers:
-        if not customer.CustomerIndividualInfo:
-            return ReposReturn(is_error=True, msg=ERROR_CUSTOMER_INDIVIDUAL_INFO, loc=f'{customer.Customer.id}')
-
-        if not customer.CustomerIdentity:
-            return ReposReturn(is_error=True, msg=ERROR_CUSTOMER_IDENTITY, loc=f'{customer.Customer.id}')
-        # gán lại giá trị cho address
-        for key, values in address_information.items():
-            if customer.Customer.id == key:
-                address = values
-
-        if not customer.CustomerIdentityImage:
-            return ReposReturn(is_error=True, msg=ERROR_CUSTOMER_IDENTITY_IMAGE, loc=f'{customer.Customer.id}')
-        # lấy danh sách chữ ký theo từng customer_id
-        if customer.Customer.id not in customer__signature:
-            customer__signature[customer.Customer.id] = []
-
-        customer__signature[customer.Customer.id].append({
-            "id": customer.CustomerIdentityImage.id,
-            "image_url": customer.CustomerIdentityImage.image_url
-        })
-        # gán giá trị cho chứ ký
-        for key, values in customer__signature.items():
-            if customer.Customer.id == key:
-                signature = values
-
-        # lấy giá trị customer_account_holder theo customer_id
-        if customer.Customer.id not in account__holder:
-            account__holder[customer.Customer.id] = {}
-
-            account__holder[customer.Customer.id].update(**{
-                "id": customer.Customer.id,
-                "full_name_vn": customer.Customer.full_name_vn,
-                "basic_information": {
-                    "cif_number": customer.Customer.cif_number,
-                    "full_name_vn": customer.Customer.full_name_vn,
-                    "customer_relationship": dropdown(customer.CustomerRelationshipType),
-                    "date_of_birth": customer.CustomerIndividualInfo.date_of_birth,
-                    "gender": dropdown(customer.CustomerGender),
-                    "nationality": dropdown(customer.AddressCountry),
-                    "mobile_number": customer.Customer.mobile_number,
-                    "signature": signature
-                },
-                "identity_document": {
-                    "identity_number": customer.CustomerIdentity.identity_num,
-                    "identity_type": dropdown(customer.CustomerIdentityType),
-                    "issued_date": customer.CustomerIdentity.issued_date,
-                    "expired_date": customer.CustomerIdentity.expired_date,
-                    "place_of_issue": dropdown(customer.PlaceOfIssue)
-                },
-                "address_information": address,
-            })
-
+async def repos_get_agreement_authorizations(session: Session) -> ReposReturn:
     agreement_authorizations = session.execute(
         select(
             AgreementAuthorization
@@ -264,21 +202,7 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
     if not agreement_authorizations:
         return ReposReturn(is_error=True, msg=ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, loc='agreement_authorizations')
 
-    agreement_authorization = [{
-        "id": agreement_authorization.id,
-        "code": agreement_authorization.code,
-        "name": agreement_authorization.name,
-        "active_flag": agreement_authorization.active_flag,
-    } for agreement_authorization in agreement_authorizations]
-
-    response_data = {
-        "joint_account_holder_flag": account_holders[0].JointAccountHolder.joint_account_holder_flag,
-        "number_of_joint_account_holder": len(account_holders),
-        "joint_account_holders": [customer for customer in account__holder.values()],
-        "agreement_authorization": agreement_authorization
-    }
-
-    return ReposReturn(data=response_data)
+    return ReposReturn(data=agreement_authorizations)
 
 
 async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str, session: Session):
