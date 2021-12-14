@@ -46,7 +46,7 @@ async def view_detail(
     name="5. Mối quan hệ khách hàng",
     description="Lưu",
     responses=swagger_response(
-        response_model=ResponseData[List[SaveCustomerRelationshipRequest]],
+        response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
     )
 )

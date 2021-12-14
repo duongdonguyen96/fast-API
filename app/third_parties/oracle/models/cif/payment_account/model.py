@@ -34,8 +34,8 @@ class CasaAccount(Base):
     checker_id = Column(VARCHAR(36), nullable=False, comment='Mã người duyệt')
     checker_at = Column(DateTime, comment='Thời gian duyệt')
     approve_status = Column(VARCHAR(3), comment='Trạng thái duyệt')
-    self_selected_account_flag = Column(NUMBER(1, 2, True), comment='Loại Tài khoản tự chọn')
-    acc_active_flag = Column(NUMBER(1, 2, True), comment='Cờ kích hoạt tài khoản')
+    self_selected_account_flag = Column(NUMBER(1, 0, False), comment='Loại Tài khoản tự chọn')
+    acc_active_flag = Column(NUMBER(1, 0, False), comment='Cờ kích hoạt tài khoản')
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Thời gian cập nhật')
 
@@ -86,8 +86,6 @@ class AgreementAuthorization(Base):
                 comment='ID chính')
     code = Column('agreement_author_code', VARCHAR(50), comment='Mã code')
     name = Column('agreement_author_name', VARCHAR(1000), comment='Tên ủy quyền')
-    method_sign = Column(NUMBER(1, 2, True), comment='Phương thức kí')
-    agreement_flag = Column(NUMBER(1, 2, True), comment='Cờ ủy quyền')
     active_flag = Column('agreement_active_flag', NUMBER(1, 2, True), comment='Cờ trạng thái kích hoạt')
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
@@ -101,5 +99,7 @@ class JointAccountHolderAgreementAuthorization(Base):
                                         ForeignKey('crm_agreement_authorization.agreement_author_id'), primary_key=True,
                                         server_default=text("sys_guid() "), comment='Mã thỏa thuận - ủy quyền')
     joint_account_holder_id = Column('joint_account_holder_id',
-                                     ForeignKey('crm_joint_account_holder.joint_account_holder_id'),
-                                     comment='Mã Thông tin đồng chủ sở hữu'),
+                                     ForeignKey('crm_joint_account_holder.joint_account_holder_id'), primary_key=True,
+                                     comment='Mã Thông tin đồng chủ sở hữu')
+    method_sign = Column(NUMBER(1, 0, False), comment='Phương thức kí')
+    agreement_flag = Column(NUMBER(1, 0, False), comment='Cờ ủy quyền')

@@ -74,7 +74,7 @@ async def view_list_logs(
 ):
     ctr_sub_identity_document = CtrSubIdentityDocument(current_user)
 
-    logs_info = await ctr_sub_identity_document.get_list_log(
+    logs_info = await ctr_sub_identity_document.get_sub_identity_log_list(
         cif_id=cif_id
     )
     return ResponseData[List[LogResponse]](**logs_info)

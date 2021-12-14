@@ -44,9 +44,9 @@ class BasicInformationResponse(BaseSchema):
     date_of_birth: date = Field(..., description="Ngày sinh")
     gender: DropdownResponse = Field(..., description="Giới tính")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
-    telephone_number: Optional[str] = Field(..., description="Số ĐT bàn")
-    mobile_number: Optional[str] = Field(..., description="Số ĐTDĐ")
-    email: Optional[str] = Field(..., description="Email")
+    telephone_number: Optional[str] = Field(..., description="Số ĐT bàn", nullable=True)
+    mobile_number: Optional[str] = Field(..., description="Số ĐTDĐ", nullable=True)
+    email: Optional[str] = Field(..., description="Email", nullable=True)
 
 
 # II. Giấy tờ định danh
@@ -66,7 +66,7 @@ class AddressInformationResponse(BaseSchema):
 # Thông tin dùng chung cho Mối quan hệ khách hàng, Người giám hộ
 class RelationshipResponse(BaseSchema):
     id: str = Field(..., description="ID")
-    avatar_url: Optional[str] = Field(..., description="URL avatar")
+    avatar_url: Optional[str] = Field(..., description="URL avatar", nullable=True)
     basic_information: BasicInformationResponse = Field(..., description="I. Thông tin cơ bản")
     identity_document: IdentityDocumentResponse = Field(..., description="II. Giấy tờ định danh")
     address_information: AddressInformationResponse = Field(..., description="III. Thông tin địa chỉ")

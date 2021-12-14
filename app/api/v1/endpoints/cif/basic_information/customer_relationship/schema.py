@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -13,7 +13,7 @@ from app.api.v1.schemas.utils import DropdownRequest
 # Thông tin mối quan hệ khách hàng -> Danh sách mối quan hệ khách hàng
 class CustomerRelationshipResponse(RelationshipResponse):
     id: str = Field(..., description="ID mối quan hệ khách hàng")
-    avatar_url: str = Field(..., description="URL avatar mối quan hệ khách hàng")
+    avatar_url: Optional[str] = Field(..., description="URL avatar mối quan hệ khách hàng", nullable=True)
 
 
 # Thông tin mối quan hệ khách hàng
