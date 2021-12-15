@@ -1,4 +1,5 @@
 import json
+from typing import List
 
 from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session

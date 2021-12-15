@@ -128,11 +128,8 @@ class CtrCoOwner(BaseController):
                 if customer.Customer.id == key:
                     signature = values
 
-            # lấy giá trị customer_account_holder theo customer_id
             if customer.Customer.id not in account__holder:
-                account__holder[customer.Customer.id] = {}
-
-                account__holder[customer.Customer.id].update(**{
+                account__holder[customer.Customer.id] = {
                     "id": customer.Customer.id,
                     "full_name_vn": customer.Customer.full_name_vn,
                     "basic_information": {
@@ -153,16 +150,16 @@ class CtrCoOwner(BaseController):
                         "place_of_issue": dropdown(customer.PlaceOfIssue)
                     },
                     "address_information": address,
-                })
+                }
 
         agreement_authorizations = self.call_repos(
             await repos_get_agreement_authorizations(session=self.oracle_session))
         agreement_authorization = [{
-            "id": agreement_authorization.id,
-            "code": agreement_authorization.code,
-            "name": agreement_authorization.name,
-            "active_flag": agreement_authorization.active_flag,
-        } for agreement_authorization in agreement_authorizations]
+            "id": item.id,
+            "code": item.code,
+            "name": item.name,
+            "active_flag": item.active_flag,
+        } for item in agreement_authorizations]
 
         return self.response(data={
             "joint_account_holder_flag": account_holders[0].JointAccountHolder.joint_account_holder_flag,
