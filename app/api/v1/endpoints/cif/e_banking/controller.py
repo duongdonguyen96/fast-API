@@ -221,7 +221,11 @@ class CtrEBanking(BaseController):
         return self.response(data=e_banking_data)
 
     async def ctr_e_banking(self, cif_id: str):
-        e_banking_data = self.call_repos(await repos_get_e_banking_data(cif_id))
+        e_banking_data = self.call_repos(
+            await repos_get_e_banking_data(
+                cif_id=cif_id,
+                session=self.oracle_session
+            ))
 
         return self.response(data=e_banking_data)
 
