@@ -27,7 +27,7 @@ class CtrPaymentAccount(BaseController):
         return self.response(detail_payment_account_info)
 
     async def save(self,
-                   cif_id,
+                   cif_id: str,
                    payment_account_save_request: SavePaymentAccountRequest):
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
 
@@ -54,7 +54,7 @@ class CtrPaymentAccount(BaseController):
 
         )
 
-        list_data_insert = [{
+        data_insert = {
             "customer_id": cif_id,
             "case_account_number": payment_account_save_request.casa_account_number,
             "currency_id": payment_account_save_request.currency.id,
@@ -73,12 +73,13 @@ class CtrPaymentAccount(BaseController):
             "acc_active_flag": 1,
             "created_at": now(),
             "updated_at": now(),
-        }]
+        }
 
         save_payment_account_info = self.call_repos(
             await repos_save_payment_account(
                 cif_id=cif_id,
-                list_data_insert=list_data_insert,
+                data_insert=data_insert,
+                log_data=payment_account_save_request.json(),
                 created_by=self.current_user.full_name_vn,
                 session=self.oracle_session
 
