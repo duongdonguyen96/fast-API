@@ -255,7 +255,7 @@ class RegisterBalanceCasaRequest(BaseSchema):
     account_name: str = Field(..., description='Tên tài khoản')
     primary_phone_number: str = Field(..., description='Số điện thoại')
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
-    e_banking_notifications: List[EBankingNotificationResponse] = Field(
+    e_banking_notifications: List[EBankingNotificationRequest] = Field(
         ...,
         min_items=1,
         description='Tùy chọn hình thức nhận thông báo'
@@ -282,9 +282,8 @@ class BalanceSavingAccountRequest(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     customer_contact_types: List[ContactTypeRequest] = Field(..., description='Hình thức nhận thông báo')
     mobile_number: str = Field(..., description='Số điện thoại')
-    """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
-    # range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
-    e_banking_notifications: List[EBankingNotificationResponse] = Field(
+    range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
+    e_banking_notifications: List[EBankingNotificationRequest] = Field(
         ...,
         min_items=1,
         description='Tùy chọn hình thức nhận thông báo'
