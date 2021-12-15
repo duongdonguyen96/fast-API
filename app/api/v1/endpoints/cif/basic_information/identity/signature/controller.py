@@ -11,7 +11,7 @@ from app.api.v1.endpoints.cif.repository import (
 from app.utils.constant.cif import (
     ACTIVE_FLAG_CREATE_SIGNATURE, IMAGE_TYPE_SIGNATURE
 )
-from app.utils.functions import datetime_to_date, now
+from app.utils.functions import datetime_to_date, now, parse_file_uuid
 
 
 class CtrSignature(BaseController):
@@ -25,6 +25,17 @@ class CtrSignature(BaseController):
             )
         # check cif đang tạo
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
+
+        # lấy các uuid cần check
+        image_uuids = []
+        for signature in signatures.signatures:
+            uuid = parse_file_uuid(signature.image_url)
+            signature.image_url = uuid
+            image_uuids.append(uuid)
+
+        # gọi qua service file để check exist list uuid
+        await self.check_exist_multi_file(uuids=image_uuids)
+
         identity = self.call_repos(await repos_get_customer_identity(cif_id=cif_id, session=self.oracle_session))
 
         list_data_insert = [{
@@ -44,6 +55,7 @@ class CtrSignature(BaseController):
             await repos_save_signature(
                 cif_id=cif_id,
                 list_data_insert=list_data_insert,
+                log_data=signatures.json(),
                 session=self.oracle_session,
                 created_by=self.current_user.full_name_vn
             )

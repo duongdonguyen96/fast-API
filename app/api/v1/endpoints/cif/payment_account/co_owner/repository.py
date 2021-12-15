@@ -1,9 +1,12 @@
-from typing import List
+import json
 
 from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -61,15 +64,17 @@ async def repos_get_casa_account(cif_id: str, session: Session) -> ReposReturn:
             CasaAccount.id
         ).filter(CasaAccount.customer_id == cif_id)
     ).scalar()
-
+    if not casa_account:
+        return ReposReturn(is_error=True, msg=ERROR_CASA_ACCOUNT_NOT_EXIST, loc=f"cif_id: {cif_id}")
     return ReposReturn(data=casa_account)
 
 
 @auto_commit
 async def repos_save_co_owner(
         cif_id: str,
-        save_account_holder: List,
-        save_account_agree: List,
+        save_account_holder: list,
+        save_account_agree: list,
+        log_data: json,
         session: Session,
         created_by: str
 ) -> ReposReturn:
@@ -105,6 +110,13 @@ async def repos_save_co_owner(
 
     session.bulk_save_objects(
         [JointAccountHolderAgreementAuthorization(**data_insert) for data_insert in save_account_agree])
+
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Tài khoản thanh toán -> Thông tin đồng sở hữu -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
 
     return ReposReturn(data={
         "cif_id": cif_id,
