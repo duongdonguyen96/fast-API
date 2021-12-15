@@ -40,29 +40,29 @@ async def repos_save_e_banking_data(
 ) -> ReposReturn:
     # clear old data
     e_banking_reg_balance = session.execute(select(
-        EBankingRegisterBalance
+        EBankingRegisterBalance.id
     ).filter(
         EBankingRegisterBalance.customer_id == cif_id,
-    )).first()
+    )).scalars().all()
 
     session.execute(delete(
         EBankingReceiverNotificationRelationship
     ).filter(
-        EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id == e_banking_reg_balance.EBankingRegisterBalance.id,
-    ))
-
-    session.execute(delete(e_banking_reg_balance))
-
-    session.execute(delete(
-        EBankingRegisterBalanceOption
-    ).filter(
-        EBankingRegisterBalanceOption.customer_id == cif_id,
+        EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id.in_(e_banking_reg_balance),
     ))
 
     session.execute(delete(
         EBankingRegisterBalanceNotification
     ).filter(
-        EBankingRegisterBalanceNotification.customer_id == cif_id,
+        EBankingRegisterBalanceNotification.eb_reg_balance_id.in_(e_banking_reg_balance),
+    ))
+
+    session.execute(delete(EBankingRegisterBalance).filter(EBankingRegisterBalance.id.in_(e_banking_reg_balance)))
+
+    session.execute(delete(
+        EBankingRegisterBalanceOption
+    ).filter(
+        EBankingRegisterBalanceOption.customer_id == cif_id,
     ))
 
     e_banking_info = session.execute(select(
@@ -77,7 +77,7 @@ async def repos_save_e_banking_data(
         EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
     ))
 
-    session.execute(delete(e_banking_info.EBankingInfo))
+    session.delete(e_banking_info.EBankingInfo)
 
     session.bulk_save_objects(insert_data)
     return ReposReturn(data={

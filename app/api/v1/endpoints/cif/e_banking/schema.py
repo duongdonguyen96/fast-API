@@ -35,6 +35,7 @@ class RegisterBalanceCasa(BaseSchema):
     checking_account_name: str = Field(..., description='Tên tài khoản')
     primary_phone_number: str = Field(..., description='Số điện thoại')
     full_name_vn: str = Field(..., description='Tên tiếng việt ')
+    primary_mobile_number: DropdownResponse = Field(..., description='Loại SĐT')
     notification_casa_relationships: List[NotificationCasaRelationshipResponse] = Field(..., description='Mối quan hê')
     e_banking_notifications: List[EBankingNotificationResponse] = Field(..., description='Hình thức nhận thông báo')
 
@@ -99,14 +100,17 @@ class OptionalEBankingAccountResponse(BaseSchema):
 class AccountInformation(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
-    charged_account_id: Optional[str] = Field(..., description="Số tài khoản thanh toán phí", nullable=True)
-    method_active_password: str = Field(..., description='Hình thức nhận mật khẩu kích hoạt')
+    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
+    e_banking_reset_password_methods: List[ResetPasswordMethodResponse] = Field(...,
+                                                                                description='Hình thức nhận '
+                                                                                            'mật khẩu kích hoạt')
     method_authentication: List[MethodAuthenticationResponse] = Field(..., description='Hình thức xác thực')
+    payment_fee: List[PaymentFeeResponse] = Field(..., description='Thanh toán phí')
 
 
 class AccountInformationResponse(BaseSchema):
     account_information: AccountInformation = Field(..., description='Tài khoản E-Banking')
-    # optional_e_banking_account: OptionalEBankingAccountResponse = Field(..., description='Hình thức nhận thông báo')
+    optional_e_banking_account: OptionalEBankingAccountResponse = Field(..., description='Hình thức nhận thông báo')
 
 
 class EBankingResponse(BaseSchema):
@@ -257,7 +261,7 @@ class RegisterBalanceCasaRequest(BaseSchema):
     account_name: str = Field(..., description='Tên tài khoản')
     primary_phone_number: str = Field(..., description='Số điện thoại')
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
-    e_banking_notifications: List[EBankingNotificationRequest] = Field(
+    e_banking_notifications: List[EBankingNotificationResponse] = Field(
         ...,
         min_items=1,
         description='Tùy chọn hình thức nhận thông báo'
@@ -285,8 +289,8 @@ class BalanceSavingAccountRequest(BaseSchema):
     customer_contact_types: List[ContactTypeRequest] = Field(..., description='Hình thức nhận thông báo')
     mobile_number: str = Field(..., description='Số điện thoại')
     """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
-    range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
-    e_banking_notifications: List[EBankingNotificationRequest] = Field(
+    # range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
+    e_banking_notifications: List[EBankingNotificationResponse] = Field(
         ...,
         min_items=1,
         description='Tùy chọn hình thức nhận thông báo'

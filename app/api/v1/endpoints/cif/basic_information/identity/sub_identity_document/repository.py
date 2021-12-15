@@ -119,8 +119,10 @@ async def repos_save_sub_identity(
         delete_sub_identity_ids: List,
         create_sub_identities: List,
         create_sub_identity_images: List,
+        create_customer_sub_identity_image_transactions: List,
         update_sub_identities: List,
         update_sub_identity_images: List,
+        update_customer_sub_identity_image_transactions: List,
         session: Session
 ):
 
@@ -136,12 +138,16 @@ async def repos_save_sub_identity(
 
     session.bulk_save_objects([CustomerIdentityImage(**create_sub_identity_image)
                                for create_sub_identity_image in create_sub_identity_images])
-    # TODO: lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi tạo mới
+    # lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi tạo mới
+    session.bulk_save_objects([CustomerIdentityImageTransaction(**customer_identity_image_transaction)
+                              for customer_identity_image_transaction in create_customer_sub_identity_image_transactions])
 
     # Cập nhật
     session.bulk_update_mappings(CustomerSubIdentity, update_sub_identities)
     session.bulk_update_mappings(CustomerIdentityImage, update_sub_identity_images)
-    # TODO: lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi cập nhật
+    # lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi cập nhật
+    session.bulk_save_objects([CustomerIdentityImageTransaction(**customer_identity_image_transaction)
+                               for customer_identity_image_transaction in update_customer_sub_identity_image_transactions])
 
     return ReposReturn(data={
         "cif_id": customer.id
