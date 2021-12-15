@@ -108,9 +108,9 @@ class EBankingRegisterBalanceNotification(Base):
     # customer_id = Column(ForeignKey('crm_customer.customer_id'), nullable=False, comment='Mã khách hàng')
     eb_notify_id = Column(ForeignKey('crm_eb_notification.eb_notify_id'), nullable=False,
                           comment='Mã Danh mục tùy chọn thông báo')
-    eb_reg_balance_id = Column(ForeignKey('crm_eb_reg_balance.id'), nullable=False, comment='ID Bảng Đăng ký Biến động số dư các loại tài khoản Thanh toán/ Tiết kiệm')
+    eb_reg_balance_id = Column(ForeignKey('crm_eb_reg_balance.eb_reg_balance_id'), nullable=False, comment='ID Bảng Đăng ký Biến động số dư các loại tài khoản Thanh toán/ Tiết kiệm')
 
-    customer = relationship('Customer')
+    # customer = relationship('Customer')
     e_banking_notify = relationship('EBankingNotification')
     eb_reg_balance = relationship('EBankingRegisterBalance')
 

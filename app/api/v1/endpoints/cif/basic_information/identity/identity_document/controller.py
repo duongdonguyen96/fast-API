@@ -5,7 +5,7 @@ from fastapi import UploadFile
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.repository import (
     repos_compare_face, repos_get_detail_identity,
-    repos_get_identity_information, repos_get_identity_log_list,
+    repos_get_identity_image_transactions, repos_get_identity_information,
     repos_save_identity, repos_upload_identity_document_and_ocr
 )
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.schema_request import (
@@ -43,7 +43,7 @@ from app.utils.constant.cif import (
     IMAGE_TYPE_CODE_IDENTITY, RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import ERROR_IDENTITY_DOCUMENT_NOT_EXIST
-from app.utils.functions import calculate_age, now
+from app.utils.functions import calculate_age, date_to_string, now
 from app.utils.vietnamese_converter import (
     convert_to_unsigned_vietnamese, make_short_name, split_name
 )
@@ -60,13 +60,42 @@ class CtrIdentityDocument(BaseController):
         return detail_data['identity_document_type']['code'], self.response(data=detail_data)
 
     async def get_identity_log_list(self, cif_id: str):
-        logs_data = self.call_repos(
-            await repos_get_identity_log_list(
-                cif_id=cif_id,
-                session=self.oracle_session
-            )
-        )
-        return self.response(data=logs_data)
+        identity_image_transactions = self.call_repos(await repos_get_identity_image_transactions(
+            cif_id=cif_id, session=self.oracle_session
+        ))
+        identity_log_infos = []
+        if not identity_image_transactions:
+            return self.response(data=identity_log_infos)
+
+        # các uuid cần phải gọi qua service file để check
+        image_uuids = [
+            identity_image_transaction.image_url for identity_image_transaction in identity_image_transactions
+        ]
+
+        # gọi đến service file để lấy link download
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+
+        date__identity_images = {}
+
+        for identity_image_transaction in identity_image_transactions:
+            maker_at = date_to_string(identity_image_transaction.maker_at)
+
+            if maker_at not in date__identity_images.keys():
+                date__identity_images[maker_at] = []
+
+            date__identity_images[maker_at].append({
+                "image_url": uuid__link_downloads[identity_image_transaction.image_url]
+            })
+
+        identity_log_infos = [{
+            "reference_flag": True if index == 0 else False,
+            "created_date": created_date,
+            "identity_images": identity_images
+        } for index, (created_date, identity_images) in enumerate(date__identity_images.items())]
+
+        identity_log_infos[0]["reference_flag"] = True
+
+        return self.response(data=identity_log_infos)
 
     async def save_identity(self, identity_document_request: Union[IdentityCardSaveRequest,
                                                                    CitizenCardSaveRequest,
