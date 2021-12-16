@@ -149,29 +149,30 @@ class CtrEBanking(BaseController):
                 created_at=now()
             ) for contact_type in contact_types])
 
+            # Mở CIF không xài
             # lưu II -> 3
-            for td_account in change_of_balance_saving_account.range.td_accounts:
-                if td_account.checked_flag:
-                    eb_reg_balance_id = generate_uuid()
-                    insert_data.append(EBankingRegisterBalance(
-                        id=eb_reg_balance_id,
-
-                        account_id=td_account.id,
-                        customer_id=cif_id,
-                    ))
-
-                    # lưu II -> 4 Tùy chọn thông báo
-                    insert_data.extend([EBankingRegisterBalanceNotification(
-                        eb_reg_balance_id=eb_reg_balance_id,
-                        eb_notify_id=notification.id,
-                    ) for notification in change_of_balance_saving_account.e_banking_notifications if
-                        notification.checked_flag])
+            # for td_account in change_of_balance_saving_account.range.td_accounts:
+            #     if td_account.checked_flag:
+            #         eb_reg_balance_id = generate_uuid()
+            #         insert_data.append(EBankingRegisterBalance(
+            #             id=eb_reg_balance_id,
+            #
+            #             account_id=td_account.id,
+            #             customer_id=cif_id,
+            #         ))
+            #
+            #         # lưu II -> 4 Tùy chọn thông báo
+            #         insert_data.extend([EBankingRegisterBalanceNotification(
+            #             eb_reg_balance_id=eb_reg_balance_id,
+            #             eb_notify_id=notification.id,
+            #         ) for notification in change_of_balance_saving_account.e_banking_notifications if
+            #             notification.checked_flag])
 
         # Thêm dữ liệu cho mục III. Thông tin e-banking
         # Thông tin tài khoản
         account_information = e_banking.e_banking_information.account_information
         # Tùy chọn tài khoản
-        optional_e_banking_account = e_banking.e_banking_information.optional_e_banking_account
+        # optional_e_banking_account = e_banking.e_banking_information.optional_e_banking_account Mỡ CIF không xài
         if account_information.register_flag:
             # kiểm tra hình thức xác thực có tồn tại hay không ?
             auth_method_ids = [method.id for method in account_information.method_authentication if method.checked_flag]
@@ -197,10 +198,11 @@ class CtrEBanking(BaseController):
                 account_name=account_information.account_name,
                 ib_mb_flag=account_information.register_flag,
                 method_payment_fee_flag=has_fee,
+                # Mở CIF không xài
                 # Tùy chọn tài khoản
-                active_account_flag=optional_e_banking_account.active_account_flag,
-                reset_password_flag=optional_e_banking_account.reset_password_flag,
-                note=optional_e_banking_account.note
+                # active_account_flag=optional_e_banking_account.active_account_flag,
+                # reset_password_flag=optional_e_banking_account.reset_password_flag,
+                # note=optional_e_banking_account.note
             ))
 
             # lưu III -> 4 Hình thức xác thực
@@ -211,6 +213,7 @@ class CtrEBanking(BaseController):
 
         e_banking_data = self.call_repos(
             await repos_save_e_banking_data(
+                log_data=e_banking.json(),
                 session=self.oracle_session,
                 cif_id=cif_id,
                 insert_data=insert_data,
