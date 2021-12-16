@@ -102,6 +102,7 @@ class CtrPersonal(BaseController):
             "gender_id": gender_id,
             "title_id": title_id,
             "date_of_birth": personal_request.date_of_birth,
+            "under_15_year_old_flag": personal_request.under_15_year_old_flag,
             "place_of_birth_id": place_of_birth_id,
             "country_of_birth_id": country_of_birth_id,
             "resident_status_id": resident_status_id,
