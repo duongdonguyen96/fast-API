@@ -1,9 +1,12 @@
-from sqlalchemy import and_, select
+import json
+from typing import List
+
+from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
-    AccountHolderRequest
+from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
 )
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
@@ -20,6 +23,10 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.cif.basic_information.personal.model import (
     CustomerIndividualInfo
 )
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    AgreementAuthorization, CasaAccount, JointAccountHolder,
+    JointAccountHolderAgreementAuthorization
+)
 from app.third_parties.oracle.models.master_data.address import AddressCountry
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerGender, CustomerRelationshipType
@@ -27,16 +34,88 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, PlaceOfIssue
 )
-from app.utils.constant.cif import CIF_ID_TEST, IMAGE_TYPE_CODE_SIGNATURE
+from app.utils.constant.cif import (
+    IMAGE_TYPE_CODE_SIGNATURE, IMAGE_TYPE_SIGNATURE
+)
 from app.utils.error_messages import (
-    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST
+    ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CASA_ACCOUNT_NOT_EXIST,
+    ERROR_CIF_NUMBER_EXIST
 )
 from app.utils.functions import now
 
 
-async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, created_by: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_check_list_cif_number(list_cif_number_request: list, session: Session) -> ReposReturn:
+    list_customer = session.execute(
+        select(
+            Customer
+        ).filter(Customer.cif_number.in_(list_cif_number_request))
+    ).all()
+
+    if not list_customer:
+        return ReposReturn(is_error=True, msg='CIF_NUMBER_NOT_EXIT')
+
+    return ReposReturn(data=list_customer)
+
+
+async def repos_get_casa_account(cif_id: str, session: Session) -> ReposReturn:
+    casa_account = session.execute(
+        select(
+            CasaAccount.id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).scalar()
+    if not casa_account:
+        return ReposReturn(is_error=True, msg=ERROR_CASA_ACCOUNT_NOT_EXIST, loc=f"cif_id: {cif_id}")
+    return ReposReturn(data=casa_account)
+
+
+@auto_commit
+async def repos_save_co_owner(
+        cif_id: str,
+        save_account_holder: list,
+        save_account_agree: list,
+        log_data: json,
+        session: Session,
+        created_by: str
+) -> ReposReturn:
+    # lấy danh sách account holder để xóa
+    account_holder_ids = session.execute(
+        select(
+            JointAccountHolder.id
+        ).join(
+            CasaAccount, and_(
+                JointAccountHolder.casa_account_id == CasaAccount.id,
+                CasaAccount.customer_id == cif_id
+            )
+        )
+    ).scalars().all()
+
+    # xóa JointAccountHolderAgreementAuthorization
+    session.execute(
+        delete(
+            JointAccountHolderAgreementAuthorization
+        ).filter(
+            JointAccountHolderAgreementAuthorization.joint_account_holder_id.in_(account_holder_ids)
+        )
+    )
+
+    # xóa account holder
+    session.execute(
+        delete(
+            JointAccountHolder
+        ).filter(JointAccountHolder.id.in_(account_holder_ids))
+    )
+
+    session.bulk_save_objects([JointAccountHolder(**data_insert) for data_insert in save_account_holder])
+
+    session.bulk_save_objects(
+        [JointAccountHolderAgreementAuthorization(**data_insert) for data_insert in save_account_agree])
+
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Tài khoản thanh toán -> Thông tin đồng sở hữu -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
 
     return ReposReturn(data={
         "cif_id": cif_id,
@@ -45,105 +124,97 @@ async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, creat
     })
 
 
-async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
-    return ReposReturn(data={
-        "joint_account_holder_flag": True,
-        "number_of_joint_account_holder": 3,
-        "joint_account_holders": [
-            {
-                "id": "1",
-                "full_name_vn": "Trần Ngọc An",
-                "basic_information": {
-                    "cif_number": "0298472",
-                    "customer_relationship": {
-                        "id": "1",
-                        "code": "code",
-                        "name": "Chị gái"
-                    },
-                    "full_name_vn": "TRẦN NGỌC AN",
-                    "date_of_birth": "1990-02-20",
-                    "gender": {
-                        "id": "1",
-                        "code": "Code",
-                        "name": "Nữ"
-                    },
-                    "nationality": {
-                        "id": "1",
-                        "code": "Code",
-                        "name": "Việt Nam"
-                    },
-                    "mobile_number": "08675968221",
-                    "signature_1": {
-                        "id": "1",
-                        "code": "code",
-                        "name": "mẫu chứ ký 1",
-                        "image_url": "https://example.com/abc.png"
-                    },
-                    "signature_2": {
-                        "id": "2",
-                        "code": "code",
-                        "name": "mẫu chứ ký 2",
-                        "image_url": "https://example.com/abc.png"
-                    }
-                },
-                "identity_document": {
-                    "identity_number": "254136582",
-                    "issued_date": "1990-02-20",
-                    "expired_date": "1990-02-20",
-                    "place_of_issue": {
-                        "id": "1",
-                        "code": "code",
-                        "name": "TP. Hồ Chí Minh"
-                    }
-                },
-                "address_information": {
-                    "content_address": "48 Phó Cơ Điều, Phường 12, Quận 5, Thành phố Hồ Chí Minh",
-                    "resident_address": "6, Q.6, 279 Lê Quang Sung, Phường 6, Quận 6, Thành phố Hồ Chí Minh"
-                }
-            }
-        ],
-        "agreement_authorization": [
-            {
-                "id": "1",
-                "code": "code",
-                "content": "Rút tiền (tiền mặt/chuyển khoản) tại quầy; Đề nghị SCB cung "
-                           "ứng Séc trắng và nhận Séc trắng tại SCB; Phát hành Séc;"
-                           " Đóng tài khoản (bao gồm Thẻ ghi Nợ và dịch vụ Ngân hàng điện tử kết nối với tài khoản)"
-                           " và xử lý số dư sau khi đóng tài khoản; Xác nhận số dư tài khoản; "
-                           "Tạm khóa/Phong tỏa tài khoản; Đề nghị SCB phát hành Thẻ ghi Nợ kết nối với "
-                           "tài khoản thanh toán chung tại SCB.",
-                "agreement_flag": True,
-                "method_sign": {
-                    "id": "1",
-                    "code": "code",
-                    "name": "Phương thức 3"
-                },
-                "signature_list": [
-                    {
-                        "id": "1",
-                        "full_name_vn": "Nguyễn Anh Đào"
-                    },
-                    {
-                        "id": "2",
-                        "full_name_vn": "Lê Văn A"
-                    }
-                ]
-            },
-            {
-                "id": "2",
-                "code": "code2",
-                "content": "Giao dịch chấm dứt tạm khóa, chấm dứt phong tỏa tài khoản và các giao dịch phát sinh khác "
-                           "ngoài nội dung nêu tại Nội dung 1: Chữ ký của tất cả các đồng chủ tài khoản.",
-                "agreement_flag": True,
-                "method_sign": {
-                    "id": "1",
-                    "code": "code",
-                    "name": "Phương thức 2"
-                },
-                "signature_list": []
-            }
-        ]
-    })
+async def repos_get_list_cif_number(cif_id: str, session: Session):
+    # lấy dữ liệu các đồng sở hữu của tài khoản thanh toán theo cif_id
+    account_holders = session.execute(
+        select(
+            JointAccountHolder
+        ).join(
+            CasaAccount,
+            CasaAccount.id == JointAccountHolder.casa_account_id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).all()
+
+    # check account_holder
+    if not account_holders:
+        return ReposReturn(is_error=True, msg=ERROR_CASA_ACCOUNT_NOT_EXIST, loc='cif_id')
+
+    # lấy list cif_number trong account_holder
+    list_cif_number = []
+    for account_holder in account_holders:
+        list_cif_number.append(account_holder.JointAccountHolder.cif_num)
+
+    return account_holders, list_cif_number
+
+
+async def repos_get_customer_by_cif_number(list_cif_number: List[str], session: Session) -> ReposReturn:
+    # lấy dữ liệu customer theo số cif_number
+    customers = session.execute(
+        select(
+            Customer,
+            AddressCountry,
+            CustomerIdentity,
+            CustomerIdentityImage,
+            CustomerIndividualInfo,
+            CustomerGender,
+            PlaceOfIssue,
+            CustomerIdentityType,
+            CustomerPersonalRelationship,
+            CustomerRelationshipType
+        ).join(
+            CustomerIdentity, Customer.id == CustomerIdentity.customer_id
+        ).join(
+            AddressCountry, Customer.nationality_id == AddressCountry.id
+        ).join(
+            PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id
+        ).join(
+            CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id
+        ).join(
+            CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id
+        ).join(
+            CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id
+        ).join(
+            CustomerPersonalRelationship, Customer.id == CustomerPersonalRelationship.customer_id
+        ).join(
+            CustomerRelationshipType,
+            CustomerRelationshipType.id == CustomerPersonalRelationship.customer_relationship_type_id
+        ).join(
+            CustomerIdentityImage, and_(
+                CustomerIdentity.id == CustomerIdentityImage.identity_id,
+                CustomerIdentityImage.image_type_id == IMAGE_TYPE_SIGNATURE
+            )
+        ).filter(Customer.cif_number.in_(list_cif_number))
+    ).all()
+
+    if not customers:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc='cif_number')
+
+    return ReposReturn(data=customers)
+
+
+async def repos_get_customer_address(list_cif_number: List[str], session: Session) -> ReposReturn:
+    customer_address = session.execute(
+        select(
+            CustomerAddress,
+        ).join(
+            Customer, CustomerAddress.customer_id == Customer.id
+        ).filter(Customer.cif_number.in_(list_cif_number))
+    ).all()
+
+    return ReposReturn(data=customer_address)
+
+
+async def repos_get_agreement_authorizations(session: Session) -> ReposReturn:
+    agreement_authorizations = session.execute(
+        select(
+            AgreementAuthorization
+        )
+    ).scalars()
+
+    if not agreement_authorizations:
+        return ReposReturn(is_error=True, msg=ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, loc='agreement_authorizations')
+
+    return ReposReturn(data=agreement_authorizations)
 
 
 async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str, session: Session):

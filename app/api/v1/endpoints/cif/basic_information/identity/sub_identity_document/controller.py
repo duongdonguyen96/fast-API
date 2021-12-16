@@ -2,8 +2,9 @@ from typing import List
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.repository import (
-    repos_get_detail_sub_identity, repos_get_list_log,
-    repos_get_sub_identities_and_sub_identity_images, repos_save_sub_identity
+    repos_get_detail_sub_identity,
+    repos_get_sub_identities_and_sub_identity_images,
+    repos_get_sub_identity_log_list, repos_save_sub_identity
 )
 from app.api.v1.endpoints.cif.basic_information.identity.sub_identity_document.schema import (
     SubIdentityDocumentRequest
@@ -18,18 +19,28 @@ from app.utils.functions import generate_uuid, now
 
 class CtrSubIdentityDocument(BaseController):
     async def get_detail_sub_identity(self, cif_id: str):
-
-        detail_data = self.call_repos(
+        detail_datas = self.call_repos(
             await repos_get_detail_sub_identity(
                 cif_id=cif_id,
                 session=self.oracle_session
             )
         )
-        return self.response(data=detail_data)
+        image_uuids = [detail_data['sub_identity_document_image_url'] for detail_data in detail_datas]
+        # gọi đến service file để lấy link download
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
 
-    async def get_list_log(self, cif_id: str):
+        for detail_data in detail_datas:
+            sub_identity_document_image_url = detail_data['sub_identity_document_image_url']
+            detail_data['sub_identity_document_image_url'] = uuid__link_downloads[sub_identity_document_image_url]
+
+        return self.response(data=detail_datas)
+
+    async def get_sub_identity_log_list(self, cif_id: str):
         logs_data = self.call_repos(
-            await repos_get_list_log(cif_id=cif_id)
+            await repos_get_sub_identity_log_list(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
         )
         return self.response(data=logs_data)
 
@@ -73,10 +84,12 @@ class CtrSubIdentityDocument(BaseController):
 
         create_sub_identities = []
         create_sub_identity_images = []
+        create_customer_sub_identity_image_transactions = []
 
         update_sub_identities = []
         update_sub_identity_images = []
         update_sub_identities_ids = []
+        update_customer_sub_identity_image_transactions = []
 
         for sub_identity in sub_identity_request:
             customer_sub_identity = {
@@ -104,6 +117,12 @@ class CtrSubIdentityDocument(BaseController):
                 "updater_id": saved_by,
                 "updater_at": now()
             }
+            customer_sub_identity_image_transaction = {
+                "image_url": customer_sub_identity_image["image_url"],
+                "active_flag": True,
+                "maker_id": saved_by,
+                "maker_at": now()
+            }
 
             # Cập nhật
             if sub_identity.id:
@@ -124,6 +143,9 @@ class CtrSubIdentityDocument(BaseController):
                 customer_sub_identity_image['id'] = old_sub_identity_id__image_ids[sub_identity.id]
                 update_sub_identity_images.append(customer_sub_identity_image)
 
+                customer_sub_identity_image_transaction['identity_image_id'] = customer_sub_identity_image['id']
+                update_customer_sub_identity_image_transactions.append(customer_sub_identity_image_transaction)
+
             # Tạo mới
             else:
                 sub_identity_id = generate_uuid()
@@ -132,7 +154,11 @@ class CtrSubIdentityDocument(BaseController):
                 create_sub_identities.append(customer_sub_identity)
 
                 customer_sub_identity_image['identity_id'] = sub_identity_id
+                customer_sub_identity_image['id'] = generate_uuid()
                 create_sub_identity_images.append(customer_sub_identity_image)
+
+                customer_sub_identity_image_transaction['identity_image_id'] = customer_sub_identity_image['id']
+                create_customer_sub_identity_image_transactions.append(customer_sub_identity_image_transaction)
 
         # những SubIdentity id tồn tại trong hệ thống mà không gửi lên -> xóa
         for old_sub_identity, _ in old_sub_identities_and_sub_identity_images:
@@ -145,8 +171,10 @@ class CtrSubIdentityDocument(BaseController):
                 delete_sub_identity_ids=delete_sub_identity_ids,
                 create_sub_identities=create_sub_identities,
                 create_sub_identity_images=create_sub_identity_images,
+                create_customer_sub_identity_image_transactions=create_customer_sub_identity_image_transactions,
                 update_sub_identities=update_sub_identities,
                 update_sub_identity_images=update_sub_identity_images,
+                update_customer_sub_identity_image_transactions=update_customer_sub_identity_image_transactions,
                 session=self.oracle_session
             )
         )

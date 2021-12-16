@@ -267,9 +267,12 @@ async def repos_get_customers_by_cif_numbers(
     customers = session.execute(
         select(
             Customer
-        ).filter(Customer.cif_number.in_(cif_numbers))
+        ).filter(
+            Customer.cif_number.in_(cif_numbers),
+            Customer.complete_flag == 1
+        )
     ).scalars().all()
-
+    # TODO: Sau này gọi thêm core nếu cif_number không có trong CRM
     if not customers or len(cif_numbers) != len(customers):
         return ReposReturn(
             is_error=True,

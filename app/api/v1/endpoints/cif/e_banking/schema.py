@@ -10,7 +10,11 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 ########################################################################################################################
 # Response
 ########################################################################################################################
-class ContactTypeResponse(DropdownResponse):
+class ContactTypeResponse(BaseSchema):
+    id: str = Field(..., description='Mã loại dữ liệu liên hệ')
+    name: str = Field(..., description='Tên loại liên hệ')
+    group: str = Field(..., description='Nhóm loại liên hệ')
+    description: str = Field(..., description='Mô tả loại  liệu liên hệ')
     checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
@@ -26,8 +30,10 @@ class EBankingNotificationResponse(DropdownResponse):
 
 
 class RegisterBalanceCasa(BaseSchema):
-    id: str = Field(..., description='Mã định danh tài khoản')
-    mobile_number: str = Field(..., description='Số điện thoại')
+    account_id: str = Field(..., description='Số tài khoản')
+    # EBankingRegisterBalance.name (Tên Đăng ký Biến động số dư các loại tài khoản)
+    checking_account_name: str = Field(..., description='Tên tài khoản')
+    primary_phone_number: str = Field(..., description='Số điện thoại')
     full_name_vn: str = Field(..., description='Tên tiếng việt ')
     primary_mobile_number: DropdownResponse = Field(..., description='Loại SĐT')
     notification_casa_relationships: List[NotificationCasaRelationshipResponse] = Field(..., description='Mối quan hê')
@@ -71,8 +77,8 @@ class MethodAuthenticationResponse(DropdownResponse):
 
 
 class NumberResponse(BaseSchema):
-    id: Optional[str] = Field(..., description='Mã tài khoản')
-    name: Optional[str] = Field(..., description='Tài khoản')
+    id: Optional[str] = Field(..., description='Mã tài khoản', nullable=True)
+    name: Optional[str] = Field(..., description='Tài khoản', nullable=True)
 
 
 class PaymentFeeResponse(BaseSchema):
@@ -118,8 +124,8 @@ class EBankingResponse(BaseSchema):
 ################################################################
 class ListBalancePaymentAccountResponse(BaseSchema):
     id: str = Field(..., description='Mã định danh tài khoản thanh toán')
-    name: str = Field(..., description='Số tài khoản thanh toán')
-    product: str = Field(..., description='Tên sản phẩm tài khoản thanh toán')
+    account_number: str = Field(..., description='Số tài khoản thanh toán')
+    product_name: DropdownResponse = Field(..., description='Tên sản phẩm tài khoản thanh toán')
     checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
@@ -250,10 +256,16 @@ class EBankingNotificationRequest(DropdownRequest):
 
 
 class RegisterBalanceCasaRequest(BaseSchema):
-    mobile_number: str = Field(..., description='Số điện thoại')
-    primary_mobile_number: DropdownRequest = Field(..., description='Loại SĐT')
+    account_id: str = Field(..., description='Số tài khoản')
+    # EBankingRegisterBalance.name (Tên Đăng ký Biến động số dư các loại tài khoản)
+    account_name: str = Field(..., description='Tên tài khoản')
+    primary_phone_number: str = Field(..., description='Số điện thoại')
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
-    e_banking_notifications: List[EBankingNotificationRequest] = Field(..., description='Tùy chọn thông báo')
+    e_banking_notifications: List[EBankingNotificationResponse] = Field(
+        ...,
+        min_items=1,
+        description='Tùy chọn hình thức nhận thông báo'
+    )
 
 
 class BalancePaymentAccountRequest(BaseSchema):
@@ -276,8 +288,13 @@ class BalanceSavingAccountRequest(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     customer_contact_types: List[ContactTypeRequest] = Field(..., description='Hình thức nhận thông báo')
     mobile_number: str = Field(..., description='Số điện thoại')
-    range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
-    e_banking_notifications: List[EBankingNotificationRequest] = Field(..., description='Tùy chọn thông báo')
+    """ Tình huống này cũng dùng cho CIF hiện hữu và KH có tk tiền gửi tiết kiệm """
+    # range: TdAccountRequest = Field(..., description='Phạm vi áp dụng')
+    e_banking_notifications: List[EBankingNotificationResponse] = Field(
+        ...,
+        min_items=1,
+        description='Tùy chọn hình thức nhận thông báo'
+    )
 
 
 class ResetPasswordMethodRequest(DropdownRequest):
@@ -289,7 +306,7 @@ class MethodAuthenticationRequest(DropdownRequest):
 
 
 class NumberRequest(BaseSchema):
-    id: Optional[str] = Field(..., description='Mã tài khoản')
+    id: Optional[str] = Field(..., description='Mã tài khoản', nullable=True)
 
 
 class PaymentFeeRequest(DropdownRequest):
@@ -300,8 +317,9 @@ class PaymentFeeRequest(DropdownRequest):
 class AccountInformationRequest(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
-    e_banking_reset_password_methods: List[ResetPasswordMethodRequest] = Field(
-        ..., description='Hình thức nhận mật khẩu kích hoạt'
+    is_confirm_password_by_email: bool = Field(
+        ...,
+        description='Có chọn hình thức nhận mật khẩu kích hoạt bằng email không?'
     )
     method_authentication: List[MethodAuthenticationRequest] = Field(..., description='Hình thức xác thực')
     payment_fee: List[PaymentFeeRequest] = Field(..., description='Thanh toán phí')
@@ -326,7 +344,7 @@ class EBankingRequest(BaseSchema):
 
 class BalanceSavingAccountsResponse(BaseSchema):
     id: str = Field(..., description='Mã định danh tài khoản')
-    number: str = Field(..., description='Số tài khoản')
+    account_number: str = Field(..., description='Số tài khoản')
     name: str = Field(..., description='Tên người sở hữu tài khoản')
     checked_flag: bool = Field(..., description='Trạng thái đăng ký. `False`: Không. `True`: Có')
 

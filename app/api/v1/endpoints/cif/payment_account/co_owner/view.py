@@ -24,7 +24,7 @@ router = APIRouter()
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_create_personal(
+async def view_create_co_owner(
         co_owner: AccountHolderRequest,
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())

@@ -41,10 +41,10 @@ def string_to_datetime(string: str, default=None, _format=DATETIME_INPUT_OUTPUT_
         return default
 
 
-def date_to_string(_date: date, _format=DATE_INPUT_OUTPUT_FORMAT) -> str:
+def date_to_string(_date: date, default='', _format=DATE_INPUT_OUTPUT_FORMAT) -> str:
     if _date:
         return _date.strftime(_format)
-    return ''
+    return default
 
 
 def string_to_date(string: str, default=None, _format=DATE_INPUT_OUTPUT_FORMAT) -> datetime:
@@ -73,6 +73,19 @@ def end_time_of_day(datetime_input: datetime, default=None) -> datetime:
         return datetime_input.replace(hour=23, minute=59, second=59)
     except (ValueError, TypeError):
         return default
+
+
+def date_string_to_other_date_string_format(
+        date_input: str,
+        from_format: str,
+        to_format: str = DATE_INPUT_OUTPUT_FORMAT,
+        default=''
+):
+    _date = string_to_date(date_input, _format=from_format)
+    if not _date:
+        return default
+
+    return date_to_string(_date, _format=to_format, default=default)
 
 
 def generate_uuid() -> str:
@@ -122,3 +135,8 @@ def is_valid_mobile_number(mobile_number: str) -> bool:
     regex = r'0([0-9]{9})$'
     found = re.match(regex, mobile_number)
     return True if found else False
+
+
+def parse_file_uuid(url: str, default='') -> str:
+    matches = re.findall(r'/(\w{32})', url)
+    return matches[0] if matches else default

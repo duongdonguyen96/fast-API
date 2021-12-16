@@ -1,11 +1,12 @@
 from typing import List
 
-from sqlalchemy import and_, delete, select
+from sqlalchemy import and_, delete, desc, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerIdentityImage, CustomerSubIdentity
+    CustomerIdentityImage, CustomerIdentityImageTransaction,
+    CustomerSubIdentity
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -13,9 +14,8 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
-from app.utils.constant.cif import CIF_ID_TEST, IMAGE_TYPE_CODE_SUB_IDENTITY
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown
+from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
+from app.utils.functions import date_to_string, dropdown
 
 SUB_IDENTITY_INFO = [
     {
@@ -119,8 +119,10 @@ async def repos_save_sub_identity(
         delete_sub_identity_ids: List,
         create_sub_identities: List,
         create_sub_identity_images: List,
+        create_customer_sub_identity_image_transactions: List,
         update_sub_identities: List,
         update_sub_identity_images: List,
+        update_customer_sub_identity_image_transactions: List,
         session: Session
 ):
 
@@ -136,23 +138,63 @@ async def repos_save_sub_identity(
 
     session.bulk_save_objects([CustomerIdentityImage(**create_sub_identity_image)
                                for create_sub_identity_image in create_sub_identity_images])
-    # TODO: lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi tạo mới
+    # lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi tạo mới
+    session.bulk_save_objects([CustomerIdentityImageTransaction(**customer_identity_image_transaction)
+                              for customer_identity_image_transaction in create_customer_sub_identity_image_transactions])
 
     # Cập nhật
     session.bulk_update_mappings(CustomerSubIdentity, update_sub_identities)
     session.bulk_update_mappings(CustomerIdentityImage, update_sub_identity_images)
-    # TODO: lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi cập nhật
+    # lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi cập nhật
+    session.bulk_save_objects([CustomerIdentityImageTransaction(**customer_identity_image_transaction)
+                               for customer_identity_image_transaction in update_customer_sub_identity_image_transactions])
 
     return ReposReturn(data={
         "cif_id": customer.id
     })
 
 
-async def repos_get_list_log(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_get_sub_identity_log_list(
+        cif_id: str,
+        session: Session
+) -> ReposReturn:
 
-    return ReposReturn(data=SUB_IDENTITY_LOGS_INFO)
+    sub_identity_image_transactions = session.execute(
+        select(
+            CustomerIdentityImageTransaction,
+        )
+        .join(CustomerIdentityImage, CustomerIdentityImageTransaction.identity_image_id == CustomerIdentityImage.id)
+        .join(CustomerSubIdentity, and_(
+            CustomerIdentityImage.identity_id == CustomerSubIdentity.id,
+            CustomerSubIdentity.customer_id == cif_id
+        ))
+        .order_by(desc(CustomerIdentityImageTransaction.maker_at))
+    ).scalars().all()
+
+    sub_identity_log_infos = []
+
+    if not sub_identity_image_transactions:
+        return ReposReturn(data=sub_identity_log_infos)
+
+    date__sub_identity_images = {}
+
+    for sub_identity_image_transaction in sub_identity_image_transactions:
+        maker_at = date_to_string(sub_identity_image_transaction.maker_at)
+
+        if maker_at not in date__sub_identity_images.keys():
+            date__sub_identity_images[maker_at] = []
+
+        date__sub_identity_images[maker_at].append({
+            "image_url": sub_identity_image_transaction.image_url
+        })
+
+    sub_identity_log_infos = [{
+        "reference_flag": True if index == 0 else False,
+        "created_date": created_date,
+        "identity_images": identity_images
+    } for index, (created_date, identity_images) in enumerate(date__sub_identity_images.items())]
+
+    return ReposReturn(data=sub_identity_log_infos)
 
 
 ########################################################################################################################

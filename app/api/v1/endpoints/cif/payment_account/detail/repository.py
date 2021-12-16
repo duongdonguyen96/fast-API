@@ -1,47 +1,20 @@
-from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.payment_account.detail.schema import (
-    SavePaymentAccountRequest
-)
-from app.utils.constant.cif import CIF_ID_TEST
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import now
+import json
 
-REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
-    "self_selected_account_flag": True,
-    "currency": {
-        "id": "1",
-        "code": "VND",
-        "name": "Việt Nam Đồng"
-    },
-    "account_type": {
-        "id": "1",
-        "code": "LOCPHAT",
-        "name": "Lộc Phát"
-    },
-    "account_class": {
-        "id": "1",
-        "code": "LOAIHINH1",
-        "name": "Loại Hình 1"
-    },
-    "account_structure_type_level_1": {
-        "id": "1",
-        "code": "LEVEL1",
-        "name": "11 số"
-    },
-    "account_structure_type_level_2": {
-        "id": "2",
-        "code": "LEVEL2",
-        "name": "Lộc Phát"
-    },
-    "account_structure_type_level_3": {
-        "id": "3",
-        "code": "LEVEL3",
-        "name": "6868"
-    },
-    "casa_account_number": "XXXXXXXX6868",
-    "account_salary_organization_account": "13245678912",
-    "account_salary_organization_name": "Công ty ABC"
-}
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    CasaAccount
+)
+from app.third_parties.oracle.models.master_data.account import (
+    AccountClass, AccountType
+)
+from app.third_parties.oracle.models.master_data.others import Currency
+from app.utils.functions import dropdown, now
 
 NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
     "self_selected_account_flag": False,
@@ -81,20 +54,70 @@ NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
 }
 
 
-async def repos_detail_payment_account(cif_id: str):
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposReturn:
+    details = session.execute(
+        select(
+            CasaAccount,
+            Currency,
+            AccountClass,
+            AccountType
 
-    return ReposReturn(data=NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL)
+        ).join(
+            Currency,
+            CasaAccount.currency_id == Currency.id)
+        .join(
+            AccountClass,
+            CasaAccount.acc_class_id == AccountClass.id)
+        .join(
+            AccountType,
+            CasaAccount.acc_type_id == AccountType.id)
+        .filter(
+            CasaAccount.customer_id == cif_id
+        )
+    ).first()
+
+    return ReposReturn(data={
+        "self_selected_account_flag": details.CasaAccount.self_selected_account_flag,
+        "currency": dropdown(details.Currency),
+        "account_type": dropdown(details.AccountType),
+        "account_class": dropdown(details.AccountClass),
+        "account_structure_type_level_1": {
+            "id": None,
+            "code": None,
+            "name": None
+        },
+        "account_structure_type_level_2": {
+            "id": None,
+            "code": None,
+            "name": None
+        },
+        "account_structure_type_level_3": {
+            "id": None,
+            "code": None,
+            "name": None
+        },
+        "casa_account_number": details.CasaAccount.case_account_number,
+        "account_salary_organization_account": details.CasaAccount.acc_salary_org_acc,
+        "account_salary_organization_name": details.CasaAccount.acc_salary_org_name
+
+    })
 
 
+@auto_commit
 async def repos_save_payment_account(
         cif_id: str,
-        payment_account_save_request: SavePaymentAccountRequest,
-        created_by
+        data_insert: dict,
+        log_data: json,
+        created_by: str,
+        session: Session,
 ):
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    session.add(CasaAccount(**data_insert))
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
 
     return ReposReturn(data={
         "cif_id": cif_id,

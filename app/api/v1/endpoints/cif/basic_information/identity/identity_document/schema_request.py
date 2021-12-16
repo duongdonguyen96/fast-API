@@ -35,7 +35,7 @@ class CifInformationRequest(BaseSchema):
     self_selected_cif_flag: bool = Field(..., description='Cờ CIF thông thường/ tự chọn. '
                                                           '`False`: thông thường. '
                                                           '`True`: tự chọn')
-    cif_number: Optional[str] = Field(..., description='Số CIF yêu cầu')
+    cif_number: Optional[str] = Field(..., description='Số CIF yêu cầu', nullable=True)
     customer_classification: DropdownRequest = Field(..., description='Đối tượng khách hàng')
     customer_economic_profession: DropdownRequest = Field(..., description='Mã ngành KT')
 
@@ -167,3 +167,11 @@ class PassportSaveRequest(BaseSchema):
     identity_document_type: DropdownRequest = Field(..., description="Loại giấy tờ định danh")
     passport_information: InformationPassportRequest = Field(..., description="Thông tin hộ chiếu")
     ocr_result: OCRResultPassportRequest = Field(..., description="Phân tích OCR")
+
+
+########################################################################################################################
+# Others
+########################################################################################################################
+# So sánh khuôn mặt
+class FaceCompareRequest(BaseSchema):
+    face_image_url: str = Field(..., description="URL hình ảnh khuôn mặt đối chiếu")
