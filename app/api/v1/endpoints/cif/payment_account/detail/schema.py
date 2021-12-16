@@ -4,7 +4,7 @@ from pydantic import Field
 
 from app.api.base.schema import BaseSchema
 from app.api.v1.schemas.utils import (
-    DropdownRequest, DropdownResponse, OpionalDropdownRequest,
+    DropdownRequest, DropdownResponse, OptionalDropdownRequest,
     OptionalDropdownResponse
 )
 
@@ -29,7 +29,6 @@ class PaymentAccountResponse(BaseSchema):
     account_salary_organization_name: Optional[str] = Field(..., description="Chủ tài khoản chi lương", nullable=True)
 
 
-
 ########################################################################################################################
 # Request Body
 ########################################################################################################################
@@ -41,9 +40,9 @@ class SavePaymentAccountRequest(BaseSchema):
     currency: DropdownRequest = Field(..., description="Loại tiền")
     account_type: DropdownRequest = Field(..., description="Gói tài khoản")
     account_class: DropdownRequest = Field(..., description="Loại hình tài khoản")
-    account_structure_type_level_1: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 1")
-    account_structure_type_level_2: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 2")
-    account_structure_type_level_3: OpionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 3")
+    account_structure_type_level_1: OptionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 1")
+    account_structure_type_level_2: OptionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 2")
+    account_structure_type_level_3: OptionalDropdownRequest = Field(None, description="Kiểu kiến trúc cấp 3")
     casa_account_number: str = Field(None, description="""Số tài khoản
                                                 \n`self_selected_account_flag`=`True` => Bắt buộc truyền lên
                                                 \n`self_selected_account_flag`=`True` => Không bắt buộc truyền lên""")
