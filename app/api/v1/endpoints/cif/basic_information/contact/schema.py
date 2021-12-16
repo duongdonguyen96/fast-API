@@ -4,7 +4,7 @@ from pydantic import Field
 
 from app.api.base.schema import BaseSchema
 from app.api.v1.schemas.utils import (
-    DropdownResponse, OpionalDropdownRequest, OptionalDropdownResponse
+    DropdownResponse, OptionalDropdownRequest, OptionalDropdownResponse
 )
 
 
@@ -16,16 +16,16 @@ class DomesticAddressResponse(BaseSchema):
     province: OptionalDropdownResponse = Field(..., description="Tỉnh/Thành phố")
     district: OptionalDropdownResponse = Field(..., description="Quận/Huyện")
     ward: OptionalDropdownResponse = Field(..., description="Phường/Xã")
-    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường", nullable=True)
+    number_and_street: str = Field(..., min_length=1, description="Số nhà, tên đường", nullable=True)
 
 
 class ForeignAddressResponse(BaseSchema):
     country: OptionalDropdownResponse = Field(..., description="Quốc gia/Khu vực")
-    address_1: Optional[str] = Field(..., description="Địa chỉ 1", nullable=True)
-    address_2: Optional[str] = Field(..., description="Địa chỉ 2", nullable=True)
+    address_1: str = Field(..., min_length=1, description="Địa chỉ 1", nullable=True)
+    address_2: str = Field(..., min_length=1, description="Địa chỉ 2", nullable=True)
     province: OptionalDropdownResponse = Field(..., description="Thành phố")
     state: OptionalDropdownResponse = Field(..., description="Tỉnh/Bang")
-    zip_code: Optional[str] = Field(..., description="Mã bưu chính", nullable=True)
+    zip_code: str = Field(..., min_length=1, description="Mã bưu chính", nullable=True)
 
 
 class ResidentAddressResponse(BaseSchema):
@@ -64,20 +64,20 @@ class ContactInformationDetailResponse(BaseSchema):
 # Request Body
 ########################################################################################################################
 class DomesticAddressRequest(BaseSchema):
-    country: OpionalDropdownRequest = Field(..., description="Quốc gia")
-    province: OpionalDropdownRequest = Field(..., description="Tỉnh/Thành phố")
-    district: OpionalDropdownRequest = Field(..., description="Quận/Huyện")
-    ward: OpionalDropdownRequest = Field(..., description="Phường/Xã")
-    number_and_street: Optional[str] = Field(..., description="Số nhà, tên đường", nullable=True)
+    country: OptionalDropdownRequest = Field(..., description="Quốc gia")
+    province: OptionalDropdownRequest = Field(..., description="Tỉnh/Thành phố")
+    district: OptionalDropdownRequest = Field(..., description="Quận/Huyện")
+    ward: OptionalDropdownRequest = Field(..., description="Phường/Xã")
+    number_and_street: str = Field(..., min_length=1, description="Số nhà, tên đường", nullable=True)
 
 
 class ForeignAddressRequest(BaseSchema):
-    country: OpionalDropdownRequest = Field(..., description="Quốc gia/Khu vực")
-    address_1: Optional[str] = Field(..., description="Địa chỉ 1", nullable=True)
-    address_2: Optional[str] = Field(..., description="Địa chỉ 2", nullable=True)
-    province: OpionalDropdownRequest = Field(..., description="Thành phố")
-    state: OpionalDropdownRequest = Field(..., description="Tỉnh/Bang")
-    zip_code: Optional[str] = Field(..., description="Mã bưu chính", nullable=True)
+    country: OptionalDropdownRequest = Field(..., description="Quốc gia/Khu vực")
+    address_1: str = Field(..., min_length=1, description="Địa chỉ 1", nullable=True)
+    address_2: str = Field(..., min_length=1, description="Địa chỉ 2", nullable=True)
+    province: OptionalDropdownRequest = Field(..., description="Thành phố")
+    state: OptionalDropdownRequest = Field(..., description="Tỉnh/Bang")
+    zip_code: str = Field(..., min_length=1, description="Mã bưu chính", nullable=True)
 
 
 class ResidentAddressContactInformationRequest(BaseSchema):
@@ -89,13 +89,13 @@ class ResidentAddressContactInformationRequest(BaseSchema):
 
 
 class ContactAddressRequest(DomesticAddressRequest):
-    country: OpionalDropdownRequest = Field(None, description="Quốc gia")
+    country: OptionalDropdownRequest = Field(None, description="Quốc gia")
 
 
 class CareerInformationContactInformationRequest(CareerInformationContactInformationResponse):
-    career: OpionalDropdownRequest = Field(..., description="Nghề nghiệp")
-    average_income_amount: OpionalDropdownRequest = Field(..., description="Nghề nghiệp")
-    company_position: OpionalDropdownRequest = Field(None, description="Chức vụ")
+    career: OptionalDropdownRequest = Field(..., description="Nghề nghiệp")
+    average_income_amount: OptionalDropdownRequest = Field(..., description="Nghề nghiệp")
+    company_position: OptionalDropdownRequest = Field(None, description="Chức vụ")
 
 
 class ContactInformationSaveRequest(BaseSchema):

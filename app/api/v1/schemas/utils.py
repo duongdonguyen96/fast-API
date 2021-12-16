@@ -6,27 +6,27 @@ from app.api.base.schema import BaseSchema
 
 
 class DropdownResponse(BaseSchema):
-    id: str = Field(..., description='`Chuỗi định danh`')
-    code: str = Field(..., description='`Mã`')
-    name: str = Field(..., description='`Tên`')
+    id: str = Field(..., min_length=1, description='`Chuỗi định danh`')
+    code: str = Field(..., min_length=1, description='`Mã`')
+    name: str = Field(..., min_length=1, description='`Tên`')
 
 
 class OptionalDropdownResponse(BaseSchema):
-    id: Optional[str] = Field(..., description='`Chuỗi định danh`', nullable=True)
-    code: Optional[str] = Field(..., description='`Mã`', nullable=True)
-    name: Optional[str] = Field(..., description='`Tên`', nullable=True)
+    id: Optional[str] = Field(..., min_length=1, description='`Chuỗi định danh`', nullable=True)
+    code: Optional[str] = Field(..., min_length=1, description='`Mã`', nullable=True)
+    name: Optional[str] = Field(..., min_length=1, description='`Tên`', nullable=True)
 
 
 class DropdownRequest(BaseSchema):
-    id: str = Field(..., description='`Chuỗi định danh`')
+    id: str = Field(..., min_length=1, description='`Chuỗi định danh`')
 
 
-class OpionalDropdownRequest(BaseSchema):
-    id: Optional[str] = Field(..., description='`Chuỗi định danh`', nullable=True)
+class OptionalDropdownRequest(BaseSchema):
+    id: Optional[str] = Field(..., min_length=1, description='`Chuỗi định danh`', nullable=True)
 
 
 ########################################################################################################################
 # Response save
 ########################################################################################################################
 class SaveSuccessResponse(BaseSchema):
-    cif_id: str = Field(..., description='Id CIF ảo')
+    cif_id: str = Field(..., min_length=1, description='Id CIF ảo')
