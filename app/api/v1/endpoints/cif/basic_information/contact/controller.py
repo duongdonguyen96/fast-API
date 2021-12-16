@@ -6,7 +6,9 @@ from app.api.v1.endpoints.cif.basic_information.contact.repository import (
 from app.api.v1.endpoints.cif.basic_information.contact.schema import (
     ContactInformationSaveRequest
 )
-from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
+from app.api.v1.endpoints.cif.repository import (
+    repos_get_customer_identity, repos_get_initializing_customer
+)
 from app.third_parties.oracle.models.master_data.address import (
     AddressCountry, AddressDistrict, AddressProvince, AddressWard
 )
