@@ -27,14 +27,11 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, PlaceOfIssue
 )
-from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE, IMAGE_TYPE_CODE_SIGNATURE,
-    RESIDENT_ADDRESS_CODE
-)
+from app.utils.constant.cif import CIF_ID_TEST, IMAGE_TYPE_CODE_SIGNATURE
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST
 )
-from app.utils.functions import dropdown, now
+from app.utils.functions import now
 
 
 async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, created_by: str) -> ReposReturn:
@@ -49,7 +46,6 @@ async def repos_save_co_owner(cif_id: str, co_owner: AccountHolderRequest, creat
 
 
 async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
-
     return ReposReturn(data={
         "joint_account_holder_flag": True,
         "number_of_joint_account_holder": 3,
@@ -151,16 +147,19 @@ async def repos_get_co_owner_data(cif_id: str, session: Session) -> ReposReturn:
 
 
 async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str, session: Session):
-    customer = session.execute(
+    detail_co_owner = session.execute(
         select(
             Customer,
             CustomerIdentity,
             CustomerIndividualInfo,
             CustomerIdentityImage,
             AddressCountry,
+            CustomerAddress,
             CustomerGender,
             PlaceOfIssue,
-            CustomerIdentityType
+            CustomerIdentityType,
+            CustomerPersonalRelationship,
+            CustomerRelationshipType
         ).join(
             CustomerIdentity, CustomerIdentity.customer_id == Customer.id
         ).join(
@@ -177,86 +176,19 @@ async def repos_detail_co_owner(cif_id: str, cif_number_need_to_find: str, sessi
         ).join(
             PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id
         ).join(
-            CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id
-        ).filter(Customer.cif_number == cif_number_need_to_find)
-    ).all()
-
-    if not customer:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc='cif_number')
-
-    relationship = session.execute(
-        select(
-            CustomerRelationshipType
-        ).join(
             CustomerPersonalRelationship,
-            CustomerPersonalRelationship.customer_relationship_type_id == CustomerRelationshipType.id
-        ).filter(
             CustomerPersonalRelationship.customer_personal_relationship_cif_number == cif_number_need_to_find
-        )
-    ).scalar()
-
-    customer_address = session.execute(
-        select(
-            Customer,
-            CustomerAddress
+        ).join(
+            CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id
+        ).join(
+            CustomerRelationshipType,
+            CustomerPersonalRelationship.customer_relationship_type_id == CustomerRelationshipType.id
         ).join(
             CustomerAddress, CustomerAddress.customer_id == Customer.id
         ).filter(Customer.cif_number == cif_number_need_to_find)
     ).all()
 
-    if not customer_address:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc='cif_number')
+    if not detail_co_owner:
+        return detail_co_owner(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc='cif_number')
 
-    resident_address = None
-    contact_address = None
-
-    for row in customer_address:
-        if row.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE:
-            resident_address = row.CustomerAddress.address
-        if row.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
-            contact_address = row.CustomerAddress.address
-
-    first_row = customer[0]
-
-    response_data = {
-        "id": first_row.Customer.id,
-        "basic_information": {},
-        "identity_document": {},
-        "address_information": {
-            'contact_address': contact_address,
-            'resident_address': resident_address
-        }
-    }
-    customer__signature = {}
-    for signature in customer:
-        if signature.Customer.id not in customer__signature:
-            customer__signature[signature.Customer.id] = []
-        customer__signature[signature.Customer.id].append({
-            'id': signature.CustomerIdentityImage.id,
-            'image_url': signature.CustomerIdentityImage.image_url
-        })
-
-    signature = None
-    for customer_signature in customer__signature.values():
-        signature = customer_signature
-
-    response_data['basic_information'].update(**{
-        "full_name_vn": first_row.Customer.full_name_vn,
-        "cif_number": first_row.Customer.cif_number,
-        "date_of_birth": first_row.CustomerIndividualInfo.date_of_birth,
-        "customer_relationship": dropdown(relationship),
-        "nationality": dropdown(first_row.AddressCountry),
-        "gender": dropdown(first_row.CustomerGender),
-        "mobile_number": first_row.Customer.mobile_number,
-        "signature": signature
-    })
-
-    response_data['identity_document'].update(**{
-        "identity_number": first_row.CustomerIdentity.identity_num,
-        "identity_type": dropdown(first_row.CustomerIdentityType),
-        "issued_date": first_row.CustomerIdentity.issued_date,
-        "expired_date": first_row.CustomerIdentity.expired_date,
-        "place_of_issue": dropdown(first_row.PlaceOfIssue)
-    })
-
-    return ReposReturn(data=response_data)
+    return ReposReturn(data=detail_co_owner)
