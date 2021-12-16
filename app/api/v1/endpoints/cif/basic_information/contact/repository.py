@@ -26,7 +26,12 @@ from app.utils.constant.cif import CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
 from app.utils.functions import dropdown
 
 
-async def repos_get_detail_contact_information(cif_id: str, session: Session) -> ReposReturn:
+async def repos_get_detail_contact_information(
+        cif_id: str,
+        resident_address_active_flag: bool,
+        contact_address_active_flag: bool,
+        session: Session
+) -> ReposReturn:
     customer_addresses = session.execute(
         select(
             CustomerAddress,
@@ -44,6 +49,7 @@ async def repos_get_detail_contact_information(cif_id: str, session: Session) ->
         .join(AddressCountry, CustomerAddress.address_country_id == AddressCountry.id)
         .join(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
         .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
+        # Địa chỉ thường trú trường hợp địa chỉ nước ngoài không có AddressWard
         .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
         .join(Career, CustomerProfessional.career_id == Career.id)
         .join(AverageIncomeAmount, CustomerProfessional.average_income_amount_id == AverageIncomeAmount.id)
@@ -54,47 +60,49 @@ async def repos_get_detail_contact_information(cif_id: str, session: Session) ->
     ).all()
 
     domestic_contact_information_detail = {
-        "resident_address": {}
+        "resident_address_active_flag": resident_address_active_flag,
+        "resident_address": None,
+        "contact_address_active_flag": contact_address_active_flag,
+        "contact_address": None
     }
-    for customer_address, address_country, address_province, address_district, address_ward, \
-            _, _, _, _ in customer_addresses:
+    if resident_address_active_flag and contact_address_active_flag:
+        for customer_address, address_country, address_province, address_district, address_ward, \
+                _, _, _, _ in customer_addresses:
 
-        if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
-            if customer_address.address_domestic_flag:
-                domestic_contact_information_detail["resident_address"].update({
-                    "domestic_address": {
-                        "country": dropdown(address_country),
-                        "province": dropdown(address_province),
-                        "district": dropdown(address_district),
-                        "ward": dropdown(address_ward),
-                        "number_and_street": customer_address.address
-                    },
-                    "foreign_address": None
-                })
-            else:
-                domestic_contact_information_detail["resident_address"].update({
-                    "domestic_address": None,
-                    "foreign_address": {
-                        "country": dropdown(address_country),
-                        "address_1": customer_address.address,
-                        "address_2": customer_address.address_2,
-                        "province": dropdown(address_province),
-                        "state": dropdown(address_district),
-                        "zip_code": customer_address.zip_code
+            common_address = dict(
+                country=dropdown(address_country),
+                province=dropdown(address_province)
+            )
+            if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
+                if customer_address.address_domestic_flag:
+                    domestic_contact_information_detail["resident_address"] = {
+                        "domestic_address": common_address.update(
+                            district=dropdown(address_district),
+                            ward=dropdown(address_ward),
+                            number_and_street=customer_address.address
+                        ),
+                        "foreign_address": None
                     }
+                else:
+                    domestic_contact_information_detail["resident_address"] = {
+                        "domestic_address": None,
+                        "foreign_address": common_address.update(
+                            address_1=customer_address.address,
+                            address_2=customer_address.address_2,
+                            state=dropdown(address_district),
+                            zip_code=customer_address.zip_code
+                        )
+                    }
+                domestic_contact_information_detail["resident_address"].update({
+                    "domestic_flag": customer_address.address_domestic_flag
                 })
-            domestic_contact_information_detail["resident_address"].update({
-                "domestic_flag": customer_address.address_domestic_flag
-            })
 
-        if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
-            domestic_contact_information_detail["contact_address"] = {
-                "country": dropdown(address_country),
-                "province": dropdown(address_province),
-                "district": dropdown(address_district),
-                "ward": dropdown(address_ward),
-                "number_and_street": customer_address.address
-            }
+            if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
+                domestic_contact_information_detail["contact_address"] = common_address.update(
+                    district=dropdown(address_district),
+                    ward=dropdown(address_ward),
+                    number_and_street=customer_address.address
+                )
 
     _, _, _, _, _, customer_professional, career, average_income_amount, company_position = customer_addresses[0]
 

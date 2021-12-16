@@ -22,10 +22,21 @@ from app.utils.functions import generate_uuid
 
 class CtrContactInformation(BaseController):
     async def detail_contact_information(self, cif_id: str):
+        resident_address_active_flag = False
+        contact_address_active_flag = False
+        last_customer_identity = self.call_repos(await repos_get_customer_identity(
+            cif_id=cif_id,
+            session=self.oracle_session
+        ))
+        if last_customer_identity.identity_type_id == IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            resident_address_active_flag = True
+            contact_address_active_flag = True
 
         contact_information_detail_data = self.call_repos(
             await repos_get_detail_contact_information(
                 cif_id=cif_id,
+                resident_address_active_flag=resident_address_active_flag,
+                contact_address_active_flag=contact_address_active_flag,
                 session=self.oracle_session
             )
         )

@@ -10,7 +10,11 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 ########################################################################################################################
 # Response
 ########################################################################################################################
-class ContactTypeResponse(DropdownResponse):
+class ContactTypeResponse(BaseSchema):
+    id: str = Field(..., description='Mã loại dữ liệu liên hệ')
+    name: str = Field(..., description='Tên loại liên hệ')
+    group: str = Field(..., description='Nhóm loại liên hệ')
+    description: str = Field(..., description='Mô tả loại  liệu liên hệ')
     checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
@@ -26,8 +30,10 @@ class EBankingNotificationResponse(DropdownResponse):
 
 
 class RegisterBalanceCasa(BaseSchema):
-    id: str = Field(..., description='Mã định danh tài khoản')
-    mobile_number: str = Field(..., description='Số điện thoại')
+    account_id: str = Field(..., description='Số tài khoản')
+    # EBankingRegisterBalance.name (Tên Đăng ký Biến động số dư các loại tài khoản)
+    checking_account_name: str = Field(..., description='Tên tài khoản')
+    primary_phone_number: str = Field(..., description='Số điện thoại')
     full_name_vn: str = Field(..., description='Tên tiếng việt ')
     primary_mobile_number: DropdownResponse = Field(..., description='Loại SĐT')
     notification_casa_relationships: List[NotificationCasaRelationshipResponse] = Field(..., description='Mối quan hê')

@@ -24,8 +24,9 @@ from app.third_parties.oracle.models.master_data.others import (
     MethodAuthentication
 )
 from app.utils.constant.cif import (
-    EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
-    EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
+    EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACCOUNT_TYPE_SAVING,
+    EBANKING_ACTIVE_PASSWORD_EMAIL, EBANKING_ACTIVE_PASSWORD_SMS,
+    EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
 )
 from app.utils.functions import generate_uuid, now
 
@@ -114,35 +115,14 @@ class CtrEBanking(BaseController):
                 # lưu I -> 2 -> c Tùy chọn thông báo
                 insert_data.extend([
                     EBankingRegisterBalanceNotification(
-                        customer_id=cif_id,
-                        e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
                         eb_notify_id=notification.id,
+                        eb_reg_balance_id=eb_reg_balance_id
                     ) for notification in register_balance_casa.e_banking_notifications if notification.checked_flag
                 ])
 
         # Thêm dữ liệu cho mục II. Thông tin biến động tài khoản tiết kiệm
         change_of_balance_saving_account = e_banking.change_of_balance_saving_account
         if change_of_balance_saving_account.register_flag:
-            contact_types = await self.get_model_objects_by_ids(
-                model=CustomerContactType,
-                model_ids=[contact_type.id for contact_type in change_of_balance_payment_account.customer_contact_types
-                           if contact_type.checked_flag],
-                loc="change_of_balance_saving_account -> customer_contact_types"
-            )
-
-            # lưu II -> 1 Loại thông báo biến động số
-            insert_data.extend([EBankingRegisterBalanceOption(
-                customer_id=cif_id,
-                e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
-                customer_contact_type_id=contact_type.id,
-                created_at=now()
-            ) for contact_type in contact_types])
-
-            # lưu II -> 3
-            # insert_data.extend([EBankingRegisterBalance(
-            #     account_id=td_account.id,
-            #     customer_id=cif_id,
-            # ) for td_account in change_of_balance_saving_account.range.td_accounts if td_account.checked_flag])
 
             # kiểm tra tùy chọn thông báo ở mục II có tồn tại hay không ?
             await self.get_model_objects_by_ids(
@@ -154,13 +134,38 @@ class CtrEBanking(BaseController):
                 loc="change_of_balance_saving_account -> e_banking_notifications"
             )
 
-            # lưu II -> 4 Tùy chọn thông báo
-            insert_data.extend([EBankingRegisterBalanceNotification(
+            contact_types = await self.get_model_objects_by_ids(
+                model=CustomerContactType,
+                model_ids=[contact_type.id for contact_type in change_of_balance_payment_account.customer_contact_types
+                           if contact_type.checked_flag],
+                loc="change_of_balance_saving_account -> customer_contact_types"
+            )
+
+            # lưu II -> 1 Loại thông báo biến động số dự tài khoản tiết kiệm
+            insert_data.extend([EBankingRegisterBalanceOption(
                 customer_id=cif_id,
-                e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
-                eb_notify_id=notification.id,
-            ) for notification in change_of_balance_saving_account.e_banking_notifications if
-                notification.checked_flag])
+                e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_SAVING,
+                customer_contact_type_id=contact_type.id,
+                created_at=now()
+            ) for contact_type in contact_types])
+
+            # lưu II -> 3
+            for td_account in change_of_balance_saving_account.range.td_accounts:
+                if td_account.checked_flag:
+                    eb_reg_balance_id = generate_uuid()
+                    insert_data.append(EBankingRegisterBalance(
+                        id=eb_reg_balance_id,
+
+                        account_id=td_account.id,
+                        customer_id=cif_id,
+                    ))
+
+                    # lưu II -> 4 Tùy chọn thông báo
+                    insert_data.extend([EBankingRegisterBalanceNotification(
+                        eb_reg_balance_id=eb_reg_balance_id,
+                        eb_notify_id=notification.id,
+                    ) for notification in change_of_balance_saving_account.e_banking_notifications if
+                        notification.checked_flag])
 
         # Thêm dữ liệu cho mục III. Thông tin e-banking
         # Thông tin tài khoản
@@ -216,7 +221,11 @@ class CtrEBanking(BaseController):
         return self.response(data=e_banking_data)
 
     async def ctr_e_banking(self, cif_id: str):
-        e_banking_data = self.call_repos(await repos_get_e_banking_data(cif_id))
+        e_banking_data = self.call_repos(
+            await repos_get_e_banking_data(
+                cif_id=cif_id,
+                session=self.oracle_session
+            ))
 
         return self.response(data=e_banking_data)
 
