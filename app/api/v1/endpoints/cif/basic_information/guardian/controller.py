@@ -2,20 +2,20 @@ from typing import List
 
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.guardian.repository import (
-    repos_get_guardians, repos_save_guardians
+    repos_get_guardians, repos_get_guardians_by_cif_numbers,
+    repos_save_guardians
 )
 from app.api.v1.endpoints.cif.basic_information.guardian.schema import (
     SaveGuardianRequest
 )
-from app.api.v1.endpoints.cif.repository import (
-    repos_get_customers_by_cif_numbers, repos_get_initializing_customer
-)
+from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerRelationshipType
 )
 from app.utils.constant.cif import CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 from app.utils.error_messages import (
-    ERROR_CIF_NUMBER_DUPLICATED, ERROR_RELATION_CUSTOMER_SELF_RELATED
+    ERROR_CIF_NUMBER_DUPLICATED, ERROR_RELATION_CUSTOMER_SELF_RELATED,
+    ERROR_RELATIONSHIP_NOT_GUARDIAN
 )
 
 
@@ -39,10 +39,14 @@ class CtrGuardian(BaseController):
                 session=self.oracle_session
             ))
 
-        guardian_cif_numbers, relationship_types = [], set()
+        guardian_cif_numbers, log_data, relationship_types = [], [], set()
         for guardian in guardian_save_request:
             guardian_cif_numbers.append(guardian.cif_number),
+            # lấy danh sách các loại mối quan hệ để kiểm tra,
+            # xài set để hàm check không bị lỗi khi số lượng không giống nhau
             relationship_types.add(guardian.customer_relationship.id)
+            # parse về json để ghi log
+            log_data.append(guardian.json())
 
         # check duplicate cif_number in request body
         if len(guardian_cif_numbers) != len(set(guardian_cif_numbers)):
@@ -58,9 +62,9 @@ class CtrGuardian(BaseController):
                 loc="cif_number",
             )
 
-        # check cif_number exist and get guardian's
+        # check guardian's existence
         guardians = self.call_repos(
-            await repos_get_customers_by_cif_numbers(
+            await repos_get_guardians_by_cif_numbers(
                 cif_numbers=guardian_cif_numbers,
                 session=self.oracle_session
             )
@@ -74,8 +78,15 @@ class CtrGuardian(BaseController):
         )
 
         guardians_cif_number__id = {}
-        for guardian in guardians:
-            guardians_cif_number__id[guardian.cif_number] = guardian.id
+        for index, guardian in enumerate(guardians):
+            guardians_cif_number__id[guardian.Customer.cif_number] = guardian.Customer.id
+            # Đảm bảo người giám hộ không có người giám hộ
+            if guardian.has_guardian:
+                return self.response_exception(
+                    msg=ERROR_RELATIONSHIP_NOT_GUARDIAN,
+                    loc=f"{index} -> cif_number",
+                )
+
         list_data_insert = [{
             "customer_id": cif_id,
             "customer_relationship_type_id": guardian.customer_relationship.id,
@@ -89,7 +100,8 @@ class CtrGuardian(BaseController):
                 cif_id=cif_id,
                 list_data_insert=list_data_insert,
                 created_by=self.current_user.full_name_vn,
-                session=self.oracle_session
+                session=self.oracle_session,
+                log_data=log_data
             ))
 
         return self.response(data=save_guardian_info)

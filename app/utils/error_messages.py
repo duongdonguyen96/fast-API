@@ -37,6 +37,7 @@ ERROR_PHONE_NUMBER = "ERROR_PHONE_NUMBER"
 ERROR_RELATION_CUSTOMER_SELF_RELATED = "ERROR_CUSTOMER_SELF_RELATED"
 ERROR_RELATIONSHIP_EXIST = "ERROR_RELATION_EXIST"
 ERROR_RELATIONSHIP_TYPE_ID_NOT_EXIST = "ERROR_RELATIONSHIP_TYPE_ID_NOT_EXIST"
+ERROR_RELATIONSHIP_NOT_GUARDIAN = "ERROR_RELATIONSHIP_NOT_GUARDIAN"
 
 MESSAGE_STATUS = {
     # general error
@@ -72,6 +73,7 @@ MESSAGE_STATUS = {
     ERROR_RELATIONSHIP_TYPE_ID_NOT_EXIST: "Relationship type does not exist",
     ERROR_RELATION_CUSTOMER_SELF_RELATED: "Customer can not relate to himself/herself",
     ERROR_RELATIONSHIP_EXIST: "guardian/customer relationship existed",
+    ERROR_RELATIONSHIP_NOT_GUARDIAN: "Can not be guardian, because cif_number has guardian(s)",
     ERROR_CASA_ACCOUNT_NOT_EXIST: "casa_account not exist",
     ERROR_CUSTOMER_INDIVIDUAL_INFO: "customer_individual_info is not exist",
     ERROR_CUSTOMER_IDENTITY: "customer_identity is not exist",
