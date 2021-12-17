@@ -17,6 +17,7 @@ from app.api.v1.schemas.utils import DropdownRequest
 # I. Thông tin mặt trước CMND, CCCD
 class FrontSideIdentityCitizenCardRequest(BaseSchema):
     identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh mặt trước CMND/CCCD")
+    identity_avatar_image_uuid: str = Field(..., min_length=1, description="Hình ảnh khuôn mặt CMND/CCCD")
     face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
 
 
@@ -130,6 +131,7 @@ class CitizenCardSaveRequest(BaseSchema):
 # I. Thông tin Hộ chiếu
 class InformationPassportRequest(BaseSchema):
     identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh Hộ chiếu")
+    identity_avatar_image_uuid: str = Field(..., min_length=1, description="Hình ảnh khuôn mặt Hộ chiếu")
     face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
 
 
