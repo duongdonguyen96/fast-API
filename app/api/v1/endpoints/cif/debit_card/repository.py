@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
 
-from app.api.base.repository import ReposReturn
+from app.api.base.repository import ReposReturn, auto_commit
 from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -23,7 +23,6 @@ from app.utils.functions import dropdown, now
 
 
 async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
-
     branch_province = aliased(AddressProvince, name='branch_province')
     branch_district = aliased(AddressDistrict, name='branch_district')
     branch_ward = aliased(AddressWard, name='branch_ward')
@@ -79,8 +78,8 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
 
     for debit_card_info, card_type, card_issuance_type, customer_type, branch_of_card, issuance_fee, branch, \
-            branch_province, branch_district, branch_ward, card_delivery_address, \
-            ward, district, province in list_debit_card_info:
+        branch_province, branch_district, branch_ward, card_delivery_address, \
+        ward, district, province in list_debit_card_info:
         if branch is not None:
             delivery_address = {
                 "province": dropdown(branch_province),
@@ -109,7 +108,6 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
             "annual_fee": dropdown(issuance_fee),
             "debit_card_types": [
                 {
-
                     "id": "1",
                     "code": "MDTC1",
                     "name": "VISA",
@@ -190,8 +188,8 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
 
         sub_debit_cards = []
         for _, sub_debit_card_info, customer, sub_card_type, sub_card_issuance_type, \
-                sub_branch_of_card, sub_branch, sub_branch_province, sub_branch_district, sub_branch_ward, \
-                sub_card_delivery_address, sub_ward, sub_district, sub_province in list_sub_debit_card_info:
+            sub_branch_of_card, sub_branch, sub_branch_province, sub_branch_district, sub_branch_ward, \
+            sub_card_delivery_address, sub_ward, sub_district, sub_province in list_sub_debit_card_info:
             if sub_branch is not None:
                 delivery_address = {
                     "province": dropdown(sub_branch_province),
@@ -262,16 +260,32 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
         })
 
 
-async def repos_add_debit_card(cif_id: str, debt_card_req: DebitCardRequest) -> ReposReturn:  # noqa
-    if cif_id == CIF_ID_TEST:
-        return ReposReturn(data={
-            'created_at': now(),
-            'created_by': 'system',
-            'updated_at': now(),
-            'updated_by': 'system'
-        })
-    else:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+@auto_commit
+async def repos_add_debit_card(
+        cif_id: str,
+        data_card_delivery_address,
+        data_debit_card,
+        list_sub_delivery_address,
+        list_sub_debit_card,
+        session: Session) -> ReposReturn:
+    session.add_all([
+        CardDeliveryAddress(**data_card_delivery_address),
+
+        DebitCard(**data_debit_card),
+
+    ])
+
+    session.flush()
+    session.bulk_save_objects(
+        [CardDeliveryAddress(**list_sub_delivery_address) for list_sub_delivery_address in list_sub_delivery_address])
+    session.bulk_save_objects([DebitCard(**list_sub_debit_card) for list_sub_debit_card in list_sub_debit_card])
+
+    return ReposReturn(data={
+        'created_at': now(),
+        'created_by': 'system',
+        'updated_at': now(),
+        'updated_by': 'system'
+    })
 
 
 async def repos_get_list_debit_card(

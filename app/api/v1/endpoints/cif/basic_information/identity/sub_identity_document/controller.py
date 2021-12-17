@@ -14,7 +14,7 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
-from app.utils.functions import generate_uuid, now
+from app.utils.functions import date_to_string, generate_uuid, now
 
 
 class CtrSubIdentityDocument(BaseController):
@@ -36,13 +36,41 @@ class CtrSubIdentityDocument(BaseController):
         return self.response(data=detail_datas)
 
     async def get_sub_identity_log_list(self, cif_id: str):
-        logs_data = self.call_repos(
-            await repos_get_sub_identity_log_list(
-                cif_id=cif_id,
-                session=self.oracle_session
-            )
-        )
-        return self.response(data=logs_data)
+        sub_identity_image_transactions = self.call_repos(await repos_get_sub_identity_log_list(
+            cif_id=cif_id, session=self.oracle_session
+        ))
+
+        sub_identity_log_infos = []
+
+        if not sub_identity_image_transactions:
+            return self.response(data=sub_identity_log_infos)
+
+        # các uuid cần phải gọi qua service file để check
+        image_uuids = [sub_identity_image_transaction.image_url
+                       for sub_identity_image_transaction in sub_identity_image_transactions]
+
+        # gọi đến service file để lấy link download
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+
+        date__sub_identity_images = {}
+
+        for sub_identity_image_transaction in sub_identity_image_transactions:
+            maker_at = date_to_string(sub_identity_image_transaction.maker_at)
+
+            if maker_at not in date__sub_identity_images.keys():
+                date__sub_identity_images[maker_at] = []
+
+            date__sub_identity_images[maker_at].append({
+                "image_url": uuid__link_downloads[sub_identity_image_transaction.image_url]
+            })
+
+        sub_identity_log_infos = [{
+            "reference_flag": True if index == 0 else False,
+            "created_date": created_date,
+            "identity_images": identity_images
+        } for index, (created_date, identity_images) in enumerate(date__sub_identity_images.items())]
+
+        return self.response(data=sub_identity_log_infos)
 
     async def save_sub_identity(self, cif_id: str, sub_identity_request: List[SubIdentityDocumentRequest]):
         # check cif đang tạo

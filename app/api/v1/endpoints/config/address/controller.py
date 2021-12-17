@@ -3,6 +3,7 @@ from app.api.v1.endpoints.repository import repos_get_data_model_config
 from app.third_parties.oracle.models.master_data.address import (
     AddressCountry, AddressDistrict, AddressProvince, AddressWard
 )
+from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 
 
 class CtrAddress(BaseController):
@@ -40,7 +41,7 @@ class CtrAddress(BaseController):
         place_of_issues_info = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
-                model=AddressProvince,
+                model=PlaceOfIssue,
                 country_id=country_id
             )
         )
