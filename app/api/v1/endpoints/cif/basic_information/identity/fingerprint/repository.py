@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
@@ -13,6 +13,7 @@ from app.third_parties.oracle.models.cif.basic_information.identity.model import
 from app.third_parties.oracle.models.master_data.identity import (
     FingerType, HandSide
 )
+from app.utils.constant.cif import IMAGE_TYPE_FINGERPRINT
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
@@ -20,11 +21,30 @@ from app.utils.functions import now
 @auto_commit
 async def repos_save_fingerprint(
         cif_id: str,
+        identity_id: str,
         log_data: json,
         session: Session,
         list_data_insert: list,
         created_by: str
 ) -> ReposReturn:
+    # lấy list customer_identity_image theo vân tay
+    customer_identity_image = session.execute(
+        select(
+            CustomerIdentityImage.id
+        ).filter(
+            and_(
+                CustomerIdentityImage.identity_id == identity_id,
+                CustomerIdentityImage.image_type_id == IMAGE_TYPE_FINGERPRINT
+            )
+        )
+    ).scalars().all()
+    # xóa list id vân tay
+    if customer_identity_image:
+        session.execute(
+            delete(
+                CustomerIdentityImage
+            ).filter(CustomerIdentityImage.id.in_(customer_identity_image))
+        )
 
     session.bulk_save_objects([CustomerIdentityImage(**data_insert) for data_insert in list_data_insert])
 
@@ -58,8 +78,7 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
         ).join(
             FingerType, CustomerIdentityImage.finger_type_id == FingerType.id
         ).filter(
-            CustomerIdentityImage.finger_type_id.isnot(None),
-            CustomerIdentityImage.hand_side_id.isnot(None)
+            CustomerIdentityImage.image_type_id == IMAGE_TYPE_FINGERPRINT
         ).order_by(CustomerIdentityImage.finger_type_id)
     ).all()
 

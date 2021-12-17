@@ -49,7 +49,7 @@ class CtrFingerPrint(BaseController):
         await self.get_model_objects_by_ids(model_ids=hand_side_ids, model=HandSide, loc='hand_side -> id')
         await self.get_model_objects_by_ids(model_ids=finger_type_ids, model=FingerType, loc='finger_type -> id')
 
-        identity = self.call_repos(await repos_get_customer_identity(cif_id, self.oracle_session))
+        identity = self.call_repos(await repos_get_customer_identity(cif_id=cif_id, session=self.oracle_session))
 
         list_data_insert = [{
             'identity_id': identity.id,
@@ -67,6 +67,7 @@ class CtrFingerPrint(BaseController):
         data = self.call_repos(
             await repos_save_fingerprint(
                 cif_id=cif_id,
+                identity_id=identity.id,
                 log_data=finger_request.json(),
                 session=self.oracle_session,
                 list_data_insert=list_data_insert,
