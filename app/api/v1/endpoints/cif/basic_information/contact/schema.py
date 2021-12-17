@@ -99,8 +99,8 @@ class ContactAddressRequest(BaseSchema):
 
 
 class CareerInformationContactInformationRequest(CareerInformationContactInformationResponse):
-    career: OptionalDropdownRequest = Field(..., description="Nghề nghiệp")
-    average_income_amount: OptionalDropdownRequest = Field(..., description="Thu nhập BQ 3 tháng gần nhất")
+    career: DropdownRequest = Field(..., description="Nghề nghiệp")
+    average_income_amount: DropdownRequest = Field(..., description="Thu nhập BQ 3 tháng gần nhất")
     company_position: OptionalDropdownRequest = Field(None, description="Chức vụ", nullable=True)
 
 
