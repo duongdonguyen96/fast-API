@@ -16,13 +16,13 @@ from app.api.v1.schemas.utils import DropdownRequest
 ########################################################################################################################
 # I. Thông tin mặt trước CMND, CCCD
 class FrontSideIdentityCitizenCardRequest(BaseSchema):
-    identity_image_url: str = Field(..., description="URL hình ảnh mặt trước CMND/CCCD")
-    face_compare_image_url: str = Field(..., description="Hình ảnh chụp khuôn mặt")
+    identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh mặt trước CMND/CCCD")
+    face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
 
 
 # II. Thông tin mặt sau CMND, CCCD
 class BackSideIdentityCitizenCardRequest(BaseSchema):
-    identity_image_url: str = Field(..., description="URL hình ảnh mặt sau CMND/CCCD")
+    identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh mặt sau CMND/CCCD")
 
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ CMND, CCCD
@@ -35,7 +35,7 @@ class CifInformationRequest(BaseSchema):
     self_selected_cif_flag: bool = Field(..., description='Cờ CIF thông thường/ tự chọn. '
                                                           '`False`: thông thường. '
                                                           '`True`: tự chọn')
-    cif_number: Optional[str] = Field(..., description='Số CIF yêu cầu', nullable=True)
+    cif_number: Optional[str] = Field(..., min_length=1, description='Số CIF yêu cầu', nullable=True)
     customer_classification: DropdownRequest = Field(..., description='Đối tượng khách hàng')
     customer_economic_profession: DropdownRequest = Field(..., description='Mã ngành KT')
 
@@ -45,7 +45,7 @@ class CifInformationRequest(BaseSchema):
 ########################################################################################################################
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CMND)
 class OCRDocumentIdentityCardRequest(BaseSchema):
-    identity_number: str = Field(..., description="Số GTĐD")
+    identity_number: str = Field(..., min_length=1, description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
@@ -53,7 +53,7 @@ class OCRDocumentIdentityCardRequest(BaseSchema):
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CMND)
 class OCRBasicInfoIdentityCardRequest(BaseSchema):
-    full_name_vn: str = Field(..., description="Họ và tên")
+    full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     gender: DropdownRequest = Field(..., description="Giới tính")
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
@@ -88,7 +88,7 @@ class IdentityCardSaveRequest(BaseSchema):
 
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CCCD)
 class OCRDocumentCitizenCardRequest(BaseSchema):  # noqa
-    identity_number: str = Field(..., description="Số GTĐD")
+    identity_number: str = Field(..., min_length=1, description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
@@ -98,12 +98,12 @@ class OCRDocumentCitizenCardRequest(BaseSchema):  # noqa
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CCCD)
 class OCRBasicInfoCitizenCardRequest(BaseSchema):
-    full_name_vn: str = Field(..., description="Họ và tên")
+    full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     gender: DropdownRequest = Field(..., description="Giới tính")
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
     province: DropdownRequest = Field(..., description="Quê quán")
-    identity_characteristic: str = Field(..., description="Đặc điểm nhận dạng")
+    identity_characteristic: str = Field(..., min_length=1, description="Đặc điểm nhận dạng")
 
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ (CCCD)
@@ -129,13 +129,13 @@ class CitizenCardSaveRequest(BaseSchema):
 
 # I. Thông tin Hộ chiếu
 class InformationPassportRequest(BaseSchema):
-    identity_image_url: str = Field(..., description="URL hình ảnh Hộ chiếu")
-    face_compare_image_url: str = Field(..., description="Hình ảnh chụp khuôn mặt")
+    identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh Hộ chiếu")
+    face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
 
 
 # II. Phân tích OCR -> 1. Giấy tờ định danh (Hộ Chiếu)
 class OCRDocumentPassportRequest(BaseSchema):  # noqa
-    identity_number: str = Field(..., description="Số GTĐD")
+    identity_number: str = Field(..., min_length=1, description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
@@ -145,12 +145,12 @@ class OCRDocumentPassportRequest(BaseSchema):  # noqa
 
 # II. Phân tích OCR -> 2. Thông tin cơ bản (Hộ Chiếu)
 class BasicInfoPassportRequest(BaseSchema):
-    full_name_vn: str = Field(..., description="Họ và tên")
+    full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     gender: DropdownRequest = Field(..., description="Giới tính")
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
     place_of_birth: DropdownRequest = Field(..., description="Nơi sinh")
-    identity_card_number: str = Field(..., description="Số CMND")
+    identity_card_number: str = Field(..., min_length=1, description="Số CMND")
     mrz_content: str = Field(None, description="Mã MRZ")
 
 
@@ -174,4 +174,4 @@ class PassportSaveRequest(BaseSchema):
 ########################################################################################################################
 # So sánh khuôn mặt
 class FaceCompareRequest(BaseSchema):
-    face_image_url: str = Field(..., description="URL hình ảnh khuôn mặt đối chiếu")
+    face_image_url: str = Field(..., min_length=1, description="URL hình ảnh khuôn mặt đối chiếu")

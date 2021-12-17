@@ -16,18 +16,18 @@ from app.api.v1.schemas.utils import DropdownResponse
 ########################################################################################################################
 # I. Thông tin mặt trước CMND, CCCD
 class FrontSideIdentityCitizenCardResponse(BaseSchema):
-    identity_image_url: str = Field(..., description="URL hình ảnh mặt trước CMND/CCCD")
-    face_compare_image_url: str = Field(..., description="Hình ảnh chụp khuôn mặt")
+    identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh mặt trước CMND/CCCD")
+    face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
     similar_percent: int = Field(..., description="Tỉ lệ so khớp với Hình ảnh chụp khuôn mặt")
 
 
 # II. Thông tin mặt sau CMND, CCCD
 class BackSideIdentityCitizenCardResponse(BaseSchema):
-    identity_image_url: str = Field(..., description="URL hình ảnh mặt sau CMND/CCCD")
+    identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh mặt sau CMND/CCCD")
     fingerprint: List[FingerPrintResponse] = Field(..., description="Vân tay")
     updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
                                  example='2021-15-12 06:07:08')
-    updated_by: str = Field(..., description="Người cập nhật")
+    updated_by: str = Field(..., min_length=1, description="Người cập nhật")
 
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ CMND, CCCD
@@ -41,7 +41,7 @@ class OCRAddressIdentityCitizenCardResponse(BaseSchema):  # noqa
 ########################################################################################################################
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CMND)
 class OCRDocumentIdentityCardResponse(BaseSchema):
-    identity_number: str = Field(..., description="Số GTĐD")
+    identity_number: str = Field(..., min_length=1, description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
@@ -49,7 +49,7 @@ class OCRDocumentIdentityCardResponse(BaseSchema):
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CMND)
 class OCRBasicInfoIdentityCardResponse(BaseSchema):
-    full_name_vn: str = Field(..., description="Họ và tên")
+    full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     gender: DropdownResponse = Field(..., description="Giới tính")
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
@@ -82,7 +82,7 @@ class IdentityCardDetailResponse(BaseSchema):
 
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CCCD)
 class OCRDocumentCitizenCardResponse(BaseSchema):
-    identity_number: str = Field(..., description="Số GTĐD")
+    identity_number: str = Field(..., min_length=1, description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
@@ -92,12 +92,12 @@ class OCRDocumentCitizenCardResponse(BaseSchema):
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CCCD)
 class OCRBasicInfoCitizenCardResponse(BaseSchema):
-    full_name_vn: str = Field(..., description="Họ và tên")
+    full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     gender: DropdownResponse = Field(..., description="Giới tính")
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     province: DropdownResponse = Field(..., description="Quê quán")
-    identity_characteristic: str = Field(..., description="Đặc điểm nhận dạng")
+    identity_characteristic: str = Field(..., min_length=1, description="Đặc điểm nhận dạng")
 
 
 # III. Phân tích OCR -> 3. Thông tin địa chỉ (CCCD)
@@ -121,15 +121,15 @@ class CitizenCardDetailResponse(BaseSchema):
 
 # I. Thông tin Hộ chiếu
 class InformationPassportResponse(BaseSchema):
-    identity_image_url: str = Field(..., description="URL hình ảnh Hộ chiếu")
-    face_compare_image_url: str = Field(..., description="Hình ảnh chụp khuôn mặt")
+    identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh Hộ chiếu")
+    face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
     similar_percent: int = Field(..., description="Tỉ lệ so khớp với Hình ảnh chụp khuôn mặt")
     fingerprint: List[FingerPrintResponse] = Field(..., description="Danh sách các vân tay đối chiếu")
 
 
 # II. Phân tích OCR -> 1. Giấy tờ định danh (Hộ Chiếu)
 class OCRDocumentPassportResponse(BaseSchema):
-    identity_number: str = Field(..., description="Số GTĐD")
+    identity_number: str = Field(..., min_length=1, description="Số GTĐD")
     issued_date: date = Field(..., description="Ngày cấp")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
@@ -139,12 +139,12 @@ class OCRDocumentPassportResponse(BaseSchema):
 
 # II. Phân tích OCR -> 2. Thông tin cơ bản (Hộ Chiếu)
 class BasicInfoPassportResponse(BaseSchema):
-    full_name_vn: str = Field(..., description="Họ và tên")
+    full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     gender: DropdownResponse = Field(..., description="Giới tính")
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     place_of_birth: DropdownResponse = Field(..., description="Nơi sinh")
-    identity_card_number: str = Field(..., description="Số CMND")
+    identity_card_number: str = Field(..., min_length=1, description="Số CMND")
     mrz_content: str = Field(None, description="Mã MRZ")
 
 
@@ -167,7 +167,7 @@ class PassportDetailResponse(BaseSchema):
 # Response Lịch sử thay đổi giấy tờ định danh
 ########################################################################################################################
 class IdentityImage(BaseSchema):
-    image_url: str = Field(..., description="URL hình ảnh định danh")
+    image_url: str = Field(..., min_length=1, description="URL hình ảnh định danh")
 
 
 class LogResponse(BaseSchema):
