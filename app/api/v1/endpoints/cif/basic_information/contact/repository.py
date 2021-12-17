@@ -1,9 +1,17 @@
-from sqlalchemy import select
+import json
+
+from sqlalchemy import and_, select, update
 from sqlalchemy.orm import Session
 
-from app.api.base.repository import ReposReturn
+from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress, CustomerProfessional
+)
+from app.third_parties.oracle.models.cif.basic_information.identity.model import (
+    CustomerIdentity
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
@@ -14,11 +22,8 @@ from app.third_parties.oracle.models.master_data.address import (
 from app.third_parties.oracle.models.master_data.others import (
     AverageIncomeAmount, Career, Position
 )
-from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
-)
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown, now
+from app.utils.constant.cif import CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
+from app.utils.functions import dropdown
 
 
 async def repos_get_detail_contact_information(
@@ -113,15 +118,89 @@ async def repos_get_detail_contact_information(
     return ReposReturn(data=domestic_contact_information_detail)
 
 
+@auto_commit
 async def repos_save_contact_information(
-        cif_id: str,
-        created_by
+    cif_id: str,
+    customer_professional_id: str,
+    is_create: bool,
+    is_passport: bool,
+    saving_resident_address: dict,
+    saving_contact_address: dict,
+    saving_career_information: dict,
+    log_data: json,
+    session: Session
 ) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+    if is_create:
+        if is_passport:
+            session.add_all([
+                CustomerAddress(**saving_resident_address),
+                CustomerAddress(**saving_contact_address),
+            ])
+
+        session.add(CustomerProfessional(**saving_career_information))
+        # Cập nhật lại thông tin nghề nghiệp khách hàng
+        session.execute(
+            update(Customer).where(Customer.id == cif_id).values(customer_professional_id=customer_professional_id)
+        )
+    else:
+        if is_passport:
+            session.execute(
+                update(CustomerAddress).where(and_(
+                    CustomerAddress.customer_id == cif_id,
+                    CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE
+                )).values(**saving_resident_address)
+            )
+
+            session.execute(
+                update(CustomerAddress).where(and_(
+                    CustomerAddress.customer_id == cif_id,
+                    CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE
+                )).values(**saving_contact_address)
+            )
+
+        session.execute(
+            update(CustomerProfessional).where(and_(
+                CustomerProfessional.id == customer_professional_id,
+            )).values(**saving_career_information)
+        )
+
+        # update booking & log
+        fail_result, message = await write_transaction_log_and_update_booking(
+            description="Tạo CIF -> Thông tin cá nhân -> Thông tin liên lạc -- Cập nhật",
+            log_data=log_data,
+            session=session,
+            customer_id=cif_id
+        )
+        if not fail_result:
+            return ReposReturn(is_error=True, msg=message)
 
     return ReposReturn(data={
-        "cif_id": cif_id,
-        "created_at": now(),
-        "created_by": created_by
+        "cif_id": cif_id
     })
+
+
+########################################################################################################################
+# Others
+########################################################################################################################
+async def repos_get_customer_addresses(cif_id: str, session: Session):
+    customer_addresses = session.execute(
+        select(CustomerAddress).filter(CustomerAddress.customer_id == cif_id)).scalars().all()
+    return ReposReturn(data=customer_addresses)
+
+
+async def repos_get_customer_professional_and_identity_and_address(cif_id: str, session: Session):
+    customer_professional_and_identity_and_address = session.execute(
+        select(
+            Customer,
+            CustomerProfessional,
+            CustomerIdentity,
+            CustomerAddress
+        )
+        .outerjoin(CustomerProfessional, and_(
+            Customer.customer_professional_id == CustomerProfessional.id,
+        ))
+        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .filter(Customer.id == cif_id)
+    ).all()
+    return ReposReturn(data=customer_professional_and_identity_and_address)
