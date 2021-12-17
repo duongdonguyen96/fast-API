@@ -92,6 +92,6 @@ class ServiceEKYC:
                 response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
-            return False, {}
+            return False, {"message": "eKYC server error, please try again"}
 
         return is_success, response_body
