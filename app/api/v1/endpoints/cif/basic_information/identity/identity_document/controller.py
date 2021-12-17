@@ -15,6 +15,7 @@ from app.api.v1.endpoints.cif.repository import (
     repos_check_not_exist_cif_number
 )
 from app.api.v1.endpoints.file.validator import file_validator
+from app.settings.event import service_ekyc
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -36,14 +37,19 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CONTACT_ADDRESS_CODE, CUSTOMER_UNCOMPLETED_FLAG, EKYC_IDENTITY_TYPE,
-    IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
-    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
-    IDENTITY_IMAGE_FLAG_BACKSIDE, IDENTITY_IMAGE_FLAG_FRONT_SIDE,
-    IMAGE_TYPE_CODE_IDENTITY, RESIDENT_ADDRESS_CODE
+    CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE, CUSTOMER_UNCOMPLETED_FLAG,
+    EKYC_IDENTITY_TYPE, IDENTITY_DOCUMENT_TYPE,
+    IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
+    IDENTITY_DOCUMENT_TYPE_PASSPORT, IDENTITY_IMAGE_FLAG_BACKSIDE,
+    IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
+    RESIDENT_ADDRESS_CODE
 )
-from app.utils.error_messages import ERROR_IDENTITY_DOCUMENT_NOT_EXIST
-from app.utils.functions import calculate_age, date_to_string, now
+from app.utils.error_messages import (
+    ERROR_IDENTITY_DOCUMENT_NOT_EXIST, ERROR_INVALID_URL, MESSAGE_STATUS
+)
+from app.utils.functions import (
+    calculate_age, date_to_string, now, parse_file_uuid
+)
 from app.utils.vietnamese_converter import (
     convert_to_unsigned_vietnamese, make_short_name, split_name
 )
@@ -194,7 +200,7 @@ class CtrIdentityDocument(BaseController):
             "nationality_id": nationality_id,
             "customer_classification_id": customer_classification_id,
             "customer_status_id": "1",  # TODO
-            "channel_id": "1",  # TODO
+            "channel_id": CHANNEL_AT_THE_COUNTER,  # TODO
             "avatar_url": None,
             "complete_flag": CUSTOMER_UNCOMPLETED_FLAG
         }
@@ -340,14 +346,28 @@ class CtrIdentityDocument(BaseController):
                 })
             ############################################################################################################
 
-            front_side_information_identity_image_url = identity_document_request.front_side_information.identity_image_url
-            back_side_information_identity_image_url = identity_document_request.back_side_information.identity_image_url
+            front_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.front_side_information.identity_image_url)
+            if not front_side_information_identity_image_uuid:
+                return self.response_exception(
+                    msg=ERROR_INVALID_URL,
+                    detail=MESSAGE_STATUS[ERROR_INVALID_URL],
+                    loc="front_side_information -> identity_image_url"
+                )
+            identity_image_uuid = front_side_information_identity_image_uuid
+            identity_avatar_image_uuid = identity_document_request.front_side_information.identity_avatar_image_uuid
+            back_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.back_side_information.identity_image_url)
+            if not front_side_information_identity_image_uuid:
+                return self.response_exception(
+                    msg=ERROR_INVALID_URL,
+                    detail=MESSAGE_STATUS[ERROR_INVALID_URL],
+                    loc="back_side_information -> identity_image_url"
+                )
             compare_image_url = identity_document_request.front_side_information.face_compare_image_url
 
             saving_customer_identity_images = [
                 {
                     "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
-                    "image_url": front_side_information_identity_image_url,
+                    "image_url": front_side_information_identity_image_uuid,
                     "hand_side_id": None,
                     "finger_type_id": None,
                     "vector_data": None,
@@ -360,7 +380,7 @@ class CtrIdentityDocument(BaseController):
                 },
                 {
                     "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
-                    "image_url": back_side_information_identity_image_url,
+                    "image_url": back_side_information_identity_image_uuid,
                     "hand_side_id": None,
                     "finger_type_id": None,
                     "vector_data": None,
@@ -386,9 +406,17 @@ class CtrIdentityDocument(BaseController):
             ############################################################################################################
 
             compare_image_url = identity_document_request.passport_information.face_compare_image_url
+            identity_image_uuid = parse_file_uuid(identity_document_request.passport_information.identity_image_url)
+            if not identity_image_uuid:
+                return self.response_exception(
+                    msg=ERROR_INVALID_URL,
+                    detail=MESSAGE_STATUS[ERROR_INVALID_URL],
+                    loc="passport_information -> identity_image_url"
+                )
+            identity_avatar_image_uuid = identity_document_request.passport_information.identity_avatar_image_uuid
             saving_customer_identity_images = [{
                 "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
-                "image_url": identity_document_request.passport_information.identity_image_url,
+                "image_url": identity_image_uuid,
                 "hand_side_id": None,
                 "finger_type_id": None,
                 "vector_data": None,
@@ -400,10 +428,29 @@ class CtrIdentityDocument(BaseController):
                 "identity_image_front_flag": None
             }]
 
+        # So sánh khuôn mặt
+        compare_image_uuid = parse_file_uuid(compare_image_url)
+        if not compare_image_uuid:
+            return self.response_exception(
+                msg=ERROR_INVALID_URL,
+                detail=MESSAGE_STATUS[ERROR_INVALID_URL],
+                loc="passport_information -> face_compare_image_url"
+            )
+        await self.check_exist_multi_file(uuids=[identity_image_uuid, compare_image_uuid])
+
+        is_error, compare_response = await service_ekyc.compare_face(
+            face_uuid=compare_image_uuid,
+            identity_image_uuid=identity_avatar_image_uuid
+        )
+
+        if not is_error:
+            return self.response_exception(msg=compare_response['message'])
+        similar_percent = compare_response['data']['similarity_percent']
+
         # dict dùng để tạo mới hoặc lưu lại CustomerCompareImage
         saving_customer_compare_image = {
-            "compare_image_url": compare_image_url,
-            "similar_percent": 00,  # TODO: gọi qua eKYC để check
+            "compare_image_url": compare_image_uuid,
+            "similar_percent": similar_percent,  # gọi qua eKYC để check
             "maker_id": self.current_user.user_id,
             "maker_at": now()
         }
