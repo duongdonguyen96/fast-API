@@ -1,7 +1,11 @@
+from pydantic import json
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
@@ -37,6 +41,7 @@ async def repos_save_e_banking_data(
         insert_data,
         created_by: str,
         session: Session,
+        log_data: json
 ) -> ReposReturn:
     # clear old data
     e_banking_reg_balance = session.execute(select(
@@ -80,6 +85,14 @@ async def repos_save_e_banking_data(
     session.delete(e_banking_info.EBankingInfo)
 
     session.bulk_save_objects(insert_data)
+
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> e-banking -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
+
     return ReposReturn(data={
         "cif_id": cif_id,
         "created_at": now(),
