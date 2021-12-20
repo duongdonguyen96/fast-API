@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 
 import aiohttp
+from aiohttp.web_exceptions import HTTPException
 from loguru import logger
 from starlette import status
 
@@ -79,8 +80,8 @@ class ServiceEKYC:
 
         is_success = True
         data = {
-            "image_face_1_uuid": "2eaaa57548d6499d9864011eeacc5bec",
-            "image_face_2_uuid": "2eaaa57548d6499d9864011eeacc5bec"
+            "image_face_1_uuid": face_uuid,
+            "image_face_2_uuid": identity_image_uuid
         }
 
         try:
@@ -90,8 +91,8 @@ class ServiceEKYC:
                 if response.status != status.HTTP_200_OK:
                     is_success = False
                 response_body = await response.json()
-        except Exception as ex:
+        except HTTPException as ex:
             logger.error(str(ex))
-            return False, {}
+            return False, {"message": "eKYC server error, please try again"}
 
         return is_success, response_body
