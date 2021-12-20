@@ -1,7 +1,13 @@
-from sqlalchemy import delete, select
+from typing import List
+
+from pydantic import json
+from sqlalchemy import case, delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -25,91 +31,11 @@ from app.third_parties.oracle.models.master_data.customer import (
 )
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.utils.constant.cif import (
-    CONTACT_ADDRESS_CODE, CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
+    CONTACT_ADDRESS_CODE, CUSTOMER_RELATIONSHIP_TYPE,
+    CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 )
+from app.utils.error_messages import ERROR_CIF_NUMBER_NOT_EXIST
 from app.utils.functions import dropdown, now
-
-GUARDIAN_INFO_DETAIL = {
-    "guardian_flag": True,
-    "number_of_guardian": 1,
-    "guardians": [
-        {
-            "id": "1",
-            "avatar_url": "https//example.com/example.jpg",
-            "basic_information": {
-                "cif_number": "1",
-                "customer_relationship": {
-                    "id": "1",
-                    "code": "MOTHER",
-                    "name": "Mẹ"
-                },
-                "full_name_vn": "Nguyễn Anh Đào",
-                "date_of_birth": "1990-08-12",
-                "gender": {
-                    "id": "1",
-                    "code": "NU",
-                    "name": "Nữ"
-                },
-                "nationality": {
-                    "id": "1",
-                    "code": "VN",
-                    "name": "Việt Nam"
-                },
-                "telephone_number": "",
-                "mobile_number": "0867589623",
-                "email": "anhdao@gmail.com"
-            },
-            "identity_document": {
-                "identity_number": "079190254791",
-                "issued_date": "1990-12-08",
-                "expired_date": "1990-12-08",
-                "place_of_issue": {
-                    "id": "1",
-                    "code": "CAHCM",
-                    "name": "Công an TPHCM"
-                }
-            },
-            "address_information": {
-                "resident_address": {
-                    "number_and_street": "125 Võ Thị Sáu",
-                    "province": {
-                        "id": "1",
-                        "code": "HCM",
-                        "name": "Hồ Chí Minh"
-                    },
-                    "district": {
-                        "id": "3",
-                        "code": "Q3",
-                        "name": "Quận 3"
-                    },
-                    "ward": {
-                        "id": "8",
-                        "code": "P8",
-                        "name": "Phường 8"
-                    }
-                },
-                "contact_address": {
-                    "number_and_street": "120/6 Điện Biên Phủ",
-                    "province": {
-                        "id": "1",
-                        "code": "HCM",
-                        "name": "Hồ Chí Minh"
-                    },
-                    "district": {
-                        "id": "BT",
-                        "code": "BT",
-                        "name": "Quận Bình Thạnh"
-                    },
-                    "ward": {
-                        "id": "8",
-                        "code": "AP",
-                        "name": "Phường An Phước"
-                    }
-                }
-            }
-        }
-    ]
-}
 
 
 async def repos_get_guardians(
@@ -212,7 +138,8 @@ async def repos_save_guardians(
         list_data_insert: list,
         created_by: str,
         session: Session,
-        relationship_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
+        log_data: json,
+        relationship_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN,
 ):
     # clear old data
     session.execute(delete(
@@ -222,12 +149,57 @@ async def repos_save_guardians(
         CustomerPersonalRelationship.type == relationship_type
     ))
 
-    data_insert = [CustomerPersonalRelationship(**guardian) for guardian in list_data_insert]
+    session.bulk_save_objects([CustomerPersonalRelationship(**guardian) for guardian in list_data_insert])
 
-    session.bulk_save_objects(data_insert)
+    await write_transaction_log_and_update_booking(
+        description=f"Tạo CIF -> Thông tin cá nhân -> {CUSTOMER_RELATIONSHIP_TYPE[relationship_type]} -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
 
     return ReposReturn(data={
         "cif_id": cif_id,
         "created_at": now(),
         "created_by": created_by
     })
+
+
+async def repos_get_guardians_by_cif_numbers(
+        cif_numbers: List[str],
+        session: Session
+) -> ReposReturn:
+    """
+    Người giám hộ là người không có người giám hộ
+    """
+    has_guardian = select(
+        Customer,
+        CustomerPersonalRelationship
+    ).join(
+        Customer,
+        CustomerPersonalRelationship.customer_id == Customer.id
+    ).filter(
+        Customer.cif_number.in_(cif_numbers)
+    ).exists()
+    guardians = session.execute(
+        select(
+            Customer,
+            case(
+                [(has_guardian, True)],
+                else_=False
+            ).label("has_guardian")
+        ).filter(
+            Customer.cif_number.in_(cif_numbers),
+            Customer.complete_flag == 1
+        )
+    ).all()
+    # Kiểm tra có tồn tại người giám hộ và
+    # tất cả người giảm hộ gửi lện có trong db không?
+    if not guardians or len(cif_numbers) != len(guardians):
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_CIF_NUMBER_NOT_EXIST,
+            loc="cif_number"
+        )
+
+    return ReposReturn(data=guardians)
