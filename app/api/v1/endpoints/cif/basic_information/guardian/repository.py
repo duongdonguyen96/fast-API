@@ -31,7 +31,8 @@ from app.third_parties.oracle.models.master_data.customer import (
 )
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.utils.constant.cif import (
-    CONTACT_ADDRESS_CODE, CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
+    CONTACT_ADDRESS_CODE, CUSTOMER_RELATIONSHIP_TYPE,
+    CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 )
 from app.utils.error_messages import ERROR_CIF_NUMBER_NOT_EXIST
 from app.utils.functions import dropdown, now
@@ -150,10 +151,8 @@ async def repos_save_guardians(
 
     session.bulk_save_objects([CustomerPersonalRelationship(**guardian) for guardian in list_data_insert])
 
-    module_name = "Thông tin người giám hộ" if relationship_type == CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN \
-        else "Mối quan hệ khách hàngg"
     await write_transaction_log_and_update_booking(
-        description=f"Tạo CIF -> Thông tin cá nhân -> {module_name} -- Tạo mới",
+        description=f"Tạo CIF -> Thông tin cá nhân -> {CUSTOMER_RELATIONSHIP_TYPE[relationship_type]} -- Tạo mới",
         log_data=log_data,
         session=session,
         customer_id=cif_id
@@ -194,7 +193,9 @@ async def repos_get_guardians_by_cif_numbers(
             Customer.complete_flag == 1
         )
     ).all()
-    if not guardians or len(cif_numbers) > len(guardians):
+    # Kiểm tra có tồn tại người giám hộ và
+    # tất cả người giảm hộ gửi lện có trong db không?
+    if not guardians or len(cif_numbers) != len(guardians):
         return ReposReturn(
             is_error=True,
             msg=ERROR_CIF_NUMBER_NOT_EXIST,
