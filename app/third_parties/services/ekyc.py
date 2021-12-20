@@ -80,8 +80,8 @@ class ServiceEKYC:
 
         is_success = True
         data = {
-            "image_face_1_uuid": "2eaaa57548d6499d9864011eeacc5bec",
-            "image_face_2_uuid": "2eaaa57548d6499d9864011eeacc5bec"
+            "image_face_1_uuid": face_uuid,
+            "image_face_2_uuid": identity_image_uuid
         }
 
         try:
