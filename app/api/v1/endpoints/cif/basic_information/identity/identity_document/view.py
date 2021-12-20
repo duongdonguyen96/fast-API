@@ -152,7 +152,6 @@ async def view_upload_identity_document_image(
         identity_type=identity_type
     )
 
-    # TODO: các loại khác
     if identity_type == EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD:
         return ResponseData[OCRFrontSideIdentityCardResponse](**upload_info)
     elif identity_type == EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD:

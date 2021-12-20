@@ -15,7 +15,7 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
-from app.utils.functions import date_to_string, dropdown
+from app.utils.functions import dropdown
 
 SUB_IDENTITY_INFO = [
     {
@@ -171,30 +171,7 @@ async def repos_get_sub_identity_log_list(
         .order_by(desc(CustomerIdentityImageTransaction.maker_at))
     ).scalars().all()
 
-    sub_identity_log_infos = []
-
-    if not sub_identity_image_transactions:
-        return ReposReturn(data=sub_identity_log_infos)
-
-    date__sub_identity_images = {}
-
-    for sub_identity_image_transaction in sub_identity_image_transactions:
-        maker_at = date_to_string(sub_identity_image_transaction.maker_at)
-
-        if maker_at not in date__sub_identity_images.keys():
-            date__sub_identity_images[maker_at] = []
-
-        date__sub_identity_images[maker_at].append({
-            "image_url": sub_identity_image_transaction.image_url
-        })
-
-    sub_identity_log_infos = [{
-        "reference_flag": True if index == 0 else False,
-        "created_date": created_date,
-        "identity_images": identity_images
-    } for index, (created_date, identity_images) in enumerate(date__sub_identity_images.items())]
-
-    return ReposReturn(data=sub_identity_log_infos)
+    return ReposReturn(data=sub_identity_image_transactions)
 
 
 ########################################################################################################################

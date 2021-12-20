@@ -43,7 +43,7 @@ class DebitCard(Base):
 
     id = Column('card_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "), comment='Mã thẻ (PK)')
     customer_id = Column(ForeignKey('crm_customer.customer_id'), comment='Mã khách hàng')
-    card_type_id = Column(ForeignKey('crm_card_type.card_type_id'), comment='Mã Đối tượng khách hàng')
+
     card_issuance_type_id = Column(ForeignKey('crm_card_issuance_type.card_issuance_type_id'),
                                    comment='Mã nơi phát hành Đối tượng khách hàng')
     customer_type_id = Column('cust_type_id', ForeignKey('crm_cust_type.cust_type_id'), comment=' Mã loại khách hàng')
@@ -70,7 +70,16 @@ class DebitCard(Base):
     card_delivery_address = relationship('CardDeliveryAddress')
     card_issuance_fee = relationship('CardIssuanceFee')
     card_issuance_type = relationship('CardIssuanceType')
-    card_type = relationship('CardType')
     customer_type = relationship('CustomerType')
     customer = relationship('Customer')
     parent_card = relationship('DebitCard', remote_side=[id])
+
+
+class DebitCardType(Base):
+    __tablename__ = 'crm_debit_card_type'
+    __table_args__ = {'comment': 'LOẠI thẻ ghi nợ'}
+
+    card_id = Column(ForeignKey('crm_debit_card.card_id'), primary_key=True, comment='Mã thẻ (PK)')
+    card_type_id = Column(ForeignKey('crm_card_type.card_type_id'), primary_key=True, comment='Mã Đối tượng khách hàng')
+    card_type = relationship('CardType')
+    card = relationship('DebitCard')

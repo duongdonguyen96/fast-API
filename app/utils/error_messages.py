@@ -39,6 +39,8 @@ ERROR_RELATIONSHIP_EXIST = "ERROR_RELATION_EXIST"
 ERROR_RELATIONSHIP_TYPE_ID_NOT_EXIST = "ERROR_RELATIONSHIP_TYPE_ID_NOT_EXIST"
 ERROR_RELATIONSHIP_NOT_GUARDIAN = "ERROR_RELATIONSHIP_NOT_GUARDIAN"
 
+ERROR_INVALID_URL = "ERROR_INVALID_URL"
+
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -78,5 +80,7 @@ MESSAGE_STATUS = {
     ERROR_CUSTOMER_INDIVIDUAL_INFO: "customer_individual_info is not exist",
     ERROR_CUSTOMER_IDENTITY: "customer_identity is not exist",
     ERROR_CUSTOMER_IDENTITY_IMAGE: "customer_identity_image is not exist",
-    ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST: "agreement_authorizations is not exist"
+    ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST: "agreement_authorizations is not exist",
+
+    ERROR_INVALID_URL: "url is invalid"
 }

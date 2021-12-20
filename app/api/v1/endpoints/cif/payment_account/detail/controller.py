@@ -29,6 +29,7 @@ class CtrPaymentAccount(BaseController):
     async def save(self,
                    cif_id: str,
                    payment_account_save_request: SavePaymentAccountRequest):
+
         self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
 
         # check currency exist
@@ -43,7 +44,6 @@ class CtrPaymentAccount(BaseController):
             model=AccountType,
             model_id=payment_account_save_request.account_type.id,
             loc="account type"
-
         )
 
         # check account_class exist
@@ -51,7 +51,6 @@ class CtrPaymentAccount(BaseController):
             model=AccountClass,
             model_id=payment_account_save_request.account_class.id,
             loc="account class"
-
         )
 
         data_insert = {

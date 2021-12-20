@@ -12,11 +12,11 @@ from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 ########################################################################################################################
 # Response Chi tiết GTĐD phụ -> Phân tích OCR
 class SubIdentityOCRResultResponse(BaseSchema):
-    sub_identity_number: str = Field(..., description="Số GTĐD")
-    symbol: str = Field(None, description="Ký hiệu")
-    full_name_vn: str = Field(..., description="Họ và tên")
+    sub_identity_number: str = Field(..., min_length=1, description="Số GTĐD")
+    symbol: str = Field(None, min_length=1, description="Ký hiệu")
+    full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     date_of_birth: date = Field(..., description="Ngày sinh")
-    passport_number: str = Field(..., description="Số hộ chiếu")
+    passport_number: str = Field(..., min_length=1, description="Số hộ chiếu")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     issued_date: date = Field(..., description="Ngày cấp")
@@ -24,16 +24,16 @@ class SubIdentityOCRResultResponse(BaseSchema):
 
 # Response Chi tiết GTĐD phụ
 class SubIdentityDetailResponse(BaseSchema):
-    id: str = Field(..., description="ID GTĐD phụ")
-    name: str = Field(..., description="Tên GTĐD phụ")
+    id: str = Field(..., min_length=1, description="ID GTĐD phụ")
+    name: str = Field(..., min_length=1, description="Tên GTĐD phụ")
     sub_identity_document_type: DropdownResponse = Field(..., description="Loại GTĐD phụ")
-    sub_identity_document_image_url: str = Field(..., description="I. Thông tin giấy tờ")
+    sub_identity_document_image_url: str = Field(..., min_length=1, description="I. Thông tin giấy tờ")
     ocr_result: SubIdentityOCRResultResponse = Field(..., description="II. Phân tích OCR")
 
 
 # Hình ảnh trong lịch sử
 class IdentityImage(BaseSchema):
-    image_url: str = Field(..., description="URL hình ảnh định danh")
+    image_url: str = Field(..., min_length=1, description="URL hình ảnh định danh")
 
 
 # Lịch sử thay đổi giấy tờ định danh phụ
@@ -53,9 +53,10 @@ class SubIdentityOCRResultRequest(SubIdentityOCRResultResponse):
 
 # Request Body Lưu GTĐD phụ
 class SubIdentityDocumentRequest(BaseSchema):
-    id: Optional[str] = Field(..., description="ID GTĐD phụ, nếu có gửi lên id là chỉnh sửa, không gửi lên id là tạo "
-                                               "mới, những id có tồn tại trong hệ thống nhưng không gửi lên là bị xóa")
-    name: str = Field(..., description="Tên GTĐD phụ")
-    sub_identity_document_image_url: str = Field(..., description="I. Thông tin giấy tờ")
+    id: Optional[str] = Field(..., min_length=1, description="ID GTĐD phụ, nếu có gửi lên id là chỉnh sửa, không gửi "
+                                                             "lên id là tạo mới, những id có tồn tại trong hệ thống "
+                                                             "nhưng không gửi lên là bị xóa")
+    name: str = Field(..., min_length=1, description="Tên GTĐD phụ")
+    sub_identity_document_image_url: str = Field(..., min_length=1, description="I. Thông tin giấy tờ")
     sub_identity_document_type: DropdownRequest = Field(..., description="Loại GTĐD phụ")
     ocr_result: SubIdentityOCRResultRequest = Field(..., description="II. Phân tích OCR")
