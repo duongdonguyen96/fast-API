@@ -54,7 +54,7 @@ class CtrPersonal(BaseController):
         # check title_id
         title_id = personal_request.honorific.id
         if customer_individual_info.title_id != title_id:
-            await self.get_model_object_by_id(model_id=title_id, model=CustomerTitle, loc='title_id')
+            await self.get_model_object_by_id(model_id=title_id, model=CustomerTitle, loc='honorific')
 
         # check place_of_birth_id
         place_of_birth_id = personal_request.place_of_birth.id
