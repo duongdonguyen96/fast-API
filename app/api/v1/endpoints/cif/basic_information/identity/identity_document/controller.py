@@ -49,7 +49,7 @@ from app.utils.error_messages import (
     ERROR_IDENTITY_DOCUMENT_NOT_EXIST, ERROR_INVALID_URL, MESSAGE_STATUS
 )
 from app.utils.functions import (
-    calculate_age, date_to_string, now, parse_file_uuid
+    calculate_age, capitalize_text, date_to_string, now, parse_file_uuid
 )
 from app.utils.vietnamese_converter import (
     convert_to_unsigned_vietnamese, make_short_name, split_name
@@ -457,8 +457,12 @@ class CtrIdentityDocument(BaseController):
                                                                     PlaceOfIssue, loc='place_of_issue_id')
         validate_place_of_birth = await self.get_model_object_by_id(
             saving_customer_individual_info['place_of_birth_id'], AddressProvince, loc='place_of_issue_id')
-        place_of_residence = f"{address_information.resident_address.number_and_street}, {resident_address_ward_name}, {resident_address_district_name}, {resident_address_province_name}"
-        data = {
+        # Vì dữ liệu bên EKYC là dạng Ho Chi Minh, mà DB là HO CHI MINH nên cần parse string
+        place_of_residence = f"{capitalize_text(address_information.resident_address.number_and_street)}, " \
+                             f"{capitalize_text(resident_address_ward_name)}, " \
+                             f"{capitalize_text(resident_address_district_name)}, " \
+                             f"{capitalize_text(resident_address_province_name)}"
+        ekyc_request_data = {
             "document_id": saving_customer_identity['identity_num'],
             "date_of_birth": date_to_string(basic_information.date_of_birth, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
             "full_name": full_name_vn,
@@ -470,8 +474,7 @@ class CtrIdentityDocument(BaseController):
             "date_of_issue": date_to_string(identity_document.issued_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
             "place_of_issue": validate_place_of_issue.name
         }
-        print(data)
-        is_valid, validate_response = await service_ekyc.validate(data=data, document_type=document_type)
+        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=document_type)
         if not is_valid:
             errors = validate_response['errors']
             return_errors = []
