@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
@@ -15,7 +17,7 @@ from app.third_parties.oracle.models.master_data.identity import ImageType
 from app.third_parties.oracle.models.master_data.others import KYCLevel
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
-    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST
+    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST, ERROR_CIF_NUMBER_NOT_EXIST
 )
 from app.utils.functions import dropdown
 
@@ -256,3 +258,25 @@ async def repos_check_not_exist_cif_number(cif_number: str, session: Session) ->
         return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_EXIST, loc="cif_number")
 
     return ReposReturn(data='Cif number is not exist')
+
+
+async def repos_get_customers_by_cif_numbers(
+        cif_numbers: List[str],
+        session: Session
+) -> ReposReturn:
+    customers = session.execute(
+        select(
+            Customer
+        ).filter(
+            Customer.cif_number.in_(cif_numbers),
+            Customer.complete_flag == 1
+        )
+    ).scalars().all()
+    if not customers or len(cif_numbers) != len(customers):
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_CIF_NUMBER_NOT_EXIST,
+            loc="cif_number"
+        )
+
+    return ReposReturn(data=customers)
