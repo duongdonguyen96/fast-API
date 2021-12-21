@@ -15,6 +15,7 @@ from app.api.v1.endpoints.cif.repository import (
     repos_check_not_exist_cif_number
 )
 from app.api.v1.endpoints.file.validator import file_validator
+from app.settings.config import DATE_INPUT_OUTPUT_EKYC_FORMAT
 from app.settings.event import service_ekyc
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
@@ -106,6 +107,9 @@ class CtrIdentityDocument(BaseController):
     async def save_identity(self, identity_document_request: Union[IdentityCardSaveRequest,
                                                                    CitizenCardSaveRequest,
                                                                    PassportSaveRequest]):
+        resident_address_ward_name = ""
+        resident_address_district_name = ""
+        resident_address_province_name = ""
         if identity_document_request.identity_document_type.id not in IDENTITY_DOCUMENT_TYPE:
             return self.response_exception(msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> id')
 
@@ -206,8 +210,6 @@ class CtrIdentityDocument(BaseController):
         }
         ################################################################################################################
 
-        # TODO: check identity_document bằng cách call qua eKYC
-
         place_of_issue_id = identity_document.place_of_issue.id
         if is_create or (customer_identity.place_of_issue_id != place_of_issue_id):
             await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue, loc='place_of_issue_id')
@@ -274,26 +276,35 @@ class CtrIdentityDocument(BaseController):
         ################################################################################################################
 
         if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            document_type = 1 if IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD else 3
             resident_address = await self.get_model_object_by_code(
                 model_code=RESIDENT_ADDRESS_CODE, model=AddressType, loc='resident_address'
             )
             # check resident_address_province_id
             resident_address_province_id = address_information.resident_address.province.id
             if is_create or (customer_resident_address.address_province_id != resident_address_province_id):
-                await self.get_model_object_by_id(model_id=resident_address_province_id, model=AddressProvince,
-                                                  loc='resident_address -> province -> id')
+                resident_address_province = await self.get_model_object_by_id(model_id=resident_address_province_id,
+                                                                              model=AddressProvince,
+                                                                              loc='resident_address -> province -> id')
+                resident_address_province_name = resident_address_province.name
 
             # check resident_address_district_id
             resident_address_district_id = address_information.resident_address.district.id
             if is_create or (customer_resident_address.address_district_id != resident_address_district_id):
-                await self.get_model_object_by_id(model_id=resident_address_district_id, model=AddressDistrict,
-                                                  loc='resident_address -> district -> id')
+                resident_address_district = await self.get_model_object_by_id(model_id=resident_address_district_id,
+                                                                              model=AddressDistrict,
+                                                                              loc='resident_address -> district -> id')
+                resident_address_district_name = resident_address_district.name
 
             # check resident_address_ward_id
             resident_address_ward_id = address_information.resident_address.ward.id
             if is_create or (customer_resident_address.address_ward_id != resident_address_ward_id):
-                await self.get_model_object_by_id(model_id=resident_address_ward_id, model=AddressWard,
-                                                  loc='resident_address -> ward -> id')
+                resident_address_ward = await self.get_model_object_by_id(
+                    model_id=resident_address_ward_id,
+                    model=AddressWard,
+                    loc='resident_address -> ward -> id'
+                )
+                resident_address_ward_name = resident_address_ward.name
 
             # dict dùng để tạo mới hoặc lưu lại customer_resident_address
             saving_customer_resident_address = {
@@ -346,7 +357,8 @@ class CtrIdentityDocument(BaseController):
                 })
             ############################################################################################################
 
-            front_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.front_side_information.identity_image_url)
+            front_side_information_identity_image_uuid = parse_file_uuid(
+                identity_document_request.front_side_information.identity_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
                     msg=ERROR_INVALID_URL,
@@ -355,7 +367,8 @@ class CtrIdentityDocument(BaseController):
                 )
             identity_image_uuid = front_side_information_identity_image_uuid
             identity_avatar_image_uuid = identity_document_request.front_side_information.identity_avatar_image_uuid
-            back_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.back_side_information.identity_image_url)
+            back_side_information_identity_image_uuid = parse_file_uuid(
+                identity_document_request.back_side_information.identity_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
                     msg=ERROR_INVALID_URL,
@@ -395,6 +408,7 @@ class CtrIdentityDocument(BaseController):
 
         # HO_CHIEU
         else:
+            document_type = 0
             saving_customer_resident_address = None
             saving_customer_contact_address = None
             saving_customer_identity.update({
@@ -427,6 +441,44 @@ class CtrIdentityDocument(BaseController):
                 "updater_at": now(),
                 "identity_image_front_flag": None
             }]
+
+        # TODO: check identity_document bằng cách call qua eKYC
+        validate_nation_name = None
+        if saving_customer_individual_info['nation_id']:
+            validate_nation = await self.get_model_object_by_id(saving_customer_individual_info['nation_id'], Nation,
+                                                                loc='nation_id')
+            validate_nation_name = validate_nation.name
+        validate_religion_name = None
+        if saving_customer_individual_info['religion_id']:
+            validate_religion = await self.get_model_object_by_id(saving_customer_individual_info['religion_id'],
+                                                                  Religion, loc='religion_id')
+            validate_religion_name = validate_religion.name
+        validate_place_of_issue = await self.get_model_object_by_id(saving_customer_identity['place_of_issue_id'],
+                                                                    PlaceOfIssue, loc='place_of_issue_id')
+        validate_place_of_birth = await self.get_model_object_by_id(
+            saving_customer_individual_info['place_of_birth_id'], AddressProvince, loc='place_of_issue_id')
+        place_of_residence = f"{address_information.resident_address.number_and_street}, {resident_address_ward_name}, {resident_address_district_name}, {resident_address_province_name}"
+        data = {
+            "document_id": saving_customer_identity['identity_num'],
+            "date_of_birth": date_to_string(basic_information.date_of_birth, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+            "full_name": full_name_vn,
+            "place_of_origin": validate_place_of_birth.name,
+            "place_of_residence": place_of_residence,
+            "ethnicity": validate_nation_name,
+            "religion": validate_religion_name,
+            "personal_identification": saving_customer_individual_info['identifying_characteristics'],
+            "date_of_issue": date_to_string(identity_document.issued_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+            "place_of_issue": validate_place_of_issue.name
+        }
+        print(data)
+        is_valid, validate_response = await service_ekyc.validate(data=data, document_type=document_type)
+        if not is_valid:
+            errors = validate_response['errors']
+            return_errors = []
+            for key, values in errors.items():
+                for value in values:
+                    return_errors.append(f"{key} -> {value['message']}")
+            return self.response_exception(msg=validate_response['message'], detail=', '.join(return_errors))
 
         # So sánh khuôn mặt
         compare_image_uuid = parse_file_uuid(compare_image_url)

@@ -95,3 +95,28 @@ class ServiceEKYC:
             return False, {}
 
         return is_success, response_body
+
+    async def validate(self, data, document_type):
+        api_url = f"{self.url}/api/v1/card-service/validate/"
+
+        is_success = True
+        request_body = {
+            "document_type": document_type,
+            "data": data
+        }
+        # print(request_body)
+
+        try:
+            async with self.session.post(url=api_url, json=request_body, headers=self.headers) as response:
+                logger.log("SERVICE", f"[VALIDATE] {response.status} : {api_url}")
+                # print(response)
+                if response.status != status.HTTP_200_OK:
+                    is_success = False
+                response_body = await response.json()
+                if not response_body['success']:
+                    is_success = False
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"errors": {"message": "eKYC error please try again later"}}
+        # print(is_success, response_body)
+        return is_success, response_body
