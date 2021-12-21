@@ -140,14 +140,3 @@ def is_valid_mobile_number(mobile_number: str) -> bool:
 def parse_file_uuid(url: str, default='') -> str:
     matches = re.findall(r'/(\w{32})', url)
     return matches[0] if matches else default
-
-
-def capitalize_text(texts: str):
-    """
-    HO CHI MINH into Ho Chi Minh
-    """
-    texts = texts.split(" ")
-    data = ""
-    for text in texts:
-        data += text.capitalize() + " "
-    return data
