@@ -72,7 +72,7 @@ class ServiceEKYC:
         # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body
 
-    async def compare_face(self, face_uuid: str, identity_image_uuid: str):
+    async def compare_face(self, face_uuid: str, avatar_image_uuid: str):
         """
         So sánh khuôn mặt trong 2 ảnh
         """
@@ -81,7 +81,7 @@ class ServiceEKYC:
         is_success = True
         data = {
             "image_face_1_uuid": face_uuid,
-            "image_face_2_uuid": identity_image_uuid
+            "image_face_2_uuid": avatar_image_uuid
         }
 
         try:
