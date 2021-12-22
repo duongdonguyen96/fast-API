@@ -38,12 +38,14 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE, CUSTOMER_UNCOMPLETED_FLAG,
-    EKYC_IDENTITY_TYPE, IDENTITY_DOCUMENT_TYPE,
-    IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
-    IDENTITY_DOCUMENT_TYPE_PASSPORT, IDENTITY_IMAGE_FLAG_BACKSIDE,
-    IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
-    RESIDENT_ADDRESS_CODE
+    CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_MALE,
+    CUSTOMER_UNCOMPLETED_FLAG, EKYC_DOCUMENT_TYPE_OLD_CITIZEN,
+    EKYC_DOCUMENT_TYPE_OLD_IDENTITY, EKYC_DOCUMENT_TYPE_PASSPORT,
+    EKYC_GENDER_TYPE_FEMALE, EKYC_GENDER_TYPE_MALE, EKYC_IDENTITY_TYPE,
+    IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
+    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
+    IDENTITY_IMAGE_FLAG_BACKSIDE, IDENTITY_IMAGE_FLAG_FRONT_SIDE,
+    IMAGE_TYPE_CODE_IDENTITY, RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
     ERROR_IDENTITY_DOCUMENT_NOT_EXIST, ERROR_INVALID_URL, MESSAGE_STATUS
@@ -107,9 +109,16 @@ class CtrIdentityDocument(BaseController):
     async def save_identity(self, identity_document_request: Union[IdentityCardSaveRequest,
                                                                    CitizenCardSaveRequest,
                                                                    PassportSaveRequest]):
+        # Dữ liệu validate chung
+        validate_religion_name = None
+        validate_ethnic_name = None
+        validate_gender_code = None
+        validate_place_of_issue_name = None
+        validate_place_of_birth_name = None
         resident_address_ward_name = ""
         resident_address_district_name = ""
         resident_address_province_name = ""
+
         if identity_document_request.identity_document_type.id not in IDENTITY_DOCUMENT_TYPE:
             return self.response_exception(msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> id')
 
@@ -183,7 +192,12 @@ class CtrIdentityDocument(BaseController):
         # check nationality_id
         nationality_id = basic_information.nationality.id
         if is_create or (customer_individual_info.country_of_birth_id != nationality_id):
-            await self.get_model_object_by_id(model_id=nationality_id, model=AddressCountry, loc='nationality_id')
+            validate_ethnic = await self.get_model_object_by_id(
+                model_id=nationality_id,
+                model=AddressCountry,
+                loc='nationality_id'
+            )
+            validate_ethnic_name = validate_ethnic.name
 
         # dict dùng để tạo mới hoặc lưu lại customer
         saving_customer = {
@@ -212,7 +226,9 @@ class CtrIdentityDocument(BaseController):
 
         place_of_issue_id = identity_document.place_of_issue.id
         if is_create or (customer_identity.place_of_issue_id != place_of_issue_id):
-            await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue, loc='place_of_issue_id')
+            validate_place_of_issue = await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue,
+                                                                        loc='place_of_issue_id')
+            validate_place_of_issue_name = validate_place_of_issue.name
 
         # dict dùng để tạo mới hoặc lưu lại customer_identity
         saving_customer_identity = {
@@ -229,7 +245,9 @@ class CtrIdentityDocument(BaseController):
 
         gender_id = basic_information.gender.id
         if is_create or (customer_individual_info.gender_id != gender_id):
-            await self.get_model_object_by_id(model_id=gender_id, model=CustomerGender, loc='gender_id')
+            validate_gender = await self.get_model_object_by_id(model_id=gender_id, model=CustomerGender,
+                                                                loc='gender_id')
+            validate_gender_code = validate_gender.code
 
         religion_id = None
         ethnic_id = None
@@ -257,7 +275,9 @@ class CtrIdentityDocument(BaseController):
 
         # check place_of_birth or province.id        # check place_of_birth or province.id
         if is_create or (customer_individual_info.place_of_birth_id != province_id):
-            await self.get_model_object_by_id(model_id=province_id, model=AddressProvince, loc='province_id')
+            validate_place_of_birth = await self.get_model_object_by_id(model_id=province_id, model=AddressProvince,
+                                                                        loc='province_id')
+            validate_place_of_birth_name = validate_place_of_birth.name
 
         # dict dùng để tạo mới hoặc lưu lại customer_individual_info
         saving_customer_individual_info = {
@@ -275,8 +295,15 @@ class CtrIdentityDocument(BaseController):
 
         ################################################################################################################
 
+        ekyc_request_data = dict(
+            document_id=saving_customer_identity['identity_num'],
+            date_of_birth=date_to_string(basic_information.date_of_birth, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+            full_name=full_name_vn,
+            date_of_issue=date_to_string(identity_document.issued_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+            place_of_issue=validate_place_of_issue_name
+        )
+
         if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
-            document_type = 1 if IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD else 3
             resident_address = await self.get_model_object_by_code(
                 model_code=RESIDENT_ADDRESS_CODE, model=AddressType, loc='resident_address'
             )
@@ -406,15 +433,46 @@ class CtrIdentityDocument(BaseController):
                 }
             ]
 
+            place_of_residence = f"{address_information.resident_address.number_and_street}, " \
+                                 f"{resident_address_ward_name}, " \
+                                 f"{resident_address_district_name}, " \
+                                 f"{resident_address_province_name}"
+
+            if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
+                document_type = EKYC_DOCUMENT_TYPE_OLD_IDENTITY
+                ekyc_request_data.update(
+                    place_of_origin=validate_place_of_birth_name,
+                    place_of_residence=place_of_residence,
+                    ethnicity=validate_ethnic_name,
+                    religion=validate_religion_name,
+                    personal_identification=saving_customer_individual_info['identifying_characteristics'],
+                    father_name=father_full_name_vn,
+                    mother_name=mother_full_name_vn
+                )
+
+            else:
+                document_type = EKYC_DOCUMENT_TYPE_OLD_CITIZEN
+                ekyc_request_data.update(
+                    place_of_origin=validate_place_of_birth_name,
+                    place_of_residence=place_of_residence,
+                    date_of_expiry=date_to_string(identity_document.expired_date,
+                                                  _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                    gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
+                    personal_identification=saving_customer_individual_info['identifying_characteristics'],
+                    signer="Trần Quốc Sáng",  # TODO
+                    place_of_issue="CỤC TRƯỞNG CỤC CẢNH SÁT ĐKQL CƯ TRÚ VÀ DLQG VỀ DÂN CƯ"  # TODO
+                )
+
         # HO_CHIEU
         else:
-            document_type = 0
+            document_type = EKYC_DOCUMENT_TYPE_PASSPORT
             saving_customer_resident_address = None
             saving_customer_contact_address = None
+            identity_number_in_passport = identity_document_request.ocr_result.basic_information.identity_card_number
             saving_customer_identity.update({
                 "passport_type_id": identity_document_request.ocr_result.identity_document.passport_type.id,
                 "passport_code_id": identity_document_request.ocr_result.identity_document.passport_code.id,
-                "identity_number_in_passport": identity_document_request.ocr_result.basic_information.identity_card_number,
+                "identity_number_in_passport": identity_number_in_passport,
                 "mrz_content": identity_document_request.ocr_result.basic_information.mrz_content
             })
             ############################################################################################################
@@ -442,37 +500,22 @@ class CtrIdentityDocument(BaseController):
                 "identity_image_front_flag": None
             }]
 
-        # TODO: check identity_document bằng cách call qua eKYC
-        validate_nation_name = None
-        if saving_customer_individual_info['nation_id']:
-            validate_nation = await self.get_model_object_by_id(saving_customer_individual_info['nation_id'], Nation,
-                                                                loc='nation_id')
-            validate_nation_name = validate_nation.name
-        validate_religion_name = None
-        if saving_customer_individual_info['religion_id']:
-            validate_religion = await self.get_model_object_by_id(saving_customer_individual_info['religion_id'],
-                                                                  Religion, loc='religion_id')
-            validate_religion_name = validate_religion.name
-        validate_place_of_issue = await self.get_model_object_by_id(saving_customer_identity['place_of_issue_id'],
-                                                                    PlaceOfIssue, loc='place_of_issue_id')
-        validate_place_of_birth = await self.get_model_object_by_id(
-            saving_customer_individual_info['place_of_birth_id'], AddressProvince, loc='place_of_issue_id')
-        place_of_residence = f"{address_information.resident_address.number_and_street}, " \
-                             f"{resident_address_ward_name}, " \
-                             f"{resident_address_district_name}, " \
-                             f"{resident_address_province_name}"
-        ekyc_request_data = {
-            "document_id": saving_customer_identity['identity_num'],
-            "date_of_birth": date_to_string(basic_information.date_of_birth, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
-            "full_name": full_name_vn,
-            "place_of_origin": validate_place_of_birth.name,
-            "place_of_residence": place_of_residence,
-            "ethnicity": validate_nation_name,
-            "religion": validate_religion_name,
-            "personal_identification": saving_customer_individual_info['identifying_characteristics'],
-            "date_of_issue": date_to_string(identity_document.issued_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
-            "place_of_issue": validate_place_of_issue.name
-        }
+            # Validate HC
+            # Mỗi dòng có tổng cộng 44 ký tự bao gồm dấu "<".
+            passport_mrz_content = identity_document_request.ocr_result.basic_information.mrz_content
+            mrz_1 = passport_mrz_content[:44]
+            mrz_2 = passport_mrz_content[44:]
+
+            ekyc_request_data.update(
+                date_of_expiry=date_to_string(identity_document.expired_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
+                mrz_1=mrz_1,
+                mrz_2=mrz_2,
+                nationality="Việt Nam",  # TODO
+                place_of_issue="Cục Quản lý xuất nhập cảnh",  # TODO
+                id_card_number=identity_number_in_passport
+            )
+
         is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=document_type)
         if not is_valid:
             errors = validate_response['errors']

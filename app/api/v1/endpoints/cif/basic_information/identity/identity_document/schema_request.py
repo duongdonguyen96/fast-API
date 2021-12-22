@@ -93,7 +93,7 @@ class OCRDocumentCitizenCardRequest(BaseSchema):  # noqa
     issued_date: date = Field(..., description="Ngày cấp")
     expired_date: date = Field(..., description="Có giá trị đến")
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
-    mrz_content: str = Field(None, description="MRZ")  # CCCD
+    mrz_content: str = Field(None, min_length=90, max_length=90, description="MRZ")  # CCCD
     qr_code_content: str = Field(None, description="Nội dung QR Code")  # CCCD
 
 
@@ -153,7 +153,7 @@ class BasicInfoPassportRequest(BaseSchema):
     nationality: DropdownRequest = Field(..., description="Quốc tịch")
     place_of_birth: DropdownRequest = Field(..., description="Nơi sinh")
     identity_card_number: str = Field(..., min_length=1, description="Số CMND")
-    mrz_content: str = Field(None, description="Mã MRZ")
+    mrz_content: str = Field(None, min_length=88, max_length=88, description="Mã MRZ")
 
 
 # II. Phân tích OCR (HC)

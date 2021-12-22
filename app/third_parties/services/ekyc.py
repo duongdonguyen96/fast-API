@@ -105,7 +105,6 @@ class ServiceEKYC:
             "document_type": document_type,
             "data": data
         }
-        # print(request_body)
 
         try:
             async with self.session.post(url=api_url, json=request_body, headers=self.headers) as response:
@@ -119,5 +118,5 @@ class ServiceEKYC:
         except Exception as ex:
             logger.error(str(ex))
             return False, {"errors": {"message": "eKYC error please try again later"}}
-        # print(is_success, response_body)
+
         return is_success, response_body
