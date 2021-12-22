@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.get(
     path="/",
-    name="Detail",
+    name="Detail Debit Card",
     description="Lấy dữ liệu tab `V. THẺ GHI NỢ` của khách hàng",
     responses=swagger_response(
         response_model=ResponseData[DebitCardResponse],
