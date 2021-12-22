@@ -39,16 +39,20 @@ from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_MALE,
-    CUSTOMER_UNCOMPLETED_FLAG, EKYC_DOCUMENT_TYPE_OLD_CITIZEN,
+    CUSTOMER_UNCOMPLETED_FLAG, EKYC_DOCUMENT_TYPE_NEW_CITIZEN,
+    EKYC_DOCUMENT_TYPE_NEW_IDENTITY, EKYC_DOCUMENT_TYPE_OLD_CITIZEN,
     EKYC_DOCUMENT_TYPE_OLD_IDENTITY, EKYC_DOCUMENT_TYPE_PASSPORT,
     EKYC_GENDER_TYPE_FEMALE, EKYC_GENDER_TYPE_MALE, EKYC_IDENTITY_TYPE,
     IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
     IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
-    IDENTITY_IMAGE_FLAG_BACKSIDE, IDENTITY_IMAGE_FLAG_FRONT_SIDE,
-    IMAGE_TYPE_CODE_IDENTITY, RESIDENT_ADDRESS_CODE
+    IDENTITY_DOCUMENT_TYPE_TYPE, IDENTITY_IMAGE_FLAG_BACKSIDE,
+    IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
+    RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
-    ERROR_IDENTITY_DOCUMENT_NOT_EXIST, ERROR_INVALID_URL, MESSAGE_STATUS
+    ERROR_IDENTITY_DOCUMENT_NOT_EXIST,
+    ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST, ERROR_INVALID_URL,
+    ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
 )
 from app.utils.functions import (
     calculate_age, date_to_string, now, parse_file_uuid
@@ -115,6 +119,7 @@ class CtrIdentityDocument(BaseController):
         validate_gender_code = None
         validate_place_of_issue_name = None
         validate_place_of_birth_name = None
+        ekyc_document_type_request = None
         resident_address_ward_name = ""
         resident_address_district_name = ""
         resident_address_province_name = ""
@@ -188,6 +193,15 @@ class CtrIdentityDocument(BaseController):
             await self.get_model_object_by_id(model_id=customer_classification_id,
                                               model=CustomerClassification,
                                               loc='customer_classification_id')
+
+        # check identity_document_type_type_id
+        identity_document_type_type_id = identity_document_request.identity_document_type.type_id
+        if identity_document_type_type_id not in EKYC_IDENTITY_TYPE:
+            return self.response_exception(
+                msg=ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST,
+                detail=MESSAGE_STATUS[ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST],
+                loc="identity_document_type -> type_id"
+            )
 
         # check nationality_id
         nationality_id = basic_information.nationality.id
@@ -439,33 +453,58 @@ class CtrIdentityDocument(BaseController):
                                  f"{resident_address_province_name}"
 
             if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
-                document_type = EKYC_DOCUMENT_TYPE_OLD_IDENTITY
+
                 ekyc_request_data.update(
                     place_of_origin=validate_place_of_birth_name,
                     place_of_residence=place_of_residence,
                     ethnicity=validate_ethnic_name,
                     religion=validate_religion_name,
-                    personal_identification=saving_customer_individual_info['identifying_characteristics'],
-                    father_name=father_full_name_vn,
-                    mother_name=mother_full_name_vn
+                    personal_identification=identity_characteristic
                 )
 
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_OLD_IDENTITY:
+                    ekyc_document_type_request = identity_document_type_type_id
+
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_NEW_IDENTITY:
+                    ekyc_document_type_request = identity_document_type_type_id
+                    ekyc_request_data.update(
+                        father_name=father_full_name_vn,
+                        mother_name=mother_full_name_vn,
+                        date_of_expiry=date_to_string(identity_document.expired_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                        gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
+                    )
+
             else:
-                document_type = EKYC_DOCUMENT_TYPE_OLD_CITIZEN
                 ekyc_request_data.update(
                     place_of_origin=validate_place_of_birth_name,
                     place_of_residence=place_of_residence,
                     date_of_expiry=date_to_string(identity_document.expired_date,
                                                   _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
                     gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
-                    personal_identification=saving_customer_individual_info['identifying_characteristics'],
+                    personal_identification=identity_characteristic,
                     signer="Trần Quốc Sáng",  # TODO
-                    place_of_issue="CỤC TRƯỞNG CỤC CẢNH SÁT ĐKQL CƯ TRÚ VÀ DLQG VỀ DÂN CƯ"  # TODO
                 )
+
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_OLD_CITIZEN:
+                    ekyc_document_type_request = identity_document_type_type_id
+
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_NEW_CITIZEN:
+                    mrz_content = identity_document_request.ocr_result.identity_document.mrz_content
+                    ekyc_document_type_request = identity_document_type_type_id
+                    ekyc_request_data.update(
+                        mrz_1=mrz_content[:30],
+                        mrz_2=mrz_content[30:60],
+                        mrz_3=mrz_content[60:],
+                        qr_code=identity_document_request.ocr_result.identity_document.qr_code_content,
+                        signer="Tô Văn Huệ",  # TODO
+                    )
 
         # HO_CHIEU
         else:
-            document_type = EKYC_DOCUMENT_TYPE_PASSPORT
+            if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_PASSPORT:
+                ekyc_document_type_request = identity_document_type_type_id
+                print(ekyc_document_type_request)
+
             saving_customer_resident_address = None
             saving_customer_contact_address = None
             identity_number_in_passport = identity_document_request.ocr_result.basic_information.identity_card_number
@@ -512,11 +551,17 @@ class CtrIdentityDocument(BaseController):
                 mrz_1=mrz_1,
                 mrz_2=mrz_2,
                 nationality="Việt Nam",  # TODO
-                place_of_issue="Cục Quản lý xuất nhập cảnh",  # TODO
                 id_card_number=identity_number_in_passport
             )
 
-        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=document_type)
+        # RULE: Trường hợp gửi type_id không nằm trong identity_document_type_id
+        if ekyc_document_type_request is None:
+            return self.response_exception(
+                msg=MESSAGE_STATUS[ERROR_WRONG_TYPE_IDENTITY],
+                detail=f"{IDENTITY_DOCUMENT_TYPE_TYPE}",
+                loc="identity_document_type -> type_id"
+            )
+        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
         if not is_valid:
             errors = validate_response['errors']
             return_errors = []
