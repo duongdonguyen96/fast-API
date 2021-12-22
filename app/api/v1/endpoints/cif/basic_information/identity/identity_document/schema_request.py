@@ -19,6 +19,7 @@ class FrontSideIdentityCitizenCardRequest(BaseSchema):
     identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh mặt trước CMND/CCCD")
     identity_avatar_image_uuid: str = Field(..., min_length=1, description="Hình ảnh khuôn mặt CMND/CCCD")
     face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
+    face_uuid_ekyc: str = Field(..., min_length=1, description="uuid lấy từ so sánh khuôn mặt")
 
 
 # II. Thông tin mặt sau CMND, CCCD
@@ -133,7 +134,7 @@ class InformationPassportRequest(BaseSchema):
     identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh Hộ chiếu")
     identity_avatar_image_uuid: str = Field(..., min_length=1, description="Hình ảnh khuôn mặt Hộ chiếu")
     face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
-
+    face_uuid_ekyc: str = Field(..., min_length=1, description="uuid lấy từ so sánh khuôn mặt")
 
 # II. Phân tích OCR -> 1. Giấy tờ định danh (Hộ Chiếu)
 class OCRDocumentPassportRequest(BaseSchema):  # noqa

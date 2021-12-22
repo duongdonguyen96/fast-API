@@ -347,6 +347,7 @@ class CtrIdentityDocument(BaseController):
             ############################################################################################################
 
             front_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.front_side_information.identity_image_url)
+            face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
                     msg=ERROR_INVALID_URL,
@@ -362,8 +363,7 @@ class CtrIdentityDocument(BaseController):
                     detail=MESSAGE_STATUS[ERROR_INVALID_URL],
                     loc="back_side_information -> identity_image_url"
                 )
-            compare_image_url = identity_document_request.front_side_information.face_compare_image_url
-
+            compare_face_uuid_ekyc = identity_document_request.front_side_information.face_uuid_ekyc
             saving_customer_identity_images = [
                 {
                     "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
@@ -405,7 +405,8 @@ class CtrIdentityDocument(BaseController):
             })
             ############################################################################################################
 
-            compare_image_url = identity_document_request.passport_information.face_compare_image_url
+            compare_face_uuid_ekyc = identity_document_request.passport_information.face_uuid_ekyc
+            face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
             identity_image_uuid = parse_file_uuid(identity_document_request.passport_information.identity_image_url)
             if not identity_image_uuid:
                 return self.response_exception(
@@ -429,18 +430,17 @@ class CtrIdentityDocument(BaseController):
             }]
 
         # So sánh khuôn mặt
-        compare_image_uuid = parse_file_uuid(compare_image_url)
-        if not compare_image_uuid:
+        if not compare_face_uuid_ekyc:
             return self.response_exception(
                 msg=ERROR_INVALID_URL,
                 detail=MESSAGE_STATUS[ERROR_INVALID_URL],
-                loc="passport_information -> face_compare_image_url"
+                loc="passport_information -> face_uuid_ekyc"
             )
-        await self.check_exist_multi_file(uuids=[identity_image_uuid, compare_image_uuid])
+        await self.check_exist_multi_file(uuids=[identity_image_uuid, face_compare_image_url])
 
         is_error, compare_response = await service_ekyc.compare_face(
-            face_uuid=compare_image_uuid,
-            identity_image_uuid=identity_avatar_image_uuid
+            face_uuid=compare_face_uuid_ekyc,
+            avatar_image_uuid=identity_avatar_image_uuid
         )
 
         if not is_error:
@@ -449,7 +449,7 @@ class CtrIdentityDocument(BaseController):
 
         # dict dùng để tạo mới hoặc lưu lại CustomerCompareImage
         saving_customer_compare_image = {
-            "compare_image_url": compare_image_uuid,
+            "compare_image_url": face_compare_image_url,
             "similar_percent": similar_percent,  # gọi qua eKYC để check
             "maker_id": self.current_user.user_id,
             "maker_at": now()
