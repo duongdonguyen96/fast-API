@@ -1,7 +1,13 @@
+import json
+from typing import List
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
@@ -192,24 +198,34 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
 
 @auto_commit
 async def repos_add_debit_card(
+        cif_id: str,
+        list_debit_card_type: List,
         data_card_delivery_address,
         data_debit_card,
         list_sub_delivery_address,
         list_sub_debit_card,
+        list_sub_debit_card_type,
+        log_data: json,
         session: Session) -> ReposReturn:
-    session.add_all([
-        CardDeliveryAddress(**data_card_delivery_address),
-
-        DebitCard(**data_debit_card),
-
-    ])
-
+    session.add(CardDeliveryAddress(**data_card_delivery_address))
     session.flush()
+    session.add(DebitCard(**data_debit_card))
+    session.flush()
+    session.bulk_save_objects([DebitCardType(**data_type) for data_type in list_debit_card_type])
+
     session.bulk_save_objects(
         [CardDeliveryAddress(**list_sub_delivery_address) for list_sub_delivery_address in list_sub_delivery_address])
     session.bulk_save_objects([DebitCard(**list_sub_debit_card) for list_sub_debit_card in list_sub_debit_card])
+    session.bulk_save_objects([DebitCardType(**data_sub_type) for data_sub_type in list_sub_debit_card_type])
 
+    await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Thẻ ghi nợ -> -- Tạo mới",
+        log_data=log_data,
+        session=session,
+        customer_id=cif_id
+    )
     return ReposReturn(data={
+        "cif_id": cif_id,
         'created_at': now(),
         'created_by': 'system',
         'updated_at': now(),
