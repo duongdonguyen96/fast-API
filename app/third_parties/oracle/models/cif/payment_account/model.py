@@ -18,7 +18,7 @@ class CasaAccount(Base):
     id = Column('casa_account_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã tài khoản thanh toán')
     customer_id = Column(VARCHAR(36), nullable=False, comment='Mã khách hàng')
-    case_account_number = Column('case_account_num', VARCHAR(16), nullable=False, comment='Số tài khoản thanh toán')
+    casa_account_number = Column('casa_account_num', VARCHAR(16), nullable=False, comment='Số tài khoản thanh toán')
     currency_id = Column(ForeignKey('crm_currency.currency_id'), nullable=False, comment='Mã tiền tệ')
     acc_type_id = Column(ForeignKey('crm_acc_type.acc_type_id'), nullable=False,
                          comment='Mã loại nhóm sản phẩm (gói) tài khoản')
