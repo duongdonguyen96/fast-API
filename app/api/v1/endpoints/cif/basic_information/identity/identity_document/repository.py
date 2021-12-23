@@ -743,7 +743,10 @@ async def mapping_ekyc_front_side_identity_card_ocr_data(image_url: str, ocr_dat
         "ocr_result": {
             "identity_document": {
                 "identity_number": ocr_data.get('document_id'),
-                "expired_date": None  # TODO: có thể CMND 12 số có
+                "expired_date": date_string_to_other_date_string_format(
+                    ocr_data.get('date_of_expiry'),
+                    from_format='%d/%m/%Y'
+                ) if ocr_data.get('date_of_expiry') else None
             },
             "basic_information": {
                 "full_name_vn": ocr_data.get('full_name'),
