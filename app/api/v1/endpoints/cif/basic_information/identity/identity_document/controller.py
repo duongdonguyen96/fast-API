@@ -504,7 +504,6 @@ class CtrIdentityDocument(BaseController):
         else:
             if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_PASSPORT:
                 ekyc_document_type_request = identity_document_type_type_id
-                print(ekyc_document_type_request)
 
             saving_customer_resident_address = None
             saving_customer_contact_address = None

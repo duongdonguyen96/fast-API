@@ -109,7 +109,6 @@ class ServiceEKYC:
         try:
             async with self.session.post(url=api_url, json=request_body, headers=self.headers) as response:
                 logger.log("SERVICE", f"[VALIDATE] {response.status} : {api_url}")
-                # print(response)
                 if response.status != status.HTTP_200_OK:
                     is_success = False
                 response_body = await response.json()
