@@ -1,7 +1,7 @@
 import json
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn, auto_commit
 from app.api.v1.endpoints.repository import (
@@ -11,94 +11,57 @@ from app.third_parties.oracle.models.cif.payment_account.model import (
     CasaAccount
 )
 from app.third_parties.oracle.models.master_data.account import (
-    AccountClass, AccountType
+    AccountClass, AccountStructureType, AccountType
 )
 from app.third_parties.oracle.models.master_data.others import Currency
 from app.utils.functions import dropdown, now
 
-NO_REQUIREMENT_PAYMENT_ACCOUNT_INFO_DETAIL = {
-    "self_selected_account_flag": False,
-    "currency": {
-        "id": "1",
-        "code": "VND",
-        "name": "Việt Nam Đồng"
-    },
-    "account_type": {
-        "id": "1",
-        "code": "LOCPHAT",
-        "name": "Lộc Phát"
-    },
-    "account_class": {
-        "id": "1",
-        "code": "LOAIHINH1",
-        "name": "Loại Hình 1"
-    },
-    "account_structure_type_level_1": {
-        "id": None,
-        "code": None,
-        "name": None
-    },
-    "account_structure_type_level_2": {
-        "id": None,
-        "code": None,
-        "name": None
-    },
-    "account_structure_type_level_3": {
-        "id": None,
-        "code": None,
-        "name": None
-    },
-    "casa_account_number": None,
-    "account_salary_organization_account": "13245678912",
-    "account_salary_organization_name": None
-}
-
 
 async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposReturn:
-    details = session.execute(
+    account_structure_type_level_2 = aliased(AccountStructureType, name='account_structure_type_level_2')
+    account_structure_type_level_1 = aliased(AccountStructureType, name='account_structure_type_level_1')
+    detail = session.execute(
         select(
             CasaAccount,
             Currency,
             AccountClass,
-            AccountType
-
-        ).join(
-            Currency,
-            CasaAccount.currency_id == Currency.id)
-        .join(
-            AccountClass,
-            CasaAccount.acc_class_id == AccountClass.id)
-        .join(
             AccountType,
-            CasaAccount.acc_type_id == AccountType.id)
+            AccountStructureType,
+            account_structure_type_level_2,
+            account_structure_type_level_1,
+        ).join(
+            Currency, CasaAccount.currency_id == Currency.id)
+        .join(
+            AccountClass, CasaAccount.acc_class_id == AccountClass.id)
+        .join(
+            AccountType, CasaAccount.acc_type_id == AccountType.id)
+        .join(
+            AccountStructureType, CasaAccount.acc_structure_type_id == AccountStructureType.id
+        )
+        .join(
+            account_structure_type_level_2,
+            AccountStructureType.parent_id == account_structure_type_level_2.id
+        )
+        .join(
+            account_structure_type_level_1,
+            account_structure_type_level_2.parent_id == account_structure_type_level_1.id
+        )
         .filter(
             CasaAccount.customer_id == cif_id
         )
     ).first()
 
     return ReposReturn(data={
-        "self_selected_account_flag": details.CasaAccount.self_selected_account_flag,
-        "currency": dropdown(details.Currency),
-        "account_type": dropdown(details.AccountType),
-        "account_class": dropdown(details.AccountClass),
-        "account_structure_type_level_1": {
-            "id": None,
-            "code": None,
-            "name": None
-        },
-        "account_structure_type_level_2": {
-            "id": None,
-            "code": None,
-            "name": None
-        },
-        "account_structure_type_level_3": {
-            "id": None,
-            "code": None,
-            "name": None
-        },
-        "casa_account_number": details.CasaAccount.case_account_number,
-        "account_salary_organization_account": details.CasaAccount.acc_salary_org_acc,
-        "account_salary_organization_name": details.CasaAccount.acc_salary_org_name
+        "self_selected_account_flag": detail.CasaAccount.self_selected_account_flag,
+        "currency": dropdown(detail.Currency),
+        "account_type": dropdown(detail.AccountType),
+        "account_class": dropdown(detail.AccountClass),
+        "account_structure_type_level_1": dropdown(detail.account_structure_type_level_1),
+        "account_structure_type_level_2": dropdown(detail.account_structure_type_level_2),
+        "account_structure_type_level_3": dropdown(detail.AccountStructureType),
+        "casa_account_number": detail.CasaAccount.casa_account_number,
+        "account_salary_organization_account": detail.CasaAccount.acc_salary_org_acc,
+        "account_salary_organization_name": detail.CasaAccount.acc_salary_org_name
 
     })
 
