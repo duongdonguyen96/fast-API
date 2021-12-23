@@ -398,7 +398,9 @@ class CtrIdentityDocument(BaseController):
                 })
             ############################################################################################################
 
-            front_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.front_side_information.identity_image_url)
+            front_side_information_identity_image_uuid = parse_file_uuid(
+                url=identity_document_request.front_side_information.identity_image_url
+            )
             face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
@@ -516,7 +518,7 @@ class CtrIdentityDocument(BaseController):
             ############################################################################################################
 
             compare_face_uuid_ekyc = identity_document_request.passport_information.face_uuid_ekyc
-            face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
+            face_compare_image_url = parse_file_uuid(identity_document_request.passport_information.face_compare_image_url)
             identity_image_uuid = parse_file_uuid(identity_document_request.passport_information.identity_image_url)
             if not identity_image_uuid:
                 return self.response_exception(
