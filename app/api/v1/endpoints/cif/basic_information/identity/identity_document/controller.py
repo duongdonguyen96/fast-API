@@ -206,12 +206,11 @@ class CtrIdentityDocument(BaseController):
         # check nationality_id
         nationality_id = basic_information.nationality.id
         if is_create or (customer_individual_info.country_of_birth_id != nationality_id):
-            validate_ethnic = await self.get_model_object_by_id(
+            await self.get_model_object_by_id(
                 model_id=nationality_id,
                 model=AddressCountry,
                 loc='nationality_id'
             )
-            validate_ethnic_name = validate_ethnic.name
 
         # dict dùng để tạo mới hoặc lưu lại customer
         saving_customer = {
@@ -277,7 +276,8 @@ class CtrIdentityDocument(BaseController):
                 # check ethnic_id
                 ethnic_id = basic_information.ethnic.id
                 if is_create or (customer_individual_info.nation_id != ethnic_id):
-                    await self.get_model_object_by_id(model_id=ethnic_id, model=Nation, loc='ethnic_id')
+                    validate_ethnic = await self.get_model_object_by_id(model_id=ethnic_id, model=Nation, loc='ethnic_id')
+                    validate_ethnic_name = validate_ethnic.name
 
                 # check religion_id
                 religion_id = basic_information.religion.id
