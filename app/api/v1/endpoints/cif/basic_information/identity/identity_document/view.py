@@ -1,6 +1,8 @@
 from typing import List, Union
 
+import pydantic
 from fastapi import APIRouter, Body, Depends, File, Form, Path, UploadFile
+from fastapi.exceptions import RequestValidationError
 from starlette import status
 from starlette.requests import Request
 
@@ -114,7 +116,10 @@ async def view_save(
         request_body = await request.json()
         request_body_identity_document_type_id = request_body['identity_document_type']['id']
         if request_body_identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
-            identity_document_request = CitizenCardSaveRequest(**request_body)
+            try:
+                identity_document_request = CitizenCardSaveRequest(**request_body)
+            except pydantic.error_wrappers.ValidationError as ex:
+                raise RequestValidationError(ex.raw_errors)
 
     save_info = await CtrIdentityDocument(current_user).save_identity(identity_document_request)
     return ResponseData[SaveSuccessResponse](**save_info)

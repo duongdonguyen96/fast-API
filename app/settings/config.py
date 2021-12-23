@@ -26,6 +26,8 @@ DATE_INPUT_OUTPUT_FORMAT = '%Y-%m-%d'
 
 TIME_INPUT_OUTPUT_FORMAT = '%H:%M:%S'
 
+DATE_INPUT_OUTPUT_EKYC_FORMAT = '%d/%m/%Y'
+
 # logging configuration
 LOGGING_LEVEL = logging.DEBUG if APPLICATION["debug"] else logging.INFO
 LOGGERS = ("uvicorn.asgi", "uvicorn.access", "sqlalchemy.engine")  # noqa

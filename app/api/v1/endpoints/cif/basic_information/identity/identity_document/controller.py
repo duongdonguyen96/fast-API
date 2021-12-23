@@ -15,6 +15,7 @@ from app.api.v1.endpoints.cif.repository import (
     repos_check_not_exist_cif_number
 )
 from app.api.v1.endpoints.file.validator import file_validator
+from app.settings.config import DATE_INPUT_OUTPUT_EKYC_FORMAT
 from app.settings.event import service_ekyc
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
@@ -37,15 +38,21 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE, CUSTOMER_UNCOMPLETED_FLAG,
-    EKYC_IDENTITY_TYPE, IDENTITY_DOCUMENT_TYPE,
-    IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
-    IDENTITY_DOCUMENT_TYPE_PASSPORT, IDENTITY_IMAGE_FLAG_BACKSIDE,
+    CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_MALE,
+    CUSTOMER_UNCOMPLETED_FLAG, EKYC_DOCUMENT_TYPE_NEW_CITIZEN,
+    EKYC_DOCUMENT_TYPE_NEW_IDENTITY, EKYC_DOCUMENT_TYPE_OLD_CITIZEN,
+    EKYC_DOCUMENT_TYPE_OLD_IDENTITY, EKYC_DOCUMENT_TYPE_PASSPORT,
+    EKYC_GENDER_TYPE_FEMALE, EKYC_GENDER_TYPE_MALE, EKYC_IDENTITY_TYPE,
+    IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
+    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
+    IDENTITY_DOCUMENT_TYPE_TYPE, IDENTITY_IMAGE_FLAG_BACKSIDE,
     IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
     RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
-    ERROR_IDENTITY_DOCUMENT_NOT_EXIST, ERROR_INVALID_URL, MESSAGE_STATUS
+    ERROR_IDENTITY_DOCUMENT_NOT_EXIST,
+    ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST, ERROR_INVALID_URL,
+    ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
 )
 from app.utils.functions import (
     calculate_age, date_to_string, now, parse_file_uuid
@@ -106,6 +113,17 @@ class CtrIdentityDocument(BaseController):
     async def save_identity(self, identity_document_request: Union[IdentityCardSaveRequest,
                                                                    CitizenCardSaveRequest,
                                                                    PassportSaveRequest]):
+        # Dữ liệu validate chung
+        validate_religion_name = None
+        validate_ethnic_name = None
+        validate_gender_code = None
+        validate_place_of_issue_name = None
+        validate_place_of_birth_name = None
+        ekyc_document_type_request = None
+        resident_address_ward_name = ""
+        resident_address_district_name = ""
+        resident_address_province_name = ""
+
         if identity_document_request.identity_document_type.id not in IDENTITY_DOCUMENT_TYPE:
             return self.response_exception(msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> id')
 
@@ -176,10 +194,23 @@ class CtrIdentityDocument(BaseController):
                                               model=CustomerClassification,
                                               loc='customer_classification_id')
 
+        # check identity_document_type_type_id
+        identity_document_type_type_id = identity_document_request.identity_document_type.type_id
+        if identity_document_type_type_id not in EKYC_IDENTITY_TYPE:
+            return self.response_exception(
+                msg=ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST,
+                detail=MESSAGE_STATUS[ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST],
+                loc="identity_document_type -> type_id"
+            )
+
         # check nationality_id
         nationality_id = basic_information.nationality.id
         if is_create or (customer_individual_info.country_of_birth_id != nationality_id):
-            await self.get_model_object_by_id(model_id=nationality_id, model=AddressCountry, loc='nationality_id')
+            await self.get_model_object_by_id(
+                model_id=nationality_id,
+                model=AddressCountry,
+                loc='nationality_id'
+            )
 
         # dict dùng để tạo mới hoặc lưu lại customer
         saving_customer = {
@@ -206,11 +237,11 @@ class CtrIdentityDocument(BaseController):
         }
         ################################################################################################################
 
-        # TODO: check identity_document bằng cách call qua eKYC
-
         place_of_issue_id = identity_document.place_of_issue.id
         if is_create or (customer_identity.place_of_issue_id != place_of_issue_id):
-            await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue, loc='place_of_issue_id')
+            validate_place_of_issue = await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue,
+                                                                        loc='place_of_issue_id')
+            validate_place_of_issue_name = validate_place_of_issue.name
 
         # dict dùng để tạo mới hoặc lưu lại customer_identity
         saving_customer_identity = {
@@ -227,7 +258,9 @@ class CtrIdentityDocument(BaseController):
 
         gender_id = basic_information.gender.id
         if is_create or (customer_individual_info.gender_id != gender_id):
-            await self.get_model_object_by_id(model_id=gender_id, model=CustomerGender, loc='gender_id')
+            validate_gender = await self.get_model_object_by_id(model_id=gender_id, model=CustomerGender,
+                                                                loc='gender_id')
+            validate_gender_code = validate_gender.code
 
         religion_id = None
         ethnic_id = None
@@ -243,7 +276,8 @@ class CtrIdentityDocument(BaseController):
                 # check ethnic_id
                 ethnic_id = basic_information.ethnic.id
                 if is_create or (customer_individual_info.nation_id != ethnic_id):
-                    await self.get_model_object_by_id(model_id=ethnic_id, model=Nation, loc='ethnic_id')
+                    validate_ethnic = await self.get_model_object_by_id(model_id=ethnic_id, model=Nation, loc='ethnic_id')
+                    validate_ethnic_name = validate_ethnic.name
 
                 # check religion_id
                 religion_id = basic_information.religion.id
@@ -255,7 +289,9 @@ class CtrIdentityDocument(BaseController):
 
         # check place_of_birth or province.id        # check place_of_birth or province.id
         if is_create or (customer_individual_info.place_of_birth_id != province_id):
-            await self.get_model_object_by_id(model_id=province_id, model=AddressProvince, loc='province_id')
+            validate_place_of_birth = await self.get_model_object_by_id(model_id=province_id, model=AddressProvince,
+                                                                        loc='province_id')
+            validate_place_of_birth_name = validate_place_of_birth.name
 
         # dict dùng để tạo mới hoặc lưu lại customer_individual_info
         saving_customer_individual_info = {
@@ -273,6 +309,14 @@ class CtrIdentityDocument(BaseController):
 
         ################################################################################################################
 
+        ekyc_request_data = dict(
+            document_id=saving_customer_identity['identity_num'],
+            date_of_birth=date_to_string(basic_information.date_of_birth, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+            full_name=full_name_vn,
+            date_of_issue=date_to_string(identity_document.issued_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+            place_of_issue=validate_place_of_issue_name
+        )
+
         if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
             resident_address = await self.get_model_object_by_code(
                 model_code=RESIDENT_ADDRESS_CODE, model=AddressType, loc='resident_address'
@@ -280,20 +324,28 @@ class CtrIdentityDocument(BaseController):
             # check resident_address_province_id
             resident_address_province_id = address_information.resident_address.province.id
             if is_create or (customer_resident_address.address_province_id != resident_address_province_id):
-                await self.get_model_object_by_id(model_id=resident_address_province_id, model=AddressProvince,
-                                                  loc='resident_address -> province -> id')
+                resident_address_province = await self.get_model_object_by_id(model_id=resident_address_province_id,
+                                                                              model=AddressProvince,
+                                                                              loc='resident_address -> province -> id')
+                resident_address_province_name = resident_address_province.name
 
             # check resident_address_district_id
             resident_address_district_id = address_information.resident_address.district.id
             if is_create or (customer_resident_address.address_district_id != resident_address_district_id):
-                await self.get_model_object_by_id(model_id=resident_address_district_id, model=AddressDistrict,
-                                                  loc='resident_address -> district -> id')
+                resident_address_district = await self.get_model_object_by_id(model_id=resident_address_district_id,
+                                                                              model=AddressDistrict,
+                                                                              loc='resident_address -> district -> id')
+                resident_address_district_name = resident_address_district.name
 
             # check resident_address_ward_id
             resident_address_ward_id = address_information.resident_address.ward.id
             if is_create or (customer_resident_address.address_ward_id != resident_address_ward_id):
-                await self.get_model_object_by_id(model_id=resident_address_ward_id, model=AddressWard,
-                                                  loc='resident_address -> ward -> id')
+                resident_address_ward = await self.get_model_object_by_id(
+                    model_id=resident_address_ward_id,
+                    model=AddressWard,
+                    loc='resident_address -> ward -> id'
+                )
+                resident_address_ward_name = resident_address_ward.name
 
             # dict dùng để tạo mới hoặc lưu lại customer_resident_address
             saving_customer_resident_address = {
@@ -346,7 +398,9 @@ class CtrIdentityDocument(BaseController):
                 })
             ############################################################################################################
 
-            front_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.front_side_information.identity_image_url)
+            front_side_information_identity_image_uuid = parse_file_uuid(
+                url=identity_document_request.front_side_information.identity_image_url
+            )
             face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
@@ -356,7 +410,8 @@ class CtrIdentityDocument(BaseController):
                 )
             identity_image_uuid = front_side_information_identity_image_uuid
             identity_avatar_image_uuid = identity_document_request.front_side_information.identity_avatar_image_uuid
-            back_side_information_identity_image_uuid = parse_file_uuid(identity_document_request.back_side_information.identity_image_url)
+            back_side_information_identity_image_uuid = parse_file_uuid(
+                identity_document_request.back_side_information.identity_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
                     msg=ERROR_INVALID_URL,
@@ -393,20 +448,76 @@ class CtrIdentityDocument(BaseController):
                 }
             ]
 
+            place_of_residence = f"{address_information.resident_address.number_and_street}, " \
+                                 f"{resident_address_ward_name}, " \
+                                 f"{resident_address_district_name}, " \
+                                 f"{resident_address_province_name}"
+
+            if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
+
+                ekyc_request_data.update(
+                    place_of_origin=validate_place_of_birth_name,
+                    place_of_residence=place_of_residence,
+                    ethnicity=validate_ethnic_name,
+                    religion=validate_religion_name,
+                    personal_identification=identity_characteristic
+                )
+
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_OLD_IDENTITY:
+                    ekyc_document_type_request = identity_document_type_type_id
+
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_NEW_IDENTITY:
+                    ekyc_document_type_request = identity_document_type_type_id
+                    ekyc_request_data.update(
+                        father_name=father_full_name_vn,
+                        mother_name=mother_full_name_vn,
+                        date_of_expiry=date_to_string(identity_document.expired_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                        gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
+                    )
+
+            else:
+                ekyc_request_data.update(
+                    place_of_origin=validate_place_of_birth_name,
+                    place_of_residence=place_of_residence,
+                    date_of_expiry=date_to_string(identity_document.expired_date,
+                                                  _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                    gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
+                    personal_identification=identity_characteristic,
+                    signer="Trần Quốc Sáng",  # TODO
+                )
+
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_OLD_CITIZEN:
+                    ekyc_document_type_request = identity_document_type_type_id
+
+                if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_NEW_CITIZEN:
+                    mrz_content = identity_document_request.ocr_result.identity_document.mrz_content
+                    ekyc_document_type_request = identity_document_type_type_id
+                    ekyc_request_data.update(
+                        mrz_1=mrz_content[:30],
+                        mrz_2=mrz_content[30:60],
+                        mrz_3=mrz_content[60:],
+                        qr_code=identity_document_request.ocr_result.identity_document.qr_code_content,
+                        signer="Tô Văn Huệ",  # TODO
+                    )
+
         # HO_CHIEU
         else:
+            if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_PASSPORT:
+                ekyc_document_type_request = identity_document_type_type_id
+
             saving_customer_resident_address = None
             saving_customer_contact_address = None
+            identity_number_in_passport = identity_document_request.ocr_result.basic_information.identity_card_number
             saving_customer_identity.update({
                 "passport_type_id": identity_document_request.ocr_result.identity_document.passport_type.id,
                 "passport_code_id": identity_document_request.ocr_result.identity_document.passport_code.id,
-                "identity_number_in_passport": identity_document_request.ocr_result.basic_information.identity_card_number,
+                "identity_number_in_passport": identity_number_in_passport,
                 "mrz_content": identity_document_request.ocr_result.basic_information.mrz_content
             })
             ############################################################################################################
 
             compare_face_uuid_ekyc = identity_document_request.passport_information.face_uuid_ekyc
-            face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
+            face_compare_image_url = parse_file_uuid(identity_document_request.passport_information.face_compare_image_url)
             identity_image_uuid = parse_file_uuid(identity_document_request.passport_information.identity_image_url)
             if not identity_image_uuid:
                 return self.response_exception(
@@ -428,6 +539,37 @@ class CtrIdentityDocument(BaseController):
                 "updater_at": now(),
                 "identity_image_front_flag": None
             }]
+
+            # Validate HC
+            # Mỗi dòng có tổng cộng 44 ký tự bao gồm dấu "<".
+            passport_mrz_content = identity_document_request.ocr_result.basic_information.mrz_content
+            mrz_1 = passport_mrz_content[:44]
+            mrz_2 = passport_mrz_content[44:]
+
+            ekyc_request_data.update(
+                date_of_expiry=date_to_string(identity_document.expired_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
+                mrz_1=mrz_1,
+                mrz_2=mrz_2,
+                nationality="Việt Nam",  # TODO
+                id_card_number=identity_number_in_passport
+            )
+
+        # RULE: Trường hợp gửi type_id không nằm trong identity_document_type_id
+        if ekyc_document_type_request is None:
+            return self.response_exception(
+                msg=MESSAGE_STATUS[ERROR_WRONG_TYPE_IDENTITY],
+                detail=f"{IDENTITY_DOCUMENT_TYPE_TYPE}",
+                loc="identity_document_type -> type_id"
+            )
+        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
+        if not is_valid:
+            errors = validate_response['errors']
+            return_errors = []
+            for key, values in errors.items():
+                for value in values:
+                    return_errors.append(f"{key} -> {value['message']}")
+            return self.response_exception(msg=validate_response['message'], detail=', '.join(return_errors))
 
         # So sánh khuôn mặt
         if not compare_face_uuid_ekyc:
