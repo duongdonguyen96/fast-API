@@ -1003,5 +1003,6 @@ async def repos_compare_face(face_image_data: bytes, identity_image_uuid: str, s
                            detail=compare_face_info.get('message', 'compare'))
 
     return ReposReturn(data={
-        "similar_percent": compare_face_info.get('data').get('similarity_percent')
+        "similar_percent": compare_face_info.get('data').get('similarity_percent'),
+        "face_uuid_ekyc": face_uuid
     })

@@ -4,7 +4,9 @@ from typing import Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
+from app.api.v1.schemas.utils import (
+    DropdownRequest, DropdownResponse, OptionalDropdownResponse
+)
 
 
 class AddressResponse(BaseSchema):
@@ -12,6 +14,13 @@ class AddressResponse(BaseSchema):
     district: DropdownResponse = Field(..., description="Quận/Huyện")
     ward: DropdownResponse = Field(..., description="Phường/Xã")
     number_and_street: str = Field(..., description="Số nhà, tên đường")
+
+
+class OptionalAddressResponse(BaseSchema):
+    province: OptionalDropdownResponse = Field(None, description="Tỉnh/Thành phố")
+    district: OptionalDropdownResponse = Field(None, description="Quận/Huyện")
+    ward: OptionalDropdownResponse = Field(None, description="Phường/Xã")
+    number_and_street: str = Field(None, description="Số nhà, tên đường")
 
 
 class AddressRequest(BaseSchema):
