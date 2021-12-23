@@ -37,6 +37,7 @@ class OCRAddressIdentityCitizenCardResponse(BaseSchema):
 # III. Phân tích OCR -> 1. Giấy tờ định danh (CMND)
 class OCRFrontSideDocumentIdentityCardResponse(BaseSchema):
     identity_number: Optional[str] = Field(..., min_length=1, description="Số GTĐD", nullable=True)
+    expired_date: Optional[date] = Field(..., description="Có giá trị đến", nullable=True)
 
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CMND)
