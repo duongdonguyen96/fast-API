@@ -75,8 +75,17 @@ class OCRResultIdentityCardRequest(BaseSchema):  # noqa
 
 # REQUEST CMND
 class IdentityDocumentTypeRequest(BaseSchema):
-    id: str = Field(..., min_length=1, description='`Chuỗi định danh`')
-    type_id: int = Field(..., description='`Loại GTDD`')
+    id: str = Field(..., min_length=1, description="""Chuỗi định danh chấp nhận các giá trị tương ứng sau:
+        \n`HO_CHIEU` : Hộ Chiếu.
+        \n`CMND` : Chứng Minh Nhân Dân.
+        \n`CCCD` : Căn Cước Công Dân.""")
+    type_id: int = Field(..., description="""Loại GTDD trả về là loại giấy tờ đã được server phân loại,
+    và có các giá trị tương ứng như sau:
+        \n`0` : Hộ chiếu.
+        \n`1` : Chứng minh nhân dân cũ (9 số).
+        \n`2` : Chứng minh nhân dân mới (12 số).
+        \n`3` : Căn cước công dân cũ (không gắn chíp).
+        \n`4` : Căn cước công dân mới (có gắn chíp). """)
 
 
 class IdentityCardSaveRequest(BaseSchema):
