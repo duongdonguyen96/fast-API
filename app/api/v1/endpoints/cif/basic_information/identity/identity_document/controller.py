@@ -16,7 +16,7 @@ from app.api.v1.endpoints.cif.repository import (
 )
 from app.api.v1.endpoints.file.validator import file_validator
 from app.settings.config import DATE_INPUT_OUTPUT_EKYC_FORMAT
-from app.settings.event import service_ekyc
+# from app.settings.event import service_ekyc
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -409,7 +409,7 @@ class CtrIdentityDocument(BaseController):
                     loc="front_side_information -> identity_image_url"
                 )
             identity_image_uuid = front_side_information_identity_image_uuid
-            identity_avatar_image_uuid = identity_document_request.front_side_information.identity_avatar_image_uuid
+            # identity_avatar_image_uuid = identity_document_request.front_side_information.identity_avatar_image_uuid
             back_side_information_identity_image_uuid = parse_file_uuid(
                 identity_document_request.back_side_information.identity_image_url)
             if not front_side_information_identity_image_uuid:
@@ -453,6 +453,7 @@ class CtrIdentityDocument(BaseController):
                                  f"{resident_address_district_name}, " \
                                  f"{resident_address_province_name}"
 
+            # VALIDATE: EKYC CMND
             if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
 
                 ekyc_request_data.update(
@@ -474,7 +475,7 @@ class CtrIdentityDocument(BaseController):
                         date_of_expiry=date_to_string(identity_document.expired_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
                         gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
                     )
-
+            # VALIDATE: EKYC CCCD
             else:
                 ekyc_request_data.update(
                     place_of_origin=validate_place_of_birth_name,
@@ -525,7 +526,7 @@ class CtrIdentityDocument(BaseController):
                     detail=MESSAGE_STATUS[ERROR_INVALID_URL],
                     loc="passport_information -> identity_image_url"
                 )
-            identity_avatar_image_uuid = identity_document_request.passport_information.identity_avatar_image_uuid
+            # identity_avatar_image_uuid = identity_document_request.passport_information.identity_avatar_image_uuid
             saving_customer_identity_images = [{
                 "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
                 "image_url": identity_image_uuid,
@@ -540,7 +541,7 @@ class CtrIdentityDocument(BaseController):
                 "identity_image_front_flag": None
             }]
 
-            # Validate HC
+            # VALIDATE: EKYC HO_CHIEU
             # Mỗi dòng có tổng cộng 44 ký tự bao gồm dấu "<".
             passport_mrz_content = identity_document_request.ocr_result.basic_information.mrz_content
             mrz_1 = passport_mrz_content[:44]
@@ -562,14 +563,14 @@ class CtrIdentityDocument(BaseController):
                 detail=f"{IDENTITY_DOCUMENT_TYPE_TYPE}",
                 loc="identity_document_type -> type_id"
             )
-        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
-        if not is_valid:
-            errors = validate_response['errors']
-            return_errors = []
-            for key, values in errors.items():
-                for value in values:
-                    return_errors.append(f"{key} -> {value['message']}")
-            return self.response_exception(msg=validate_response['message'], detail=', '.join(return_errors))
+        # is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
+        # if not is_valid:
+        #     errors = validate_response['errors']
+        #     return_errors = []
+        #     for key, values in errors.items():
+        #         for value in values:
+        #             return_errors.append(f"{key} -> {value['message']}")
+        #     return self.response_exception(msg=validate_response['message'], detail=', '.join(return_errors))
 
         # So sánh khuôn mặt
         if not compare_face_uuid_ekyc:
@@ -580,19 +581,19 @@ class CtrIdentityDocument(BaseController):
             )
         await self.check_exist_multi_file(uuids=[identity_image_uuid, face_compare_image_url])
 
-        is_error, compare_response = await service_ekyc.compare_face(
-            face_uuid=compare_face_uuid_ekyc,
-            avatar_image_uuid=identity_avatar_image_uuid
-        )
-
-        if not is_error:
-            return self.response_exception(msg=compare_response['message'])
-        similar_percent = compare_response['data']['similarity_percent']
+        # is_error, compare_response = await service_ekyc.compare_face(
+        #     face_uuid=compare_face_uuid_ekyc,
+        #     avatar_image_uuid=identity_avatar_image_uuid
+        # )
+        #
+        # if not is_error:
+        #     return self.response_exception(msg=compare_response['message'])
+        # similar_percent = compare_response['data']['similarity_percent']
 
         # dict dùng để tạo mới hoặc lưu lại CustomerCompareImage
         saving_customer_compare_image = {
             "compare_image_url": face_compare_image_url,
-            "similar_percent": similar_percent,  # gọi qua eKYC để check
+            "similar_percent": 00,  # gọi qua eKYC để check
             "maker_id": self.current_user.user_id,
             "maker_at": now()
         }
