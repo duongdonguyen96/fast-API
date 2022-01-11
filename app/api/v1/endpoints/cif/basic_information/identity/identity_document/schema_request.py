@@ -93,8 +93,8 @@ class IdentityCardSaveRequest(BaseSchema):
     cif_id: str = Field(None, description="ID định danh CIF")
     cif_information: CifInformationRequest = Field(..., description="Thông tin CIF")
     identity_document_type: IdentityDocumentTypeRequest = Field(..., description="Loại giấy tờ định danh")
-    front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
-    back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
+    # front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
+    # back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
     ocr_result: OCRResultIdentityCardRequest = Field(..., description="Phân tích OCR")
 
 
@@ -134,8 +134,8 @@ class CitizenCardSaveRequest(BaseSchema):
     cif_id: str = Field(None, description="ID định danh CIF")  # noqa
     cif_information: CifInformationRequest = Field(..., description="Thông tin CIF")
     identity_document_type: IdentityDocumentTypeRequest = Field(..., description="Loại giấy tờ định danh")
-    front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
-    back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
+    # front_side_information: FrontSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt trước")
+    # back_side_information: BackSideIdentityCitizenCardRequest = Field(..., description="Thông tin mặt sau")
     ocr_result: OCRResultCitizenCardRequest = Field(..., description="Phân tích OCR")
 
 
@@ -182,7 +182,7 @@ class PassportSaveRequest(BaseSchema):
     cif_id: str = Field(None, description="ID định danh CIF")
     cif_information: CifInformationRequest = Field(..., description="Thông tin CIF")
     identity_document_type: IdentityDocumentTypeRequest = Field(..., description="Loại giấy tờ định danh")
-    passport_information: InformationPassportRequest = Field(..., description="Thông tin hộ chiếu")
+    # passport_information: InformationPassportRequest = Field(..., description="Thông tin hộ chiếu")
     ocr_result: OCRResultPassportRequest = Field(..., description="Phân tích OCR")
 
 
