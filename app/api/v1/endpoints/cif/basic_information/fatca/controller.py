@@ -10,6 +10,7 @@ from app.third_parties.oracle.models.master_data.others import FatcaCategory
 from app.utils.constant.cif import (
     LANGUAGE_ID_EN, LANGUAGE_ID_VN, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VN
 )
+from app.utils.functions import generate_uuid
 
 
 class CtrFatca(BaseController):
