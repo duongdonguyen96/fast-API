@@ -34,7 +34,7 @@ class DocumentsListRequest(BaseSchema):
 
 class FatcaRequest(BaseSchema):
     fatca_information: List[CategoryDropdownRequest] = Field(..., description='Danh mục `FATCA`')
-    document_information: List[DocumentsListRequest] = Field(..., description='Danh sách biểu mẫu `FATCA`')
+    # document_information: List[DocumentsListRequest] = Field(..., description='Danh sách biểu mẫu `FATCA`')
 
 
 ########################################################################################################################

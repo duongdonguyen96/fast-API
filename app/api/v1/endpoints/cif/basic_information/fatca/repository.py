@@ -18,7 +18,7 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 @auto_commit
 async def repos_save_fatca_document(
         cif_id: str,
-        list_data_insert_fatca_document: List,
+        # list_data_insert_fatca_document: List,
         list_data_insert_fatca: List,
         log_data: json,
         session: Session,
@@ -43,7 +43,7 @@ async def repos_save_fatca_document(
     )
 
     session.bulk_save_objects([CustomerFatca(**data_insert) for data_insert in list_data_insert_fatca])
-    session.bulk_save_objects([CustomerFatcaDocument(**data_insert) for data_insert in list_data_insert_fatca_document])
+    # session.bulk_save_objects([CustomerFatcaDocument(**data_insert) for data_insert in list_data_insert_fatca_document])
 
     await write_transaction_log_and_update_booking(
         description="Tạo CIF -> Thông tin cá nhân -> Thông tin FATCA -- Tạo mới",
