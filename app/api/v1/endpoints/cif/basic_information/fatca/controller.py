@@ -10,7 +10,6 @@ from app.third_parties.oracle.models.master_data.others import FatcaCategory
 from app.utils.constant.cif import (
     LANGUAGE_ID_EN, LANGUAGE_ID_VN, LANGUAGE_TYPE_EN, LANGUAGE_TYPE_VN
 )
-from app.utils.functions import generate_uuid, now, parse_file_uuid
 
 
 class CtrFatca(BaseController):
@@ -24,25 +23,25 @@ class CtrFatca(BaseController):
             fatca_category_ids.append(fatca_id.id)
 
         # lấy list fatca_category_id trong document_information
-        in_document_fatca_category_ids = []
-        image_uuids = []
-        for document in fatca_request.document_information:
-            for fatca_document in document.documents:
-                in_document_fatca_category_ids.append(fatca_document.id)
-                # lấy uuids từ url request
-                uuid = parse_file_uuid(fatca_document.url)
-                fatca_document.url = uuid
-                image_uuids.append(uuid)
+        # in_document_fatca_category_ids = []
+        # image_uuids = []
+        # for document in fatca_request.document_information:
+        #     for fatca_document in document.documents:
+        #         in_document_fatca_category_ids.append(fatca_document.id)
+        #         # lấy uuids từ url request
+        #         uuid = parse_file_uuid(fatca_document.url)
+        #         fatca_document.url = uuid
+        #         image_uuids.append(uuid)
 
         # gọi service file check exist list uuid
-        await self.check_exist_multi_file(uuids=image_uuids)
+        # await self.check_exist_multi_file(uuids=image_uuids)
 
         # RULE: Nếu Fatca info chọn có thì phải có document gửi lên
-        for fatca in fatca_request.fatca_information:
-            if fatca.select_flag and fatca.id not in in_document_fatca_category_ids:
-                return self.response_exception(msg='', detail='fatca_information select_flag true if not document')
-
-        fatca_category_ids.extend(in_document_fatca_category_ids)
+        # for fatca in fatca_request.fatca_information:
+        #     if fatca.select_flag and fatca.id not in in_document_fatca_category_ids:
+        #         return self.response_exception(msg='', detail='fatca_information select_flag true if not document')
+        #
+        # fatca_category_ids.extend(in_document_fatca_category_ids)
 
         # check list id fatca_category có tồn tại hay không
         await self.get_model_objects_by_ids(
@@ -64,25 +63,25 @@ class CtrFatca(BaseController):
         } for fatca in fatca_request.fatca_information]
 
         # Tạp danh sách data insert fatca_document
-        list_data_insert_fatca_document = []
-        for language_document in fatca_request.document_information:
-            for fatca_document in language_document.documents:
-                list_data_insert_fatca_document.append({
-                    "customer_fatca_id": fatca_category__customer_fatca_ids[fatca_document.id],
-                    "document_language_type": language_document.language_type.id,
-                    "document_name": 'document_name',
-                    "document_url": fatca_document.url,
-                    "document_version": '1',
-                    "active_flag": 1,
-                    'created_at': now(),
-                    'order_no': None
-                })
+        # list_data_insert_fatca_document = []
+        # for language_document in fatca_request.document_information:
+        #     for fatca_document in language_document.documents:
+        #         list_data_insert_fatca_document.append({
+        #             "customer_fatca_id": fatca_category__customer_fatca_ids[fatca_document.id],
+        #             "document_language_type": language_document.language_type.id,
+        #             "document_name": 'document_name',
+        #             "document_url": fatca_document.url,
+        #             "document_version": '1',
+        #             "active_flag": 1,
+        #             'created_at': now(),
+        #             'order_no': None
+        #         })
 
         data_response_success = self.call_repos(
             await repos_save_fatca_document(
                 cif_id=cif_id,
                 list_data_insert_fatca=list_data_insert_fatca,
-                list_data_insert_fatca_document=list_data_insert_fatca_document,
+                # list_data_insert_fatca_document=list_data_insert_fatca_document,
                 log_data=fatca_request.json(),
                 session=self.oracle_session,
             )
