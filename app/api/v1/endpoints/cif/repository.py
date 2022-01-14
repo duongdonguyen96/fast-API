@@ -4,17 +4,29 @@ from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
+from app.third_parties.oracle.models.cif.basic_information.contact.model import (
+    CustomerAddress
+)
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity
 )
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
-from app.third_parties.oracle.models.master_data.customer import (
-    CustomerClassification, CustomerEconomicProfession
+from app.third_parties.oracle.models.cif.basic_information.personal.model import (
+    CustomerIndividualInfo
 )
-from app.third_parties.oracle.models.master_data.identity import ImageType
-from app.third_parties.oracle.models.master_data.others import KYCLevel
+from app.third_parties.oracle.models.master_data.address import AddressCountry
+from app.third_parties.oracle.models.master_data.customer import (
+    CustomerClassification, CustomerEconomicProfession, CustomerGender,
+    CustomerStatus, CustomerType
+)
+from app.third_parties.oracle.models.master_data.identity import (
+    ImageType, PlaceOfIssue
+)
+from app.third_parties.oracle.models.master_data.others import (
+    KYCLevel, MaritalStatus
+)
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
     ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST, ERROR_CIF_NUMBER_NOT_EXIST
@@ -130,94 +142,40 @@ async def repos_profile_history(cif_id: str) -> ReposReturn:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
 
 
-async def repos_customer_information(cif_id: str) -> ReposReturn:
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
+async def repos_customer_information(cif_id: str, session: Session) -> ReposReturn:
+    query_data_customer = session.execute(
+        select(
+            Customer,
+            CustomerIdentity,
+            CustomerIndividualInfo,
+            CustomerAddress,
+            CustomerStatus,
+            PlaceOfIssue,
+            AddressCountry,
+            CustomerClassification,
+            CustomerGender,
+            MaritalStatus,
+            CustomerType
+        )
+        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+        .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+        .join(CustomerStatus, Customer.customer_status_id == CustomerStatus.id)
+        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .join(PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id)
+        .join(AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id)
+        .join(CustomerClassification, Customer.customer_classification_id == CustomerClassification.id)
+        .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
+        .join(MaritalStatus, CustomerIndividualInfo.marital_status_id == MaritalStatus.id)
+        .join(CustomerType, Customer.customer_type_id == CustomerType.id)
+        .filter(
+            Customer.id == cif_id
+        ).order_by(desc(CustomerIdentity.maker_at))
+    ).all()
 
-    return ReposReturn(data={
-        "customer_id": "1",
-        "status": {
-            "id": "1",
-            "code": "code",
-            "name": "MỞ",
-            "active_flag": True
-        },
-        "cif_number": "2541352",
-        "avatar_url": "http://example.com/example.jpg",
-        "customer_classification": {
-            "id": "1",
-            "code": "CANHAN",
-            "name": "Cá nhân"
-        },
-        "full_name": "TRAN MINH HUYEN",
-        "gender": {
-            "id": "1",
-            "code": "NU",
-            "name": "Nữ"
-        },
-        "email": "nhuxuanlenguyen153@gmail.com",
-        "mobile_number": "0896524256",
-        "identity_number": "079197005869",
-        "place_of_issue": {
-            "id": "1",
-            "code": "HCM",
-            "name": "TPHCM"
-        },
-        "issued_date": "2019-02-02",
-        "expired_date": "2032-02-02",
-        "date_of_birth": "2002-02-02",
-        "nationality": {
-            "id": "1",
-            "code": "VN",
-            "name": "VIỆT NAM"
-        },
-        "marital_status": {
-            "id": "1",
-            "code": "DOCTHAN",
-            "name": "Độc thân"
-        },
-        "customer_class": {
-            "id": "1",
-            "code": "DIAMOND",
-            "name": "Diamond"
-        },
-        "credit_rating": {
-            "id": "1",
-            "code": "CODE",
-            "name": "BBB"
-        },
-        "address": "144 Nguyễn Thị Minh Khai, Phường Bến Nghé, Quận 1, TPHCM",
-        "total_number_of_participant": 3,
-        "employees": [
-            {
-                "id": "1",
-                "full_name_vn": "AAAAAA",
-                "avatar_url": "http://example.com/example.jpg",
-                "user_name": "username",
-                "email": "asdfgh@gmail.com",
-                "job_title": "chức danh",
-                "department_id": "Khối VH&CN"
-            },
-            {
-                "id": "2",
-                "full_name_vn": "AAAAAA",
-                "avatar_url": "http://example.com/example.jpg",
-                "user_name": "username",
-                "email": "asdfgh@gmail.com",
-                "job_title": "chức danh",
-                "department_id": "Khối VH&CN"
-            },
-            {
-                "id": "3",
-                "full_name_vn": "AAAAAA",
-                "avatar_url": "http://example.com/example.jpg",
-                "user_name": "username",
-                "email": "asdfgh@gmail.com",
-                "job_title": "chức danh",
-                "department_id": "Khối VH&CN"
-            }
-        ]
-    })
+    if not query_data_customer:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    return ReposReturn(data=query_data_customer)
 
 
 async def repos_get_customer_identity(cif_id: str, session: Session):
