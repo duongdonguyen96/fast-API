@@ -9,11 +9,10 @@ class CtrFace(BaseController):
     async def ctr_get_list_face(self, cif_id: str):
         faces = self.call_repos(await repos_get_list_face(cif_id, self.oracle_session))
 
-        # bypass check service
-        # image_uuids = [face['image_url'] for face in faces]
+        image_uuids = [face['image_url'] for face in faces]
 
         # gọi đến service file để lấy link download
-        # uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
 
         date__faces = {}
         for face in faces:
@@ -22,7 +21,7 @@ class CtrFace(BaseController):
                 date__faces[date_str] = []
 
             # gán lại image_url từ uuid query được trong DB thành link download từ service file
-            # face['image_url'] = uuid__link_downloads[face['image_url']]
+            face['image_url'] = uuid__link_downloads[face['image_url']]
 
             date__faces[date_str].append(face)
 
