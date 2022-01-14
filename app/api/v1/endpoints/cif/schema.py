@@ -17,6 +17,14 @@ class CifInformationResponse(BaseSchema):
     kyc_level: DropdownResponse = Field(..., description='Cấp độ KYC')
 
 
+class CheckExistCIFSuccessResponse(BaseSchema):
+    is_exist: bool = Field(..., description="Cờ đã tồn tại hay chưa")
+
+
+class CheckExistCIFRequest(BaseSchema):
+    cif_number: str = Field(..., description="Số CIF", min_length=7, max_length=7)
+
+
 # ################################### lịch sử hồ sơ (log)####################################3
 class ProfileHistoryOfDayResponse(BaseSchema):
     user_id: str = Field(..., description="Id người dùng")

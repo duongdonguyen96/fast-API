@@ -25,4 +25,9 @@ SERVICE = {
         "authorization": f"bearer {os.getenv('SERVICE_CARD_BEARER_TOKEN')}",
         "x-transaction-id": "CRM_TEST"
     },
+    "soa": {
+        "url": os.getenv("SERVICE_SOA_URL"),
+        "authorization_username": "crm",
+        "authorization_password": "123456"
+    }
 }
