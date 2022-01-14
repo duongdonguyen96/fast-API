@@ -5,7 +5,9 @@ from loguru import logger
 from starlette import status
 
 from app.settings.service import SERVICE
-from app.utils.constant.soa import SOA_REPONSE_STATUS_SUCCESS
+from app.utils.constant.soa import (
+    SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT, SOA_REPONSE_STATUS_SUCCESS
+)
 
 
 class ServiceSOA:
@@ -44,7 +46,7 @@ class ServiceSOA:
                 }
             }
         }
-        api_url = f"{self.url}/customerrefdatamgmt/v1.0/rest/retrieveCustomerRefDataMgmt"
+        api_url = f"{self.url}{SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT}"
         try:
             async with self.session.post(url=api_url, json=request_data) as response:
                 logger.log("SERVICE", f"[SOA] {response.status} {api_url}")
