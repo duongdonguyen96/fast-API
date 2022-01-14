@@ -4,6 +4,7 @@ from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
+from app.settings.event import service_soa
 from app.third_parties.oracle.models.cif.basic_information.contact.model import (
     CustomerAddress
 )
@@ -29,7 +30,8 @@ from app.third_parties.oracle.models.master_data.others import (
 )
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
-    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST, ERROR_CIF_NUMBER_NOT_EXIST
+    ERROR_CALL_SERVICE_SOA, ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST,
+    ERROR_CIF_NUMBER_NOT_EXIST
 )
 from app.utils.functions import dropdown
 
@@ -238,3 +240,13 @@ async def repos_get_customers_by_cif_numbers(
         )
 
     return ReposReturn(data=customers)
+
+
+async def repos_check_exist_cif(cif_number: str):
+    is_success, is_existed = await service_soa.retrieve_customer_ref_data_mgmt(cif_number=cif_number)
+    if not is_success:
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA,
+                           detail=is_existed)
+    return ReposReturn(data={
+        "is_exist": is_existed
+    })
