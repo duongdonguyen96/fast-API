@@ -60,6 +60,8 @@ class Customer(Base):
     avatar_url = Column(VARCHAR(100), comment='Đường dẫn hình ảnh đại diện')
     complete_flag = Column(NUMBER(1, 0, False), comment='Tạo CIF thành công')
 
+    grade_name = Column(VARCHAR(100), comment='Xếp hạng tín dụng Khách hàng')
+
     channel = relationship('Channel')
     customer_category = relationship('CustomerCategory')
     customer_classification = relationship('CustomerClassification')

@@ -24,7 +24,7 @@ class CasaAccount(Base):
                          comment='Mã loại nhóm sản phẩm (gói) tài khoản')
     acc_class_id = Column(ForeignKey('crm_acc_class.acc_class_id'), nullable=False, comment='Mã loại hình tài khoản')
     acc_structure_type_id = Column('acc_structrure_type_id',
-                                   ForeignKey('crm_acc_structure_type.acc_structure_type_id'), nullable=False,
+                                   ForeignKey('crm_acc_structure_type.acc_structure_type_id'), nullable=True,
                                    comment='Mã loại kết cấu tài khoản')
     staff_type_id = Column(VARCHAR(36), nullable=False, comment='Mã Danh mục Loại nhân viên giới thiệu')
     acc_salary_org_name = Column(VARCHAR(100), comment='Tên tài khoản chi lương nguồn')
