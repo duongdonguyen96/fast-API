@@ -25,13 +25,14 @@ class CtrSubIdentityDocument(BaseController):
                 session=self.oracle_session
             )
         )
-        image_uuids = [detail_data['sub_identity_document_image_url'] for detail_data in detail_datas]
+        # TODO : bypass call service
+        # image_uuids = [detail_data['sub_identity_document_image_url'] for detail_data in detail_datas]
         # gọi đến service file để lấy link download
-        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+        # uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
 
-        for detail_data in detail_datas:
-            sub_identity_document_image_url = detail_data['sub_identity_document_image_url']
-            detail_data['sub_identity_document_image_url'] = uuid__link_downloads[sub_identity_document_image_url]
+        # for detail_data in detail_datas:
+        #     sub_identity_document_image_url = detail_data['sub_identity_document_image_url']
+        #     detail_data['sub_identity_document_image_url'] = uuid__link_downloads[sub_identity_document_image_url]
 
         return self.response(data=detail_datas)
 
