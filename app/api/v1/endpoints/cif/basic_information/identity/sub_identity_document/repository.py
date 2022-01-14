@@ -15,6 +15,7 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
+from app.utils.error_messages import ERROR_SUB_IDENTITY_DOCUMENT_NOT_EXIST
 from app.utils.functions import dropdown
 
 SUB_IDENTITY_INFO = [
@@ -92,6 +93,10 @@ async def repos_get_detail_sub_identity(cif_id: str, session: Session):
         .join(CustomerIdentityImage, CustomerSubIdentity.id == CustomerIdentityImage.identity_id)
         .filter(CustomerSubIdentity.customer_id == cif_id)
     ).all()
+
+    if not sub_identities:
+        return ReposReturn(is_error=True, msg=ERROR_SUB_IDENTITY_DOCUMENT_NOT_EXIST, loc="cif_id")
+
     data = []
     for sub_identity, sub_identity_type, place_of_issue, customer_identity_image in sub_identities:
         data.append({
