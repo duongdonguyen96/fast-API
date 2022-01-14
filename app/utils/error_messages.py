@@ -67,10 +67,10 @@ MESSAGE_STATUS = {
     ERROR_COMMIT: "Commit to database error",
 
     ERROR_ID_NOT_EXIST: "Id is not exist",
-    ERROR_CIF_NUMBER_EXIST: "Cif number is exist",
-    ERROR_CIF_NUMBER_NOT_EXIST: "Cif number does not exist",
-    ERROR_CIF_NUMBER_DUPLICATED: "Cif numbers are duplicated",
-    ERROR_CIF_NUMBER_INVALID: "Cif numbers must be number",
+    ERROR_CIF_NUMBER_EXIST: "CIF number is exist",
+    ERROR_CIF_NUMBER_NOT_EXIST: "CIF number does not exist",
+    ERROR_CIF_NUMBER_DUPLICATED: "CIF numbers are duplicated",
+    ERROR_CIF_NUMBER_INVALID: "CIF numbers must be number",
 
     ERROR_CIF_ID_NOT_EXIST: "CIF id is not exist",
     ERROR_IDENTITY_DOCUMENT_NOT_EXIST: "Identity Document is not exist",
