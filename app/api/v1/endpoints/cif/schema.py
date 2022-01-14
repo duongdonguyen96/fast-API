@@ -64,7 +64,7 @@ class CifCustomerInformationResponse(BaseSchema):
     status: StatusResponse = Field(..., description="Trạng thái")
     cif_number: str = Field(..., description="Số CIF")
     avatar_url: str = Field(..., description="Đường dẫn hình ảnh khách hàng")
-    customer_classification: DropdownResponse = Field(..., description="Loại khách hàng. Example: `Cá nhân`")
+    customer_classification: DropdownResponse = Field(..., description="Hạng khách hàng")
     full_name: str = Field(..., description="Họ tên tiếng anh")
     gender: DropdownResponse = Field(..., description="Giới tính")
     email: str = Field(..., description="Địa chỉ email")
@@ -76,8 +76,10 @@ class CifCustomerInformationResponse(BaseSchema):
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     marital_status: DropdownResponse = Field(..., description="Tình trạng hôn nhân")
-    customer_class: DropdownResponse = Field(..., description="Hạng khách hàng")
-    credit_rating: DropdownResponse = Field(..., description="Hạng tín dụng")
+    customer_type: DropdownResponse = Field(..., description="Loại khách hàng")
+    # TODO: hạng tín dụng chưa có field trong customer
+    credit_rating: Optional[str] = Field(..., description="Hạng tín dụng")
     address: str = Field(..., description="Địa chỉ")
-    total_number_of_participant: int = Field(..., description="Tổng số người tham gia")
-    employees: List[EmployeeResponse] = Field(..., description="Danh sách nhân viên")
+    # TODO: đang nghiên cứu employees
+    # total_number_of_participant: int = Field(..., description="Tổng số người tham gia")
+    # employees: List[EmployeeResponse] = Field(..., description="Danh sách nhân viên")

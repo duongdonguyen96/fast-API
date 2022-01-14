@@ -16,6 +16,16 @@ def dropdown(data) -> dict:
     }
 
 
+# dropdown có trả cờ active_flag
+def dropdownflag(data) -> dict:
+    return {
+        'id': data.id,
+        'code': data.code,
+        'name': data.name,
+        'active_flag': data.active_flag
+    }
+
+
 def today():
     """
     get today
