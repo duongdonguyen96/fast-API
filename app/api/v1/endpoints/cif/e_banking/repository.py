@@ -422,7 +422,7 @@ async def repos_get_list_balance_payment_account(cif_id: str, session: Session) 
 
     response_data = [{
         "id": balance_payment.id,
-        "account_number": balance_payment.case_account_number,
+        "account_number": balance_payment.casa_account_number,
         "product_name": dropdown(account_type),
         "checked_flag": balance_payment.acc_active_flag
     } for balance_payment, account_type in balance_payments]

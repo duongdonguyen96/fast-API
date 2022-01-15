@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
 
