@@ -204,13 +204,16 @@ class CtrIdentityDocument(BaseController):
             )
 
         # check nationality_id
-        nationality_id = basic_information.nationality.id
-        if is_create or (customer_individual_info.country_of_birth_id != nationality_id):
-            await self.get_model_object_by_id(
-                model_id=nationality_id,
-                model=AddressCountry,
-                loc='nationality_id'
-            )
+        nationality_id = "VN"  # TODO: do Model bắt buộc không được Null
+        if basic_information.nationality:
+            nationality_id = basic_information.nationality.id
+        if nationality_id:
+            if is_create or (customer_individual_info.country_of_birth_id != nationality_id):
+                await self.get_model_object_by_id(
+                    model_id=nationality_id,
+                    model=AddressCountry,
+                    loc='nationality_id'
+                )
 
         # dict dùng để tạo mới hoặc lưu lại customer
         saving_customer = {
