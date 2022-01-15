@@ -496,9 +496,9 @@ class CtrIdentityDocument(BaseController):
                     mrz_content = identity_document_request.ocr_result.identity_document.mrz_content
                     ekyc_document_type_request = identity_document_type_type_id
                     ekyc_request_data.update(
-                        mrz_1=mrz_content[:30],
-                        mrz_2=mrz_content[30:60],
-                        mrz_3=mrz_content[60:],
+                        mrz_1=mrz_content[:30] if mrz_content else None,
+                        mrz_2=mrz_content[30:60] if mrz_content else None,
+                        mrz_3=mrz_content[60:] if mrz_content else None,
                         qr_code=identity_document_request.ocr_result.identity_document.qr_code_content,
                         signer="Tô Văn Huệ",  # TODO
                     )
