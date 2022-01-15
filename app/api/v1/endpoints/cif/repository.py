@@ -58,7 +58,7 @@ async def repos_get_cif_info(cif_id: str, session: Session) -> ReposReturn:
             Customer.self_selected_cif_flag,
             CustomerClassification,
             CustomerEconomicProfession,
-            CustomerEconomicProfession
+            KYCLevel
         )
         .join(CustomerClassification, Customer.customer_classification_id == CustomerClassification.id)
         .join(CustomerEconomicProfession, Customer.customer_economic_profession_id == CustomerEconomicProfession.id)
