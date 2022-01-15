@@ -47,6 +47,8 @@ ERROR_INVALID_URL = "ERROR_INVALID_URL"
 ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST = "ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST"
 ERROR_WRONG_TYPE_IDENTITY = "ERROR_WRONG_TYPE_IDENTITY"
 
+ERROR_NOT_NULL = "ERROR_NOT_NULL"
+
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -94,5 +96,7 @@ MESSAGE_STATUS = {
     ERROR_INVALID_URL: "url is invalid",
 
     ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST: "Identity Document Type Type is not exist",
-    ERROR_WRONG_TYPE_IDENTITY: "Identity Document Type Type is wrong"
+    ERROR_WRONG_TYPE_IDENTITY: "Identity Document Type Type is wrong",
+
+    ERROR_NOT_NULL: " is not null"
 }

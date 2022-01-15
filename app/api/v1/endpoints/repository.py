@@ -9,6 +9,10 @@ from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.cif.form.model import (
     Booking, BookingAccount, BookingCustomer, TransactionAll, TransactionDaily
 )
+from app.third_parties.oracle.models.master_data.account import (
+    AccountStructureType
+)
+from app.utils.constant.cif import ACTIVE_FLAG_ACTIVED
 from app.utils.error_messages import ERROR_ID_NOT_EXIST
 from app.utils.functions import dropdown, generate_uuid, now
 
@@ -24,7 +28,7 @@ async def repos_get_model_object_by_id_or_code(model_id: Optional[str], model_co
         statement = select(model).filter(model.code == model_code)
 
     if hasattr(model, 'active_flag'):
-        statement = statement.filter(model.active_flag == 1)
+        statement = statement.filter(model.active_flag == ACTIVE_FLAG_ACTIVED)
 
     obj = session.execute(statement).scalar()
     if not obj:
@@ -198,3 +202,19 @@ async def write_transaction_log_and_update_booking(description: str,
     )
 
     return True, None
+
+
+async def repos_get_acc_structure_type(acc_structure_type_id: str, level: int, loc: str, session: Session):
+    acc_structure_type = session.execute(
+        select(
+            AccountStructureType
+        ).filter(and_(
+            AccountStructureType.level == level,
+            AccountStructureType.id == acc_structure_type_id,
+            AccountStructureType.active_flag == ACTIVE_FLAG_ACTIVED
+        ))
+    ).scalar()
+    if not acc_structure_type:
+        return ReposReturn(is_error=True, msg=ERROR_ID_NOT_EXIST, loc=loc)
+
+    return ReposReturn(data=acc_structure_type)

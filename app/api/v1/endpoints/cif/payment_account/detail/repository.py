@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session, aliased
 
 from app.api.base.repository import ReposReturn, auto_commit
@@ -73,17 +73,48 @@ async def repos_save_payment_account(
         log_data: json,
         created_by: str,
         session: Session,
+        is_created: bool
 ):
-    session.add(CasaAccount(**data_insert))
-    await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Tạo mới",
-        log_data=log_data,
-        session=session,
-        customer_id=cif_id
-    )
+    # Tạo mới
+    if is_created:
+        session.add(CasaAccount(**data_insert))
+        await write_transaction_log_and_update_booking(
+            description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Tạo mới",
+            log_data=log_data,
+            session=session,
+            customer_id=cif_id
+        )
+    # Cập nhật
+    else:
+        session.execute(
+            update(CasaAccount).where(
+                CasaAccount.customer_id == cif_id
+            ).values(**data_insert)
+        )
+        await write_transaction_log_and_update_booking(
+            description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Cập nhật",
+            log_data=log_data,
+            session=session,
+            customer_id=cif_id
+        )
 
     return ReposReturn(data={
         "cif_id": cif_id,
         "created_at": now(),
         "created_by": created_by
     })
+
+
+########################################################################################################################
+# Others
+########################################################################################################################
+async def repos_check_casa_account(cif_id: str, session: Session):
+    casa_account = session.execute(
+        select(
+            CasaAccount
+        ).filter(
+            CasaAccount.customer_id == cif_id
+        )
+    ).scalars().first()
+
+    return ReposReturn(casa_account)
