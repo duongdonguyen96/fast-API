@@ -117,7 +117,7 @@ class OCRBasicInfoCitizenCardRequest(BaseSchema):
     full_name_vn: str = Field(..., min_length=1, description="Họ và tên")
     gender: DropdownRequest = Field(..., description="Giới tính")
     date_of_birth: date = Field(..., description="Ngày sinh")
-    nationality: DropdownRequest = Field(..., description="Quốc tịch")
+    nationality: DropdownRequest = Field(None, description="Quốc tịch")
     province: DropdownRequest = Field(..., description="Quê quán")
     identity_characteristic: str = Field(..., min_length=1, description="Đặc điểm nhận dạng")
 

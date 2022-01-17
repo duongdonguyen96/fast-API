@@ -204,13 +204,16 @@ class CtrIdentityDocument(BaseController):
             )
 
         # check nationality_id
-        nationality_id = basic_information.nationality.id
-        if is_create or (customer_individual_info.country_of_birth_id != nationality_id):
-            await self.get_model_object_by_id(
-                model_id=nationality_id,
-                model=AddressCountry,
-                loc='nationality_id'
-            )
+        nationality_id = "VN"  # TODO: do Model bắt buộc không được Null
+        if basic_information.nationality:
+            nationality_id = basic_information.nationality.id
+        if nationality_id:
+            if is_create or (customer_individual_info.country_of_birth_id != nationality_id):
+                await self.get_model_object_by_id(
+                    model_id=nationality_id,
+                    model=AddressCountry,
+                    loc='nationality_id'
+                )
 
         # dict dùng để tạo mới hoặc lưu lại customer
         saving_customer = {
@@ -496,9 +499,9 @@ class CtrIdentityDocument(BaseController):
                     mrz_content = identity_document_request.ocr_result.identity_document.mrz_content
                     ekyc_document_type_request = identity_document_type_type_id
                     ekyc_request_data.update(
-                        mrz_1=mrz_content[:30],
-                        mrz_2=mrz_content[30:60],
-                        mrz_3=mrz_content[60:],
+                        mrz_1=mrz_content[:30] if mrz_content else None,
+                        mrz_2=mrz_content[30:60] if mrz_content else None,
+                        mrz_3=mrz_content[60:] if mrz_content else None,
                         qr_code=identity_document_request.ocr_result.identity_document.qr_code_content,
                         signer="Tô Văn Huệ",  # TODO
                     )
