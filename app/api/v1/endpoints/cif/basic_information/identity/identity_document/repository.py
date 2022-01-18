@@ -136,30 +136,30 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
             PassportType,
             PassportCode
         )
-        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
-        .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
-        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
-        .outerjoin(CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id)
-        .outerjoin(CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id)
-        .outerjoin(CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
+            .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+            .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+            .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+            .outerjoin(CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id)
+            .outerjoin(CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id)
+            .outerjoin(CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
 
-        .outerjoin(HandSide, CustomerIdentityImage.hand_side_id == HandSide.id)
-        .outerjoin(FingerType, CustomerIdentityImage.finger_type_id == FingerType.id)
-        .join(PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id)
-        .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
-        .join(AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id)
-        .join(place_of_birth, CustomerIndividualInfo.place_of_birth_id == place_of_birth.id)
-        .join(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
-        .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
-        .join(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
-        .join(Nation, CustomerIndividualInfo.nation_id == Nation.id)
-        .join(Religion, CustomerIndividualInfo.religion_id == Religion.id)
-        .outerjoin(PassportType, CustomerIdentity.passport_type_id == PassportType.id)
-        .outerjoin(PassportCode, CustomerIdentity.passport_code_id == PassportCode.id)
-        .filter(
+            .outerjoin(HandSide, CustomerIdentityImage.hand_side_id == HandSide.id)
+            .outerjoin(FingerType, CustomerIdentityImage.finger_type_id == FingerType.id)
+            .join(PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id)
+            .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
+            .join(AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id)
+            .join(place_of_birth, CustomerIndividualInfo.place_of_birth_id == place_of_birth.id)
+            .join(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
+            .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
+            .join(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
+            .join(Nation, CustomerIndividualInfo.nation_id == Nation.id)
+            .join(Religion, CustomerIndividualInfo.religion_id == Religion.id)
+            .outerjoin(PassportType, CustomerIdentity.passport_type_id == PassportType.id)
+            .outerjoin(PassportCode, CustomerIdentity.passport_code_id == PassportCode.id)
+            .filter(
             Customer.id == cif_id
         )
-        .order_by(desc(CustomerIdentityImage.updater_at))
+            .order_by(desc(CustomerIdentityImage.updater_at))
     ).all()
 
     if not identities:
@@ -334,12 +334,12 @@ async def repos_get_identity_image_transactions(
         select(
             CustomerIdentityImageTransaction,
         )
-        .join(CustomerIdentityImage, CustomerIdentityImageTransaction.identity_image_id == CustomerIdentityImage.id)
-        .join(CustomerIdentity, and_(
+            .join(CustomerIdentityImage, CustomerIdentityImageTransaction.identity_image_id == CustomerIdentityImage.id)
+            .join(CustomerIdentity, and_(
             CustomerIdentityImage.identity_id == CustomerIdentity.id,
             CustomerIdentity.customer_id == cif_id
         ))
-        .order_by(desc(CustomerIdentityImageTransaction.maker_at))
+            .order_by(desc(CustomerIdentityImageTransaction.maker_at))
     ).scalars().all()
 
     return ReposReturn(data=identity_image_transactions)
@@ -528,10 +528,10 @@ async def repos_get_identity_information(customer_id: str, session: Session):
             CustomerIndividualInfo,
             CustomerAddress
         )
-        .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
-        .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
-        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
-        .filter(Customer.id == customer_id)
+            .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+            .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+            .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+            .filter(Customer.id == customer_id)
     ).all()
 
     if not identities:
@@ -605,11 +605,11 @@ async def create_customer_identity_image_and_customer_compare_image(
                 select(
                     CustomerCompareImageTransaction.id
                 )
-                .join(CustomerIdentityImage,
-                      CustomerCompareImageTransaction.identity_image_id == CustomerIdentityImage.id)
-                .join(CustomerCompareImage,
-                      CustomerCompareImageTransaction.compare_image_id == CustomerCompareImage.id)
-                .order_by(desc(CustomerCompareImageTransaction.maker_at))
+                    .join(CustomerIdentityImage,
+                          CustomerCompareImageTransaction.identity_image_id == CustomerIdentityImage.id)
+                    .join(CustomerCompareImage,
+                          CustomerCompareImageTransaction.compare_image_id == CustomerCompareImage.id)
+                    .order_by(desc(CustomerCompareImageTransaction.maker_at))
             ).scalars().first()
         except Exception as ex:
             logger.error(str(ex))
@@ -645,9 +645,7 @@ async def repos_upload_identity_document_and_ocr(
         filename=image_file_name,
         identity_type=identity_type
     )
-    print(ocr_response)
     if not is_success:
-        # return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_EKYC, detail=ocr_response.get('message', ''))
         return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_EKYC, detail=ocr_response.get('message', ''))
 
     file_response = await service_file.upload_file(file=image_file, name=image_file_name)
