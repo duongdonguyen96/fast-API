@@ -16,7 +16,7 @@ APPLICATION = {
     "version": "1.0.0",
     "project_name": os.getenv("PROJECT_NAME", "CRM"),
     "secret_key": os.getenv("SECRET_KEY", ""),
-    "debug": bool(os.getenv("DEBUG", False)),
+    "debug": bool(os.getenv("DEBUG", "")),
     "allowed_hosts": list(os.getenv("ALLOWED_HOSTS", ["*"])),
 }
 

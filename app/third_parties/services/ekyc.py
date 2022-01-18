@@ -24,7 +24,6 @@ class ServiceEKYC:
 
     def start(self):
         self.session = aiohttp.ClientSession()
-        self.session.proxy = self.proxy
 
     async def stop(self):
         await self.session.close()
@@ -40,7 +39,7 @@ class ServiceEKYC:
         is_success = True
 
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers) as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
                 if response.status != status.HTTP_200_OK:
                     is_success = False
@@ -70,7 +69,7 @@ class ServiceEKYC:
 
         is_success = True
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers) as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
                 if response.status != status.HTTP_201_CREATED:
                     is_success = False
@@ -95,7 +94,7 @@ class ServiceEKYC:
         }
 
         try:
-            async with self.session.post(url=api_url, json=data, headers=self.headers) as response:
+            async with self.session.post(url=api_url, json=data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
 
                 if response.status != status.HTTP_200_OK:
@@ -117,7 +116,7 @@ class ServiceEKYC:
         }
 
         try:
-            async with self.session.post(url=api_url, json=request_body, headers=self.headers) as response:
+            async with self.session.post(url=api_url, json=request_body, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[VALIDATE] {response.status} : {api_url}")
                 if response.status != status.HTTP_200_OK:
                     is_success = False
