@@ -9,7 +9,31 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 from app.settings.logging_config import InterceptHandler
-from app.utils.functions import convert_string_to_bool
+
+
+def convert_string_to_bool(string=None, default=False):
+    if string:
+        if isinstance(string, bool):
+            return string
+        try:
+            string = int(string)
+        except:
+            pass
+        if isinstance(string, int):
+            if 1 == string:
+                return True
+            else:
+                return False
+        if isinstance(string, str):
+            string = string.strip().lower()
+            if 'true' == string:
+                return True
+            else:
+                return False
+        return default
+    else:
+        return default
+
 
 ROOT_APP = str(pathlib.Path(__file__).parent.absolute().parent)
 
@@ -59,6 +83,7 @@ if os.getenv("DEBUG", True):
         logger.info("Start Query:")
         logger.debug(f"\n{statement}")
         logger.debug(parameters)
+
 
     @event.listens_for(Engine, "after_cursor_execute")
     def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
