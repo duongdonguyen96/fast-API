@@ -39,7 +39,7 @@ class ServiceEKYC:
         is_success = True
 
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=SERVICE["ekyc"]['proxy']) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
                 logger.log("SERVICE", response)
                 logger.log("SERVICE", APPLICATION["debug"])
@@ -51,7 +51,13 @@ class ServiceEKYC:
             logger.error(str(ex))
             print('#######################TRUNG TEST##################')
             print(api_url)
-            return False, {}
+            # return False, {}
+            return False, {
+                "message": "Lỗi kết nối với hệ thống eKYC",
+                "debug": APPLICATION["debug"],
+                "response_body": response_body
+            }
+
 
         # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body
