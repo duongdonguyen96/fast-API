@@ -9,6 +9,7 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 from app.settings.logging_config import InterceptHandler
+from app.utils.functions import convert_string_to_bool
 
 ROOT_APP = str(pathlib.Path(__file__).parent.absolute().parent)
 
@@ -16,7 +17,7 @@ APPLICATION = {
     "version": "1.0.0",
     "project_name": os.getenv("PROJECT_NAME", "CRM"),
     "secret_key": os.getenv("SECRET_KEY", ""),
-    "debug": bool(os.getenv("DEBUG", "")),
+    "debug": convert_string_to_bool(os.getenv("DEBUG", "")),
     "allowed_hosts": list(os.getenv("ALLOWED_HOSTS", ["*"])),
 }
 

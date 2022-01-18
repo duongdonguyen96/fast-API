@@ -150,3 +150,27 @@ def is_valid_mobile_number(mobile_number: str) -> bool:
 def parse_file_uuid(url: str, default='') -> str:
     matches = re.findall(r'/(\w{32})', url)
     return matches[0] if matches else default
+
+
+def convert_string_to_bool(string=None, default=False):
+    if string:
+        if isinstance(string, bool):
+            return string
+        try:
+            string = int(string)
+        except:
+            pass
+        if isinstance(string, int):
+            if 1 == string:
+                return True
+            else:
+                return False
+        if isinstance(string, str):
+            string = string.strip().lower()
+            if 'true' == string:
+                return True
+            else:
+                return False
+        return default
+    else:
+        return default
