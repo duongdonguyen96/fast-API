@@ -13,7 +13,7 @@ class ServiceEKYC:
     session: Optional[aiohttp.ClientSession] = None
 
     url = SERVICE["ekyc"]['url']
-    proxy = SERVICE["ekyc"]['proxy'] if not APPLICATION["debug"] else None
+    proxy = SERVICE["ekyc"]['proxy'] if APPLICATION["debug"] is False else None
     headers = {
         "X-TRANSACTION-ID": SERVICE["ekyc"]['x-transaction-id'],
         "AUTHORIZATION": SERVICE["ekyc"]['authorization'],
@@ -31,7 +31,6 @@ class ServiceEKYC:
     async def ocr_identity_document(self, file: bytes, filename: str, identity_type: int) -> Tuple[bool, dict]:
         api_url = f"{self.url}/api/v1/card-service/ocr/"
 
-        print(api_url)
         form_data = aiohttp.FormData()
         form_data.add_field("file", value=file, filename=filename)
         form_data.add_field("type", value=str(identity_type))
@@ -39,25 +38,15 @@ class ServiceEKYC:
         is_success = True
 
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=SERVICE["ekyc"]['proxy']) as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
-                logger.log("SERVICE", response)
-                logger.log("SERVICE", APPLICATION["debug"])
                 if response.status != status.HTTP_200_OK:
                     is_success = False
 
                 response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
-            print('#######################TRUNG TEST##################')
-            print(api_url)
-            # return False, {}
-            return False, {
-                "message": "Lỗi kết nối với hệ thống eKYC",
-                "debug": APPLICATION["debug"],
-                "response_body": response_body
-            }
-
+            return False, {}
 
         # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body
