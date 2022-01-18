@@ -5,6 +5,7 @@ from aiohttp.web_exceptions import HTTPException
 from loguru import logger
 from starlette import status
 
+from app.settings.config import APPLICATION
 from app.settings.service import SERVICE
 
 
@@ -12,6 +13,7 @@ class ServiceEKYC:
     session: Optional[aiohttp.ClientSession] = None
 
     url = SERVICE["ekyc"]['url']
+    proxy = SERVICE["ekyc"]['proxy'] if not APPLICATION["debug"] else None
     headers = {
         "X-TRANSACTION-ID": SERVICE["ekyc"]['x-transaction-id'],
         "AUTHORIZATION": SERVICE["ekyc"]['authorization'],
@@ -29,6 +31,7 @@ class ServiceEKYC:
     async def ocr_identity_document(self, file: bytes, filename: str, identity_type: int) -> Tuple[bool, dict]:
         api_url = f"{self.url}/api/v1/card-service/ocr/"
 
+        print(api_url)
         form_data = aiohttp.FormData()
         form_data.add_field("file", value=file, filename=filename)
         form_data.add_field("type", value=str(identity_type))
@@ -36,9 +39,10 @@ class ServiceEKYC:
         is_success = True
 
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers) as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
-
+                logger.log(response)
+                logger.log(APPLICATION["debug"])
                 if response.status != status.HTTP_200_OK:
                     is_success = False
 

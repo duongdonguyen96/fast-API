@@ -13,6 +13,7 @@ SERVICE = {
     },
     "ekyc": {
         "url": os.getenv("SERVICE_EKYC_URL"),
+        "proxy": "http://192.168.84.35:9090",
         "x-transaction-id": "CRM_TEST",
         "authorization": f"bearer {os.getenv('SERVICE_EKYC_BEARER_TOKEN')}",
     },
