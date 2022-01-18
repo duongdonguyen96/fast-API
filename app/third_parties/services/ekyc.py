@@ -41,8 +41,8 @@ class ServiceEKYC:
         try:
             async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
-                logger.log(response)
-                logger.log(APPLICATION["debug"])
+                logger.log("SERVICE", response)
+                logger.log("SERVICE", APPLICATION["debug"])
                 if response.status != status.HTTP_200_OK:
                     is_success = False
 
