@@ -10,38 +10,13 @@ from sqlalchemy.engine import Engine
 
 from app.settings.logging_config import InterceptHandler
 
-
-def convert_string_to_bool(string=None, default=False):
-    if string:
-        if isinstance(string, bool):
-            return string
-        try:
-            string = int(string)
-        except:
-            pass
-        if isinstance(string, int):
-            if 1 == string:
-                return True
-            else:
-                return False
-        if isinstance(string, str):
-            string = string.strip().lower()
-            if 'true' == string:
-                return True
-            else:
-                return False
-        return default
-    else:
-        return default
-
-
 ROOT_APP = str(pathlib.Path(__file__).parent.absolute().parent)
 
 APPLICATION = {
     "version": "1.0.0",
     "project_name": os.getenv("PROJECT_NAME", "CRM"),
     "secret_key": os.getenv("SECRET_KEY", ""),
-    "debug": convert_string_to_bool(os.getenv("DEBUG", "")),
+    "debug": bool(os.getenv("DEBUG", "") if os.getenv("DEBUG", "") in ["True", "true", "1"] else False),
     "allowed_hosts": list(os.getenv("ALLOWED_HOSTS", ["*"])),
 }
 
