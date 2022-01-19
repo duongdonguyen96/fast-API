@@ -25,7 +25,7 @@ router = APIRouter()
 )
 async def view_detail_relationship(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        cif_number: str = Query(..., description='Số CIF khách hàng cần lấy thông tin'),
+        cif_number: str = Query(..., description='Số CIF khách hàng cần lấy thông tin', min_length=7, max_length=7),
         relationship_type: int = Query(..., description='Loại quan hệ. `0`: quan hệ giám hộ, `1`: quan hệ khách hàng'),
         current_user=Depends(get_current_user_from_header())
 ):
