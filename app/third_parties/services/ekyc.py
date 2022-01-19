@@ -14,7 +14,7 @@ class ServiceEKYC:
     session: Optional[aiohttp.ClientSession] = None
 
     url = SERVICE["ekyc"]['url']
-    proxy: Optional[StrOrURL] = SERVICE["ekyc"]['proxy'] if APPLICATION["debug"] is False else None
+    proxy: Optional[StrOrURL] = APPLICATION["proxy"] if APPLICATION["proxy"] != "" else None
     headers = {
         "X-TRANSACTION-ID": SERVICE["ekyc"]['x-transaction-id'],
         "AUTHORIZATION": SERVICE["ekyc"]['authorization'],
@@ -47,14 +47,7 @@ class ServiceEKYC:
                 response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
-            return False, {
-                "message": str({
-                    "debug": APPLICATION["debug"],
-                    "proxy": self.proxy,
-                    "headers": self.headers,
-                    "url": api_url,
-                }),
-            }
+            return False, {}
 
         # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body
