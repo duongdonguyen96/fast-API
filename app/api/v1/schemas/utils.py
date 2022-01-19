@@ -12,9 +12,9 @@ class DropdownResponse(BaseSchema):
 
 
 class OptionalDropdownResponse(BaseSchema):
-    id: Optional[str] = Field(..., min_length=1, description='`Chuỗi định danh`', nullable=True)
-    code: Optional[str] = Field(..., min_length=1, description='`Mã`', nullable=True)
-    name: Optional[str] = Field(..., min_length=1, description='`Tên`', nullable=True)
+    id: Optional[str] = Field(None, min_length=1, description='`Chuỗi định danh`', nullable=True)
+    code: Optional[str] = Field(None, min_length=1, description='`Mã`', nullable=True)
+    name: Optional[str] = Field(None, min_length=1, description='`Tên`', nullable=True)
 
 
 class DropdownRequest(BaseSchema):
