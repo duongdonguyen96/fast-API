@@ -53,7 +53,9 @@ class ServiceSOA:
             }
         }
         api_url = f"{self.url}{SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT}"
-        return_data = dict()
+        return_data = dict(
+            is_existed=False
+        )
         try:
             async with self.session.post(url=api_url, json=request_data) as response:
                 logger.log("SERVICE", f"[SOA] {response.status} {api_url}")
@@ -64,12 +66,8 @@ class ServiceSOA:
 
                 response_data = await response.json()
 
-                # Nếu không tồn tại CIF
-                if response_data["retrieveCustomerRefDataMgmt_out"]["transactionInfo"]["transactionReturn"] != SOA_REPONSE_STATUS_SUCCESS:
-                    return_data.update(
-                        is_existed=False
-                    )
-                else:
+                # Nếu tồn tại CIF
+                if response_data["retrieveCustomerRefDataMgmt_out"]["transactionInfo"]["transactionReturn"] == SOA_REPONSE_STATUS_SUCCESS:
                     customer_info = response_data["retrieveCustomerRefDataMgmt_out"]["customerInfo"]
                     customer_address = customer_info["address"]
                     customer_identity = customer_info["IDInfo"]
