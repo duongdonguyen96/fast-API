@@ -39,7 +39,7 @@ class ServiceEKYC:
         is_success = True
 
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy="http://192.168.84.35:9090") as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
                 if response.status != status.HTTP_200_OK:
                     is_success = False
@@ -47,7 +47,9 @@ class ServiceEKYC:
                 response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
-            return False, {}
+            return False, {
+                "remove hard code"
+            }
 
         # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body
