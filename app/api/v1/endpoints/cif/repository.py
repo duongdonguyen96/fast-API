@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 from sqlalchemy import desc, select
@@ -31,7 +32,7 @@ from app.third_parties.oracle.models.master_data.others import (
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
     ERROR_CALL_SERVICE_SOA, ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST,
-    ERROR_CIF_NUMBER_NOT_EXIST
+    ERROR_CIF_NUMBER_INVALID, ERROR_CIF_NUMBER_NOT_EXIST, MESSAGE_STATUS
 )
 from app.utils.functions import dropdown
 
@@ -243,10 +244,21 @@ async def repos_get_customers_by_cif_numbers(
 
 
 async def repos_check_exist_cif(cif_number: str):
-    is_success, is_existed = await service_soa.retrieve_customer_ref_data_mgmt(cif_number=cif_number)
+    is_success, customer_detail = await service_soa.retrieve_customer_ref_data_mgmt(cif_number=cif_number)
     if not is_success:
-        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA,
-                           detail=is_existed)
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA, detail=customer_detail["message"])
     return ReposReturn(data={
-        "is_exist": is_existed
+        "is_existed": customer_detail["is_existed"]
     })
+
+
+async def repos_validate_cif_number(cif_number: str):
+    regex = re.search("[0-9]+", cif_number)
+    if not regex or len(regex.group()) != len(cif_number):
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_CIF_NUMBER_INVALID,
+            detail=MESSAGE_STATUS[ERROR_CIF_NUMBER_INVALID],
+            loc="cif_number"
+        )
+    return ReposReturn(data=None)

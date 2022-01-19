@@ -2,7 +2,9 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.repository import (
     repos_get_customer_detail, repos_get_customer_personal_relationships
 )
-from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
+from app.api.v1.endpoints.cif.repository import (
+    repos_get_initializing_customer, repos_validate_cif_number
+)
 from app.api.v1.endpoints.repository import (
     get_optional_model_object_by_code_or_name,
     repos_get_model_object_by_id_or_code
@@ -27,6 +29,9 @@ class CtrBasicInformation(BaseController):
             cif_number_need_to_find: str,
             relationship_type: int
     ):
+        # validate cif_number
+        self.call_repos(await repos_validate_cif_number(cif_number=cif_number_need_to_find))
+
         # RULE: chỉ cif_id đang khởi tạo mới được sử dụng API này
         # check current customer is initializing
         current_customer = self.call_repos(
