@@ -14,6 +14,7 @@ from app.utils.constant.soa import (
     SOA_DATETIME_FORMAT, SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT,
     SOA_REPONSE_STATUS_SUCCESS
 )
+from app.utils.error_messages import ERROR_INVALID_URL, MESSAGE_STATUS
 from app.utils.functions import date_string_to_other_date_string_format
 
 
@@ -129,6 +130,11 @@ class ServiceSOA:
         except KeyError as ex:
             logger.error(str(ex))
             return_data.update(message="Key error " + str(ex))
+            return False, return_data
+
+        except aiohttp.InvalidURL as ex:
+            logger.error(str(ex))
+            return_data.update(message=MESSAGE_STATUS[ERROR_INVALID_URL] + ": " + str(ex))
             return False, return_data
 
         return is_success, return_data
