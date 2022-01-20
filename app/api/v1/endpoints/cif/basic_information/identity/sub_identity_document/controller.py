@@ -14,7 +14,9 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
-from app.utils.functions import date_to_string, generate_uuid, now
+from app.utils.functions import (
+    date_to_string, generate_uuid, now, parse_file_uuid
+)
 
 
 class CtrSubIdentityDocument(BaseController):
@@ -76,6 +78,17 @@ class CtrSubIdentityDocument(BaseController):
     async def save_sub_identity(self, cif_id: str, sub_identity_request: List[SubIdentityDocumentRequest]):
         # check cif đang tạo
         customer = self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
+
+        # các uuid cần phải gọi qua service file để check
+        image_uuids = []
+
+        for sub_identity in sub_identity_request:
+            uuid = parse_file_uuid(sub_identity.sub_identity_document_image_url)
+            sub_identity.sub_identity_document_image_url = uuid
+            image_uuids.append(uuid)
+
+        # gọi qua service file để check exist list uuid
+        await self.check_exist_multi_file(uuids=image_uuids)
 
         sub_identity_type_ids = []
         place_of_issue_ids = []
