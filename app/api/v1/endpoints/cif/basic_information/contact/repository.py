@@ -27,6 +27,40 @@ from app.utils.error_messages import ERROR_CIF_ID_NOT_CUSTOMER_ADDRESS_EXIST
 from app.utils.functions import dropdown
 
 
+async def repos_get_detail_contact_info(
+        cif_id: str,
+        session: Session
+) -> ReposReturn:
+    customer_addresses = session.execute(
+        select(
+            CustomerAddress,
+            AddressCountry,
+            AddressProvince,
+            AddressDistrict,
+            AddressWard,
+            CustomerProfessional,
+            Career,
+            AverageIncomeAmount,
+            Position
+        )
+        .join(Customer, CustomerAddress.customer_id == Customer.id)
+        .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
+        .join(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
+        .join(AddressCountry, CustomerAddress.address_country_id == AddressCountry.id)
+        .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
+        .join(CustomerProfessional, Customer.customer_professional_id == CustomerProfessional.id)
+        .join(Career, CustomerProfessional.career_id == Career.id)
+        .join(AverageIncomeAmount, CustomerProfessional.average_income_amount_id == AverageIncomeAmount.id)
+        .join(Position, CustomerProfessional.position_id == Position.id)
+        .filter(Customer.id == cif_id)
+    ).all()
+
+    if not customer_addresses:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_CUSTOMER_ADDRESS_EXIST, loc="cif_id")
+
+    return ReposReturn(data=customer_addresses)
+
+
 async def repos_get_detail_contact_information(
         cif_id: str,
         resident_address_active_flag: bool,

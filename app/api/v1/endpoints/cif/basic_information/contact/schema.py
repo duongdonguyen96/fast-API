@@ -53,10 +53,10 @@ class ContactAddressResponse(DomesticAddressResponse):
 
 
 class ContactInformationDetailResponse(BaseSchema):
-    resident_address: ResidentAddressContactInformationResponse = Field(..., description="I. Địa chỉ thường trú")
+    resident_address: Optional[ResidentAddressContactInformationResponse] = Field(..., description="I. Địa chỉ thường trú")
     resident_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ thường trú")
     # Địa chỉ liên lạc sẽ giống với thông tin của địa chỉ trong nước
-    contact_address: ContactAddressResponse = Field(..., description="II. Địa chỉ liên lạc")
+    contact_address: Optional[ContactAddressResponse] = Field(..., description="II. Địa chỉ liên lạc")
     contact_address_active_flag: bool = Field(..., description="Cờ kích hoạt địa chỉ liên lạc")
     career_information: CareerInformationContactInformationResponse = Field(..., description="III. Thông tin nghề "
                                                                                              "nghiệp")
