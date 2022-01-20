@@ -1,7 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.basic_information.contact.repository import (
     repos_get_customer_professional_and_identity_and_address,
-    repos_get_detail_contact_information, repos_save_contact_information
+    repos_get_detail_contact_info, repos_save_contact_information
 )
 from app.api.v1.endpoints.cif.basic_information.contact.schema import (
     ContactInformationSaveRequest
@@ -17,32 +17,101 @@ from app.third_parties.oracle.models.master_data.others import (
 )
 from app.utils.constant.cif import (
     ADDRESS_COUNTRY_CODE_VN, CONTACT_ADDRESS_CODE,
+    CUSTOMER_ADDRESS_DOMESTIC_FLAG, CUSTOMER_ADDRESS_SAME_PERMANENT_FLAG,
     IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE
 )
-from app.utils.functions import generate_uuid
+from app.utils.functions import dropdown, generate_uuid
 
 
 class CtrContactInformation(BaseController):
     async def detail_contact_information(self, cif_id: str):
-        resident_address_active_flag = False
-        contact_address_active_flag = False
-        last_customer_identity = self.call_repos(await repos_get_customer_identity(
+        # lấy customer_identity
+        customer_identity = self.call_repos(await repos_get_customer_identity(
             cif_id=cif_id,
             session=self.oracle_session
         ))
-        if last_customer_identity.identity_type_id == IDENTITY_DOCUMENT_TYPE_PASSPORT:
+        # tạo flag
+        resident_address_active_flag = False
+        contact_address_active_flag = False
+        # check nếu giấy tờ định danh là passport
+        if customer_identity.identity_type_id == IDENTITY_DOCUMENT_TYPE_PASSPORT:
             resident_address_active_flag = True
             contact_address_active_flag = True
-
+        # lấy dữ liệu thông tin liên lạc
         contact_information_detail_data = self.call_repos(
-            await repos_get_detail_contact_information(
+            await repos_get_detail_contact_info(
                 cif_id=cif_id,
-                resident_address_active_flag=resident_address_active_flag,
-                contact_address_active_flag=contact_address_active_flag,
                 session=self.oracle_session
             )
         )
-        return self.response(data=contact_information_detail_data)
+        resident_address = None
+        contact_address = None
+        career_information = None
+
+        for row in contact_information_detail_data:
+            if row.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE:
+                if row.CustomerAddress.address_domestic_flag == CUSTOMER_ADDRESS_DOMESTIC_FLAG:
+                    resident_address = {
+                        "domestic_flag": row.CustomerAddress.address_domestic_flag,
+                        "domestic_address": {
+                            "country": dropdown(row.AddressCountry),
+                            'province': dropdown(row.AddressProvince),
+                            'district': dropdown(row.AddressDistrict),
+                            "ward": dropdown(row.AddressWard),
+                            'number_and_street': row.CustomerAddress.address
+                        },
+                        "foreign_address": None
+                    }
+                else:
+                    resident_address = {
+                        "domestic_flag": row.CustomerAddress.address_domestic_flag,
+                        "domestic_address": None,
+                        "foreign_address": {
+                            "country": dropdown(row.AddressCountry),
+                            'address_1': row.CustomerAddress.address,
+                            'province': dropdown(row.AddressProvince),
+                            'address_2': row.CustomerAddress.address_2,
+                            'state': dropdown(row.AddressDistrict),
+                            "zip_code": row.CustomerAddress.zip_code
+                        }
+                    }
+            else:
+                if row.CustomerAddress.address_same_permanent_flag == CUSTOMER_ADDRESS_SAME_PERMANENT_FLAG:
+                    contact_address = {
+                        "country": dropdown(row.AddressCountry),
+                        'province': dropdown(row.AddressProvince),
+                        'district': dropdown(row.AddressDistrict),
+                        "ward": dropdown(row.AddressWard),
+                        'number_and_street': row.CustomerAddress.address,
+                        'resident_address_flag': row.CustomerAddress.address_same_permanent_flag
+                    }
+                # TODO: kiểm tra lại cờ giống địa chỉ thường trú
+                elif row.CustomerAddress.address_domestic_flag == CUSTOMER_ADDRESS_DOMESTIC_FLAG:
+                    resident_address['domestic_address'].update(
+                        resident_address_flag=row.CustomerAddress.address_same_permanent_flag
+                    )
+                    contact_address = resident_address['domestic_address']
+
+            # lấy thông tin nghề nghiệp
+            career_information = {
+                "career": dropdown(row.Career),
+                "average_income_amount": dropdown(row.AverageIncomeAmount),
+                "company_name": row.CustomerProfessional.company_name,
+                "company_phone": row.CustomerProfessional.company_phone,
+                "company_position": dropdown(row.Position),
+                "company_address": row.CustomerProfessional.company_address
+            }
+
+        response_data = {
+            'resident_address': resident_address,
+            'resident_address_active_flag': resident_address_active_flag,
+            'contact_address': contact_address,
+            'contact_address_active_flag': contact_address_active_flag,
+            'career_information': career_information
+        }
+        return self.response(
+            data=response_data
+        )
 
     async def save_contact_information(
             self, cif_id: str,
@@ -55,7 +124,6 @@ class CtrContactInformation(BaseController):
         customer_datas = self.call_repos(
             await repos_get_customer_professional_and_identity_and_address(cif_id=cif_id, session=self.oracle_session))
         _, customer_professional, customer_identity, _ = customer_datas[0]
-
         is_create = True if not customer_professional else False
 
         saving_resident_address = None
