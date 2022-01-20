@@ -23,6 +23,7 @@ from app.third_parties.oracle.models.master_data.others import (
     AverageIncomeAmount, Career, Position
 )
 from app.utils.constant.cif import CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
+from app.utils.error_messages import ERROR_CIF_ID_NOT_CUSTOMER_ADDRESS_EXIST
 from app.utils.functions import dropdown
 
 
@@ -58,6 +59,9 @@ async def repos_get_detail_contact_information(
             Customer.id == cif_id
         )
     ).all()
+
+    if not customer_addresses:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_CUSTOMER_ADDRESS_EXIST, loc="cif_id")
 
     domestic_contact_information_detail = {
         "resident_address_active_flag": resident_address_active_flag,
