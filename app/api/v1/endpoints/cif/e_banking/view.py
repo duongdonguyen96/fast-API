@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Body, Depends, Path
 from starlette import status
 
 from app.api.base.schema import PagingResponse, ResponseData
@@ -8,7 +8,9 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.dependencies.paging import PaginationParams
 from app.api.v1.endpoints.cif.e_banking.controller import CtrEBanking
-from app.api.v1.endpoints.cif.e_banking.examples import GET_E_BANKING_SUCCESS
+from app.api.v1.endpoints.cif.e_banking.examples import (
+    GET_E_BANKING_SUCCESS, POST_E_BANKING
+)
 from app.api.v1.endpoints.cif.e_banking.schema import (
     BalanceSavingAccountsResponse, EBankingRequest, EBankingResponse,
     ListBalancePaymentAccountResponse, ResetPasswordEBankingResponse,
@@ -29,7 +31,10 @@ router = APIRouter()
     ),
 )
 async def view_save_e_banking(
-        e_banking: EBankingRequest,
+        e_banking: EBankingRequest = Body(
+            ...,
+            example=POST_E_BANKING,
+        ),
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
