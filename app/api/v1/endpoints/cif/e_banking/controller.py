@@ -4,7 +4,9 @@ from app.api.v1.endpoints.cif.e_banking.repository import (
     repos_get_detail_reset_password_teller, repos_get_e_banking_data,
     repos_get_list_balance_payment_account, repos_save_e_banking_data
 )
-from app.api.v1.endpoints.cif.e_banking.schema import EBankingRequest
+from app.api.v1.endpoints.cif.e_banking.schema import (
+    EBankingRequest, GetInitialPasswordMethod
+)
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
 from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingInfo, EBankingInfoAuthentication,
@@ -193,7 +195,7 @@ class CtrEBanking(BaseController):
                 id=e_banking_info_id,
                 customer_id=cif_id,
                 method_active_password_id=EBANKING_ACTIVE_PASSWORD_EMAIL
-                if account_information.is_confirm_password_by_email
+                if account_information.get_initial_password_method == GetInitialPasswordMethod.Email
                 else EBANKING_ACTIVE_PASSWORD_SMS,
                 account_name=account_information.account_name,
                 ib_mb_flag=account_information.register_flag,

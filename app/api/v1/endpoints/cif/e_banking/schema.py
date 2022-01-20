@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import Field
@@ -68,24 +69,18 @@ class BalanceSavingAccountResponse(BaseSchema):
     e_banking_notifications: List[EBankingNotificationResponse] = Field(..., description='Hình thức nhận thông báo')
 
 
-class ResetPasswordMethodResponse(DropdownResponse):
-    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
+class GetInitialPasswordMethod(str, Enum):
+    SMS: str = 'SMS'
+    Email: str = 'Email'
 
 
-class MethodAuthenticationResponse(DropdownResponse):
+class MethodAuthentication(DropdownResponse):
     checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
 
 
 class NumberResponse(BaseSchema):
     id: Optional[str] = Field(..., description='Mã tài khoản', nullable=True)
     name: Optional[str] = Field(..., description='Tài khoản', nullable=True)
-
-
-class PaymentFeeResponse(BaseSchema):
-    id: str = Field(..., description='Mã thanh toán')
-    name: str = Field(..., description='Tên thanh toán')
-    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
-    number: NumberResponse = Field(..., description='Tài khoản thanh toán')
 
 
 class OptionalEBankingAccountResponse(BaseSchema):
@@ -100,17 +95,19 @@ class OptionalEBankingAccountResponse(BaseSchema):
 class AccountInformation(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
-    checked_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
-    e_banking_reset_password_methods: List[ResetPasswordMethodResponse] = Field(...,
-                                                                                description='Hình thức nhận '
-                                                                                            'mật khẩu kích hoạt')
-    method_authentication: List[MethodAuthenticationResponse] = Field(..., description='Hình thức xác thực')
-    payment_fee: List[PaymentFeeResponse] = Field(..., description='Thanh toán phí')
+    get_initial_password_method: GetInitialPasswordMethod = Field(...,
+                                                                  description='Hình thức nhận  mật khẩu kích hoạt')
+    method_authentication: List[MethodAuthentication] = Field(..., description='Hình thức xác thực')
+    charged_account: Optional[str] = Field(None, description='Tài khoản thanh toán phí', nullable=True)
 
 
 class AccountInformationResponse(BaseSchema):
     account_information: AccountInformation = Field(..., description='Tài khoản E-Banking')
-    optional_e_banking_account: OptionalEBankingAccountResponse = Field(..., description='Hình thức nhận thông báo')
+    optional_e_banking_account: Optional[OptionalEBankingAccountResponse] = Field(
+        None,
+        description='Hình thức nhận thông báo',
+        nullable=True
+    )
 
 
 class EBankingResponse(BaseSchema):
@@ -314,17 +311,6 @@ class PaymentFeeRequest(DropdownRequest):
     number: NumberRequest = Field(..., description='Tài khoản thanh toán')
 
 
-class AccountInformationRequest(BaseSchema):
-    register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
-    account_name: str = Field(..., description='Tên đăng nhập')
-    is_confirm_password_by_email: bool = Field(
-        ...,
-        description='Có chọn hình thức nhận mật khẩu kích hoạt bằng email không?'
-    )
-    method_authentication: List[MethodAuthenticationRequest] = Field(..., description='Hình thức xác thực')
-    payment_fee: List[PaymentFeeRequest] = Field(..., description='Thanh toán phí')
-
-
 class OptionalEBankingAccountRequest(BaseSchema):
     reset_password_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     active_account_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
@@ -332,7 +318,7 @@ class OptionalEBankingAccountRequest(BaseSchema):
 
 
 class AccountInformationEBankingRequest(BaseSchema):
-    account_information: AccountInformationRequest = Field(..., description='Tài khoản E-Banking')
+    account_information: AccountInformation = Field(..., description='Tài khoản E-Banking')
     # Mở CIF chưa cần
     # optional_e_banking_account: OptionalEBankingAccountRequest = Field(..., description='Hình thức nhận thông báo')
 
