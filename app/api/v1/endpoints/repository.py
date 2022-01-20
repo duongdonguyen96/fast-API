@@ -94,16 +94,23 @@ async def get_optional_model_object_by_code_or_name(
 
 
 async def repos_get_data_model_config(session: Session, model: Base, country_id: Optional[str] = None,
-                                      province_id: Optional[str] = None, district_id: Optional[str] = None):
+                                      province_id: Optional[str] = None, district_id: Optional[str] = None,
+                                      region_id: Optional[str] = None, ward_id: Optional[str] = None):
     list_data_engine = select(model)
     if hasattr(model, "country_id"):
         list_data_engine = list_data_engine.filter(model.country_id == country_id)
 
-    if hasattr(model, "district_id"):
+    if hasattr(model, "region_id") and region_id:
+        list_data_engine = list_data_engine.filter(model.region_id == region_id)
+
+    if hasattr(model, "district_id") and district_id:
         list_data_engine = list_data_engine.filter(model.district_id == district_id)
 
-    if hasattr(model, "province_id"):
+    if hasattr(model, "province_id") and province_id:
         list_data_engine = list_data_engine.filter(model.province_id == province_id)
+
+    if hasattr(model, "ward_id") and ward_id:
+        list_data_engine = list_data_engine.filter(model.ward_id == ward_id)
 
     if hasattr(model, 'active_flag'):
         list_data_engine = list_data_engine.filter(model.active_flag == 1)
