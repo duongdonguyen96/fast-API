@@ -8,9 +8,7 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.dependencies.paging import PaginationParams
 from app.api.v1.endpoints.cif.e_banking.controller import CtrEBanking
-from app.api.v1.endpoints.cif.e_banking.response_examples import (
-    GET_E_BANKING_SUCCESS
-)
+from app.api.v1.endpoints.cif.e_banking.examples import GET_E_BANKING_SUCCESS
 from app.api.v1.endpoints.cif.e_banking.schema import (
     BalanceSavingAccountsResponse, EBankingRequest, EBankingResponse,
     ListBalancePaymentAccountResponse, ResetPasswordEBankingResponse,
