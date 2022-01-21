@@ -16,6 +16,16 @@ def dropdown(data) -> dict:
     }
 
 
+# dropdown trả về content
+def special_dropdown(data) -> dict:
+    return {
+        'id': data.id,
+        'code': data.code,
+        'content': data.content,
+        'type': data.type
+    }
+
+
 # dropdown có trả cờ active_flag
 def dropdownflag(data) -> dict:
     return {
