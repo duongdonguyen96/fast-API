@@ -34,7 +34,9 @@ from app.utils.constant.cif import (
     CONTACT_ADDRESS_CODE, CUSTOMER_RELATIONSHIP_TYPE,
     CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 )
-from app.utils.error_messages import ERROR_CIF_NUMBER_NOT_EXIST
+from app.utils.error_messages import (
+    ERROR_CIF_NUMBER_NOT_COMPLETED, ERROR_CIF_NUMBER_NOT_EXIST
+)
 from app.utils.functions import dropdown, now
 
 
@@ -189,17 +191,26 @@ async def repos_get_guardians_by_cif_numbers(
                 else_=False
             ).label("has_guardian")
         ).filter(
-            Customer.cif_number.in_(cif_numbers),
-            Customer.complete_flag == 1
+            Customer.cif_number.in_(cif_numbers)
         )
     ).all()
     # Kiểm tra có tồn tại người giám hộ và
-    # tất cả người giảm hộ gửi lện có trong db không?
+    # tất cả người giảm hộ gửi lên có trong db không?
     if not guardians or len(cif_numbers) != len(guardians):
         return ReposReturn(
             is_error=True,
             msg=ERROR_CIF_NUMBER_NOT_EXIST,
             loc="cif_number"
+        )
+
+    # Nếu Người giám hộ chưa khởi tạo thành công thì không thể giảm hộ cho người khác được
+    not_completed_guardians = [guardian.Customer.cif_number for guardian in guardians if guardian.Customer.complete_flag == 0]
+    if not_completed_guardians:
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_CIF_NUMBER_NOT_COMPLETED,
+            loc="cif_number",
+            detail=f"CIF number(s) ({not_completed_guardians}) have not completed yet"
         )
 
     return ReposReturn(data=guardians)
