@@ -62,7 +62,7 @@ class ServiceEKYC:
 
         is_success = True
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy="") as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
                 if response.status != status.HTTP_201_CREATED:
                     is_success = False
@@ -94,7 +94,7 @@ class ServiceEKYC:
         }
 
         try:
-            async with self.session.post(url=api_url, json=data, headers=self.headers, proxy="http://192.168.84.35:9090") as response:
+            async with self.session.post(url=api_url, json=data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
 
                 if response.status != status.HTTP_200_OK:
