@@ -45,45 +45,49 @@ async def repos_save_e_banking_data(
         log_data: json
 ) -> ReposReturn:
     # clear old data
-    e_banking_reg_balance = session.execute(select(
-        EBankingRegisterBalance.id
-    ).filter(
-        EBankingRegisterBalance.customer_id == cif_id,
-    )).scalars().all()
-
-    session.execute(delete(
-        EBankingReceiverNotificationRelationship
-    ).filter(
-        EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id.in_(e_banking_reg_balance),
-    ))
-
-    session.execute(delete(
-        EBankingRegisterBalanceNotification
-    ).filter(
-        EBankingRegisterBalanceNotification.eb_reg_balance_id.in_(e_banking_reg_balance),
-    ))
-
-    session.execute(delete(EBankingRegisterBalance).filter(EBankingRegisterBalance.id.in_(e_banking_reg_balance)))
-
-    session.execute(delete(
-        EBankingRegisterBalanceOption
-    ).filter(
-        EBankingRegisterBalanceOption.customer_id == cif_id,
-    ))
-
     e_banking_info = session.execute(select(
         EBankingInfo
     ).filter(
         EBankingInfo.customer_id == cif_id,
     )).first()
 
-    session.execute(delete(
-        EBankingInfoAuthentication
-    ).filter(
-        EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
-    ))
+    if e_banking_info:
 
-    session.delete(e_banking_info.EBankingInfo)
+        session.execute(delete(
+            EBankingInfoAuthentication
+        ).filter(
+            EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
+        ))
+
+        session.delete(e_banking_info.EBankingInfo)
+
+        e_banking_reg_balance = session.execute(select(
+            EBankingRegisterBalance.id
+        ).filter(
+            EBankingRegisterBalance.customer_id == cif_id,
+        )).scalars().all()
+
+        if e_banking_reg_balance:
+            session.execute(delete(
+                EBankingReceiverNotificationRelationship
+            ).filter(
+                EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id.in_(e_banking_reg_balance),
+            ))
+
+            session.execute(delete(
+                EBankingRegisterBalanceNotification
+            ).filter(
+                EBankingRegisterBalanceNotification.eb_reg_balance_id.in_(e_banking_reg_balance),
+            ))
+
+            session.execute(
+                delete(EBankingRegisterBalance).filter(EBankingRegisterBalance.id.in_(e_banking_reg_balance)))
+
+            session.execute(delete(
+                EBankingRegisterBalanceOption
+            ).filter(
+                EBankingRegisterBalanceOption.customer_id == cif_id,
+            ))
 
     session.bulk_save_objects(insert_data)
 
