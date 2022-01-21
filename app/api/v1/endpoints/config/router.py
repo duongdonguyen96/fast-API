@@ -6,6 +6,7 @@ from app.api.v1.endpoints.config.branch import view as views_branch_info
 from app.api.v1.endpoints.config.cif_information import view as views_cif_info
 from app.api.v1.endpoints.config.currency import view as views_currency_info
 from app.api.v1.endpoints.config.customer import view as views_customer_info
+from app.api.v1.endpoints.config.e_banking import view as view_e_banking_info
 from app.api.v1.endpoints.config.fatca import view as view_fatca_info
 from app.api.v1.endpoints.config.hand import view as views_hand_info
 from app.api.v1.endpoints.config.identity_document import \
@@ -39,3 +40,5 @@ router.include_router(router=views_identity_document_type_info.router)
 router.include_router(router=views_branch_info.router)
 
 router.include_router(router=view_fatca_info.router)
+
+router.include_router(router=view_e_banking_info.router)
