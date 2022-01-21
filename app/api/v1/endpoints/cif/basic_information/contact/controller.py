@@ -349,7 +349,13 @@ class CtrContactInformation(BaseController):
             await self.get_model_object_by_id(company_position_id, Position,
                                               "career_information -> company_position -> id")
 
+        if is_create:
+            # Tạo thông tin nghề nghiệp khách hàng
+            customer_professional_id = generate_uuid()
+        else:
+            customer_professional_id = customer_professional.id
         saving_career_information = {
+            "id": customer_professional_id,
             "career_id": career_id,
             "average_income_amount_id": average_income_amount_id,
             "company_name": contact_information_save_request.career_information.company_name,
@@ -359,12 +365,6 @@ class CtrContactInformation(BaseController):
         }
 
         ################################################################################################################
-
-        if is_create:
-            # Tạo thông tin nghề nghiệp khách hàng
-            customer_professional_id = generate_uuid()
-        else:
-            customer_professional_id = customer_professional.id
 
         contact_information_detail_data = self.call_repos(
             await repos_save_contact_information(
