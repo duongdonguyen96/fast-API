@@ -22,6 +22,9 @@ from app.utils.functions import now
 class CtrPaymentAccount(BaseController):
 
     async def detail(self, cif_id: str):
+        # check cif đang tạo
+        self.call_repos(await repos_get_initializing_customer(cif_id=cif_id, session=self.oracle_session))
+
         detail_payment_account_info = self.call_repos(
             await repos_detail_payment_account(
                 cif_id=cif_id,
