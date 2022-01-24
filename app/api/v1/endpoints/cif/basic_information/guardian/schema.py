@@ -3,7 +3,9 @@ from typing import List, Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.cif import RelationshipResponse
+from app.api.v1.endpoints.cif.basic_information.schema import (
+    DetailRelationshipResponse
+)
 from app.api.v1.schemas.utils import DropdownRequest
 
 
@@ -11,7 +13,7 @@ from app.api.v1.schemas.utils import DropdownRequest
 # Response
 ########################################################################################################################
 # Thông tin người giám hộ -> Danh sách người giám hộ
-class GuardianResponse(RelationshipResponse):
+class GuardianResponse(DetailRelationshipResponse):
     id: str = Field(..., description="ID người giám hộ")
     avatar_url: Optional[str] = Field(..., description="URL avatar người giám hộ", nullable=True)
 
