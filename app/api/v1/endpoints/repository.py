@@ -197,7 +197,7 @@ async def write_transaction_log_and_update_booking(description: str,
         TransactionDaily(
             transaction_id=transaction_id,
             transaction_stage_id=transaction_stage_id,
-            data=log_data,
+            data=str(log_data),  # Vì data type NCLOB là dạng string nên phải parse list thành string
             transaction_parent_id=booking.transaction_id,
             transaction_root_id=previous_transaction.transaction_root_id,
             description=description,
