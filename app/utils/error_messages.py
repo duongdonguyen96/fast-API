@@ -51,6 +51,8 @@ ERROR_WRONG_TYPE_IDENTITY = "ERROR_WRONG_TYPE_IDENTITY"
 
 ERROR_NOT_NULL = "ERROR_NOT_NULL"
 
+ERROR_NO_DATA = "ERROR_NO_DATA"
+
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -102,5 +104,7 @@ MESSAGE_STATUS = {
     ERROR_WRONG_TYPE_IDENTITY: "Identity Document Type Type is wrong",
 
     ERROR_NOT_NULL: " is not null",
-    ERROR_CIF_ID_NOT_CUSTOMER_ADDRESS_EXIST: "CIF_ID is not address"
+    ERROR_CIF_ID_NOT_CUSTOMER_ADDRESS_EXIST: "CIF_ID is not address",
+
+    ERROR_NO_DATA: "No data"
 }

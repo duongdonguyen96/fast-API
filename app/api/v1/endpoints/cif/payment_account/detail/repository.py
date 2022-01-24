@@ -14,6 +14,7 @@ from app.third_parties.oracle.models.master_data.account import (
     AccountClass, AccountStructureType, AccountType
 )
 from app.third_parties.oracle.models.master_data.others import Currency
+from app.utils.error_messages import ERROR_NO_DATA, MESSAGE_STATUS
 from app.utils.functions import dropdown, now
 
 
@@ -29,15 +30,11 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
             AccountStructureType,
             account_structure_type_level_2,
             account_structure_type_level_1,
-        ).join(
-            Currency, CasaAccount.currency_id == Currency.id)
-        .join(
-            AccountClass, CasaAccount.acc_class_id == AccountClass.id)
-        .join(
-            AccountType, CasaAccount.acc_type_id == AccountType.id)
-        .join(
-            AccountStructureType, CasaAccount.acc_structure_type_id == AccountStructureType.id
         )
+        .join(Currency, CasaAccount.currency_id == Currency.id)
+        .join(AccountClass, CasaAccount.acc_class_id == AccountClass.id)
+        .join(AccountType, CasaAccount.acc_type_id == AccountType.id)
+        .join(AccountStructureType, CasaAccount.acc_structure_type_id == AccountStructureType.id)
         .join(
             account_structure_type_level_2,
             AccountStructureType.parent_id == account_structure_type_level_2.id
@@ -46,10 +43,11 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
             account_structure_type_level_1,
             account_structure_type_level_2.parent_id == account_structure_type_level_1.id
         )
-        .filter(
-            CasaAccount.customer_id == cif_id
-        )
+        .filter(CasaAccount.customer_id == cif_id)
     ).first()
+
+    if not detail:
+        return ReposReturn(is_error=True, msg=ERROR_NO_DATA, detail=MESSAGE_STATUS[ERROR_NO_DATA])
 
     return ReposReturn(data={
         "self_selected_account_flag": detail.CasaAccount.self_selected_account_flag,
