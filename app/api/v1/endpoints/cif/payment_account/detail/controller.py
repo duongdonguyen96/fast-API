@@ -48,7 +48,7 @@ class CtrPaymentAccount(BaseController):
             cif_id=cif_id,
             session=self.oracle_session
         )
-        if casa_account:
+        if casa_account.data:
             is_created = False
 
         # Nếu là Tài khoản yêu cầu
