@@ -34,7 +34,7 @@ async def view_save_e_banking(
         e_banking: EBankingRequest = Body(
             ...,
             example=POST_E_BANKING,
-        ),
+        ),  # TODO: Thêm example
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):

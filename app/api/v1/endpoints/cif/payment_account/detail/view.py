@@ -45,7 +45,7 @@ async def view_detail(
 )
 async def view_save(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        payment_account_save_request: SavePaymentAccountRequest = Body(...),
+        payment_account_save_request: SavePaymentAccountRequest = Body(...),  # TODO: Thêm example
         current_user=Depends(get_current_user_from_header())
 ):
     ctr_customer_relationship = CtrPaymentAccount(current_user)
