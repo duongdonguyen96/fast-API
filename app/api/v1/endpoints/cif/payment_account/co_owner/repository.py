@@ -145,7 +145,7 @@ async def repos_get_list_cif_number(cif_id: str, session: Session):
     for account_holder in account_holders:
         list_cif_number.append(account_holder.JointAccountHolder.cif_num)
 
-    return account_holders, list_cif_number
+    return ReposReturn(data=(account_holders, list_cif_number))
 
 
 async def repos_get_customer_by_cif_number(list_cif_number: List[str], session: Session) -> ReposReturn:
