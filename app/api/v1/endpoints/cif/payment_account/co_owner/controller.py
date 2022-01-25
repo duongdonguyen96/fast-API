@@ -69,7 +69,9 @@ class CtrCoOwner(BaseController):
         return self.response(data=co_owner_data)
 
     async def ctr_co_owner(self, cif_id: str):
-        account_holders, list_cif_number = await repos_get_list_cif_number(cif_id=cif_id, session=self.oracle_session)
+        account_holders, list_cif_number = self.call_repos(
+            await repos_get_list_cif_number(cif_id=cif_id, session=self.oracle_session)
+        )
 
         customers_by_list_cif = self.call_repos(
             await repos_get_customer_by_cif_number(
