@@ -180,6 +180,31 @@ class CtrCoOwner(BaseController):
             session=self.oracle_session
         ))
 
+        # resident_address = None
+        # contact_address = None
+        #
+        # for row in detail_co_owner:
+        #     if row.CustomerAddress.address_type_id == RESIDENT_ADDRESS_CODE:
+        #         resident_address = row.CustomerAddress.address
+        #     if row.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
+        #         contact_address = row.CustomerAddress.address
+        #
+        # first_row = detail_co_owner[0]
+        #
+        # # lọc giá trị trùng chữ ký khi query
+        # customer__signature = {}
+        # for signature in detail_co_owner:
+        #     if signature.CustomerIdentityImage.id not in customer__signature:
+        #         customer__signature[signature.CustomerIdentityImage.id] = []
+        #         customer__signature[signature.CustomerIdentityImage.id].append({
+        #             'id': signature.CustomerIdentityImage.id,
+        #             'image_url': signature.CustomerIdentityImage.image_url
+        #         })
+        #
+        # signature = []
+        # for customer_signature in customer__signature.values():
+        #     signature.extend(customer_signature)
+
         # response_data = {
         #     "id": basic_information['cif_number'],
         #     "basic_information": basic_information,
