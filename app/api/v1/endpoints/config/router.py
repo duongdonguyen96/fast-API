@@ -13,6 +13,8 @@ from app.api.v1.endpoints.config.hand import view as views_hand_info
 from app.api.v1.endpoints.config.identity_document import \
     view as views_identity_document_type_info
 from app.api.v1.endpoints.config.passport import view as views_passport_info
+from app.api.v1.endpoints.config.payment_account.co_owner import \
+    view as view_co_owner_info
 from app.api.v1.endpoints.config.personal import view as views_personal_info
 from app.api.v1.endpoints.config.staff import view as views_staff_info
 
@@ -45,3 +47,5 @@ router.include_router(router=view_fatca_info.router)
 router.include_router(router=view_e_banking_info.router)
 
 router.include_router(router=view_debit_card_info.router)
+
+router.include_router(router=view_co_owner_info.router)
