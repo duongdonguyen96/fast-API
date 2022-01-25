@@ -33,10 +33,15 @@ class ServiceSOA:
         await self.session.close()
         self.session = None
 
-    async def retrieve_customer_ref_data_mgmt(self, cif_number: str):
+    async def retrieve_customer_ref_data_mgmt(self, cif_number: str, flat_address: Optional[bool] = False):
         """
-        Input: cif_number - Số CIF
+        Input:
+            cif_number - Số CIF
+            flat_address
+                - True lấy thông tin địa chỉ là string
+                - False lấy thông tin địa chỉ là dict
         Output: (is_success, is_existed/error_message) - Thành công, Có tồn tại/ Lỗi Service SOA
+        Trả về thông tin địa chỉ là 1 address có mã Code
         """
         is_success = True
         request_data = {
@@ -73,8 +78,26 @@ class ServiceSOA:
                     customer_address = customer_info["address"]
                     customer_identity = customer_info["IDInfo"]
 
-                    _, resident_address = matching_place_residence(customer_address["address_vn"])
-                    _, contact_address = matching_place_residence(customer_address["address1"])
+                    if flat_address:
+                        resident_address_response = customer_address["address_vn"]
+                        contact_address_response = customer_address["address1"]
+                    else:
+                        _, resident_address = matching_place_residence(customer_address["address_vn"])
+                        resident_address_response = {
+                            "province": resident_address["province_code"],
+                            "district": resident_address["district_code"],
+                            "ward": resident_address["ward_code"],
+                            "number_and_street": resident_address["street_name"]
+                        }
+
+                        _, contact_address = matching_place_residence(customer_address["address1"])
+                        contact_address_response = {
+                            "province": contact_address["province_code"],
+                            "district": contact_address["district_code"],
+                            "ward": contact_address["ward_code"],
+                            "number_and_street": contact_address["street_name"]
+                        }
+
                     return_data.update({
                         "is_existed": True,
                         "data": {
@@ -106,18 +129,8 @@ class ServiceSOA:
                                 "expired_date": None  # TODO
                             },
                             "address_information": {
-                                "contact_address": {
-                                    "province": contact_address["province_code"],
-                                    "district": contact_address["district_code"],
-                                    "ward": contact_address["ward_code"],
-                                    "number_and_street": contact_address["street_name"]
-                                },
-                                "resident_address": {
-                                    "province": resident_address["province_code"],
-                                    "district": resident_address["district_code"],
-                                    "ward": resident_address["ward_code"],
-                                    "number_and_street": resident_address["street_name"]
-                                }
+                                "contact_address": contact_address_response,
+                                "resident_address": resident_address_response
                             }
                         }
                     })
