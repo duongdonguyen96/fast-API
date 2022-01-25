@@ -1,10 +1,10 @@
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
-from app.api.v1.schemas.utils import DropdownResponse
+from app.api.v1.schemas.utils import OptionalDropdownResponse
 
 ############################################################
 # Response
@@ -12,32 +12,32 @@ from app.api.v1.schemas.utils import DropdownResponse
 
 
 class SignatureResponse(BaseSchema):
-    id: str = Field(..., description='Id giấy tờ định danh')
-    image_url: str = Field(..., description='Hình ảnh mẫu chữ ký')
+    id: Optional[str] = Field(..., description='Id giấy tờ định danh')
+    image_url: Optional[str] = Field(..., description='Hình ảnh mẫu chữ ký')
 
 
 class BasicInformationResponse(BaseSchema):
-    cif_number: str = Field(..., description='Số CIF của đồng sở hữu')
-    customer_relationship: DropdownResponse = Field(..., description='Mỗi quan hệ với khách hàng')
-    full_name_vn: str = Field(..., description='Tên tiếng việt của đồng sở hữu')
-    date_of_birth: date = Field(..., description='Ngày sinh của đồng sở hữu')
-    gender: DropdownResponse = Field(..., description='Giới tính của đồng sở hữu')
-    nationality: DropdownResponse = Field(..., description='Quốc tịch của đồng sở hữu')
-    mobile_number: str = Field(..., description='Số ĐTDD')
+    cif_number: Optional[str] = Field(None, description='Số CIF của đồng sở hữu', min_length=7, max_length=7)
+    customer_relationship: OptionalDropdownResponse = Field(None, description='Mỗi quan hệ với khách hàng')
+    full_name_vn: Optional[str] = Field(None, description='Tên tiếng việt của đồng sở hữu')
+    date_of_birth: Optional[date] = Field(None, description='Ngày sinh của đồng sở hữu')
+    gender: OptionalDropdownResponse = Field(None, description='Giới tính của đồng sở hữu')
+    nationality: OptionalDropdownResponse = Field(None, description='Quốc tịch của đồng sở hữu')
+    mobile_number: Optional[str] = Field(None, description='Số ĐTDD')
     signature: List[SignatureResponse] = Field(..., description='Mẫu chữ ký của đồng sở hữu')
 
 
 class IdentityDocumentResponse(BaseSchema):
-    identity_number: str = Field(..., description='Số CMND/CCCD/HC')
-    identity_type: DropdownResponse = Field(..., description='Loại giấy tờ định danh')
-    issued_date: date = Field(..., description='Ngày cấp')
-    expired_date: date = Field(..., description='Ngày hết hạn')
-    place_of_issue: DropdownResponse = Field(..., description='Nơi cấp')
+    identity_number: Optional[str] = Field(..., description='Số CMND/CCCD/HC')
+    # identity_type: OptionalDropdownResponse = Field(..., description='Loại giấy tờ định danh')
+    issued_date: Optional[date] = Field(..., description='Ngày cấp')
+    expired_date: Optional[date] = Field(..., description='Ngày hết hạn')
+    place_of_issue: OptionalDropdownResponse = Field(..., description='Nơi cấp')
 
 
 class AddressInformationResponse(BaseSchema):
-    contact_address: str = Field(..., description='Địa chỉ liên hệ')
-    resident_address: str = Field(..., description='Địa chỉ thường trú')
+    contact_address: Optional[str] = Field(..., description='Địa chỉ liên hệ')
+    resident_address: Optional[str] = Field(..., description='Địa chỉ thường trú')
 
 
 class AccountHolderResponse(BaseSchema):
