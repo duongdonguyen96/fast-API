@@ -5,8 +5,11 @@ from app.api.v1.endpoints.config.customer.contact_type.repository import (
 
 
 class CtrConfigContactType(BaseController):
-    async def ctr_customer_contact_type_info(self):
+    async def ctr_customer_contact_type_info(self, group: str):
         customer_contact_type_infos = self.call_repos(
-            await repos_get_customer_contact_type(session=self.oracle_session))
+            await repos_get_customer_contact_type(
+                group=group,
+                session=self.oracle_session
+            ))
 
         return self.response(customer_contact_type_infos)

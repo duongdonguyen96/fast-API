@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -24,7 +24,11 @@ router = APIRouter()
     )
 )
 async def view_customer_contact_type_info(
+        group: str = Query(..., min_length=1,
+                           description="Có hai loại:" + "     \n     " + "- `E_BANKING`: Hình thức kích hoạt mật khẩu lần đầu" + "        \n       " + "- `THONG_TIN_CA_NHAN`: Hình thức liên hệ"),
         current_user=Depends(get_current_user_from_header())
 ):
-    customer_contact_type_infos = await CtrConfigContactType(current_user).ctr_customer_contact_type_info()
+    customer_contact_type_infos = await CtrConfigContactType(current_user).ctr_customer_contact_type_info(
+        group=group
+    )
     return ResponseData[List[DropdownResponse]](**customer_contact_type_infos)
