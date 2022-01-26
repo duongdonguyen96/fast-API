@@ -6,6 +6,8 @@ from app.api.v1.endpoints.config.branch import view as views_branch_info
 from app.api.v1.endpoints.config.cif_information import view as views_cif_info
 from app.api.v1.endpoints.config.currency import view as views_currency_info
 from app.api.v1.endpoints.config.customer import view as views_customer_info
+from app.api.v1.endpoints.config.customer.contact_type import \
+    view as view_contact_type_info
 from app.api.v1.endpoints.config.debit_card import view as view_debit_card_info
 from app.api.v1.endpoints.config.e_banking import view as view_e_banking_info
 from app.api.v1.endpoints.config.fatca import view as view_fatca_info
@@ -53,3 +55,5 @@ router.include_router(router=view_debit_card_info.router)
 router.include_router(router=view_co_owner_info.router)
 
 router.include_router(router=view_payment_detail_info.router)
+
+router.include_router(router=view_contact_type_info.router)
