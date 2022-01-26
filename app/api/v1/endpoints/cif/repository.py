@@ -258,7 +258,7 @@ async def repos_validate_cif_number(cif_number: str):
         return ReposReturn(
             is_error=True,
             msg=ERROR_CIF_NUMBER_INVALID,
-            detail=MESSAGE_STATUS[ERROR_CIF_NUMBER_INVALID],
+            detail=f"{MESSAGE_STATUS[ERROR_CIF_NUMBER_INVALID]}: cif_number={cif_number}",
             loc="cif_number"
         )
     return ReposReturn(data=None)
