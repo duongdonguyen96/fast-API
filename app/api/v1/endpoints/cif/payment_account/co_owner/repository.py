@@ -40,7 +40,7 @@ from app.third_parties.oracle.models.master_data.identity import (
 from app.utils.constant.cif import DROPDOWN_NONE_DICT, IMAGE_TYPE_SIGNATURE
 from app.utils.error_messages import (
     ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CALL_SERVICE_SOA,
-    ERROR_CASA_ACCOUNT_NOT_EXIST, ERROR_CIF_NUMBER_NOT_EXIST
+    ERROR_CASA_ACCOUNT_NOT_EXIST, ERROR_CIF_NUMBER_NOT_EXIST, ERROR_NO_DATA
 )
 from app.utils.functions import dropdown, now
 
@@ -53,7 +53,7 @@ async def repos_check_list_cif_number(list_cif_number_request: list, session: Se
     ).all()
 
     if not list_customer:
-        return ReposReturn(is_error=True, msg='CIF_NUMBER_NOT_EXIT')
+        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_NOT_EXIST, loc="joint_account_holders -> cif_number")
 
     return ReposReturn(data=list_customer)
 
@@ -138,7 +138,7 @@ async def repos_get_list_cif_number(cif_id: str, session: Session):
 
     # check account_holder
     if not account_holders:
-        return ReposReturn(is_error=True, msg=ERROR_CASA_ACCOUNT_NOT_EXIST, loc='cif_id')
+        return ReposReturn(is_error=True, msg=ERROR_NO_DATA, loc='cif_id')
 
     # lấy list cif_number trong account_holder
     list_cif_number = []
