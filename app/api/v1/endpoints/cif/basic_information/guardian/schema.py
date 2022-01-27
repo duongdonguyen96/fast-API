@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.endpoints.cif.basic_information.schema import (
     DetailRelationshipResponse
 )
@@ -30,5 +31,5 @@ class DetailGuardianResponse(BaseSchema):
 ########################################################################################################################
 # Thông tin người giám hộ
 class SaveGuardianRequest(BaseSchema):
-    cif_number: str = Field(..., description="Số CIF")
+    cif_number: str = CustomField().CIFNumberField
     customer_relationship: DropdownRequest = Field(..., description="Mối quan hệ với khách hàng")
