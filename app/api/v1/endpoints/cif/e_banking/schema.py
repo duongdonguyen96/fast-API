@@ -136,10 +136,10 @@ class PersonalCustomerInformationResponse(BaseSchema):
     id: str = Field(..., description="ID")
     cif_number: str = Field(..., description="Số CIF")
     customer_classification: DropdownResponse = Field(..., description="Loại khách hàng (VD: Cá Nhân)")
-    avatar_url: str = Field(..., description="URL Avatar khách hàng")
+    avatar_url: Optional[str] = Field(..., description="URL Avatar khách hàng")
     full_name: str = Field(..., description="Tên khách hàng không dấu")
     gender: DropdownResponse = Field(..., description="Giới tính")
-    email: str = Field(..., description="Email")
+    email: Optional[str] = Field(..., description="Email")
     mobile_number: str = Field(..., description="Số điện thoại")
     identity_number: str = Field(..., description="CMND/CCCD")
     place_of_issue: DropdownResponse = Field(..., description="Nơi cấp")
@@ -185,7 +185,7 @@ class SecretQuestionOrPersonalRelationshipResponse(BaseSchema):
 class BasicQuestion2Response(BaseSchema):
     last_four_digits: str = Field(..., description="1. 4 số cuối của thẻ")
     credit_limit: CreditLimitResponse = Field(..., description="2. Hạn mức thẻ")
-    email: str = Field(..., description="3. Email đăng ký")
+    email: Optional[str] = Field(..., description="3. Email đăng ký")
     secret_question_or_personal_relationships: List[SecretQuestionOrPersonalRelationshipResponse] = Field(
         ..., description="4. Câu hỏi bí mật/ Người liên hệ")
     automatic_debit_status: str = Field(..., description="5. Tình trạng đăng ký trích nợ tự động")
