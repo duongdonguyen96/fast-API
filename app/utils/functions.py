@@ -1,11 +1,15 @@
+import json
 import re
 import uuid
 from datetime import date, datetime
-from typing import Callable, Dict
+from typing import Callable, Dict, Union
+
+import orjson
 
 from app.settings.config import (
     DATE_INPUT_OUTPUT_FORMAT, DATETIME_INPUT_OUTPUT_FORMAT
 )
+from app.utils.constant.utils import UTF_8
 
 
 def dropdown(data) -> dict:
@@ -160,3 +164,7 @@ def is_valid_mobile_number(mobile_number: str) -> bool:
 def parse_file_uuid(url: str, default='') -> str:
     matches = re.findall(r'/(\w{32})', url)
     return matches[0] if matches else default
+
+
+def orjson_dumps(data: Union[dict, list]) -> json:
+    return orjson.dumps(data).decode(UTF_8)

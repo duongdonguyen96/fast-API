@@ -1,9 +1,13 @@
+import json
 from typing import List
 
 from sqlalchemy import and_, delete, desc, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.repository import (
+    write_transaction_log_and_update_booking
+)
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentityImage, CustomerIdentityImageTransaction,
     CustomerSubIdentity
@@ -128,7 +132,8 @@ async def repos_save_sub_identity(
         update_sub_identities: List,
         update_sub_identity_images: List,
         update_customer_sub_identity_image_transactions: List,
-        session: Session
+        session: Session,
+        log_data: json
 ):
 
     # Xóa
@@ -153,6 +158,16 @@ async def repos_save_sub_identity(
     # lưu log cho lịch sử thay đổi giấy tờ định danh phụ khi cập nhật
     session.bulk_save_objects([CustomerIdentityImageTransaction(**customer_identity_image_transaction)
                                for customer_identity_image_transaction in update_customer_sub_identity_image_transactions])
+
+    # Lưu lại Log lịch sử giao dịch trong ngày
+    is_success, message = await write_transaction_log_and_update_booking(
+        description="Tạo CIF -> Thông tin cá nhân -> GTĐDP -- Cập nhật",
+        log_data=log_data,
+        session=session,
+        customer_id=customer.id
+    )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=message)
 
     return ReposReturn(data={
         "cif_id": customer.id

@@ -17,6 +17,7 @@ from app.utils.error_messages import (
     ERROR_CIF_NUMBER_DUPLICATED, ERROR_RELATION_CUSTOMER_SELF_RELATED,
     ERROR_RELATIONSHIP_NOT_GUARDIAN
 )
+from app.utils.functions import orjson_dumps
 
 
 class CtrGuardian(BaseController):
@@ -52,7 +53,7 @@ class CtrGuardian(BaseController):
                     "id": guardian.customer_relationship.id
                 }
             }
-            log_data.append(guardian_log)
+            log_data.append(orjson_dumps(guardian_log))
 
         # check duplicate cif_number in request body
         if len(guardian_cif_numbers) != len(set(guardian_cif_numbers)):

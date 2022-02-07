@@ -39,6 +39,6 @@ def auto_commit(func):
         except SQLAlchemyError as ex:
             logger.error(ex.args)
             session.rollback()
-            return ReposReturn(is_error=True, msg=ERROR_COMMIT, loc=func.__name__)
+            return ReposReturn(is_error=True, msg=str(ex.args) if ex.args else ERROR_COMMIT, loc=func.__name__)
 
     return wrapper

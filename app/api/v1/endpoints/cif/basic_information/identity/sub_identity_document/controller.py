@@ -15,7 +15,7 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
 from app.utils.functions import (
-    date_to_string, generate_uuid, now, parse_file_uuid
+    date_to_string, generate_uuid, now, orjson_dumps, parse_file_uuid
 )
 
 
@@ -133,6 +133,8 @@ class CtrSubIdentityDocument(BaseController):
         update_sub_identities_ids = []
         update_customer_sub_identity_image_transactions = []
 
+        log_data = []
+
         for sub_identity in sub_identity_request:
             customer_sub_identity = {
                 "sub_identity_type_id": sub_identity.sub_identity_document_type.id,
@@ -202,6 +204,27 @@ class CtrSubIdentityDocument(BaseController):
                 customer_sub_identity_image_transaction['identity_image_id'] = customer_sub_identity_image['id']
                 create_customer_sub_identity_image_transactions.append(customer_sub_identity_image_transaction)
 
+            log_data.append(orjson_dumps({  # Vì data có trường hợp None nên parse sang json chuẩn dạng null
+                "id": sub_identity.id,
+                "name": sub_identity.name,
+                "sub_identity_document_type": {
+                    "id": sub_identity.sub_identity_document_type.id
+                },
+                "sub_identity_document_image_url": sub_identity.sub_identity_document_image_url,
+                "ocr_result": {
+                    "sub_identity_number": sub_identity.ocr_result.sub_identity_number,
+                    "symbol": sub_identity.ocr_result.symbol,
+                    "full_name_vn": sub_identity.ocr_result.full_name_vn,
+                    "date_of_birth": date_to_string(sub_identity.ocr_result.date_of_birth),
+                    "passport_number": sub_identity.ocr_result.passport_number,
+                    "place_of_issue": {
+                        "id": sub_identity.ocr_result.place_of_issue.id
+                    },
+                    "expired_date": date_to_string(sub_identity.ocr_result.expired_date),
+                    "issued_date": date_to_string(sub_identity.ocr_result.issued_date)
+                }
+            }))
+
         # những SubIdentity id tồn tại trong hệ thống mà không gửi lên -> xóa
         for old_sub_identity, _ in old_sub_identities_and_sub_identity_images:
             if old_sub_identity.id not in update_sub_identities_ids:
@@ -217,7 +240,8 @@ class CtrSubIdentityDocument(BaseController):
                 update_sub_identities=update_sub_identities,
                 update_sub_identity_images=update_sub_identity_images,
                 update_customer_sub_identity_image_transactions=update_customer_sub_identity_image_transactions,
-                session=self.oracle_session
+                session=self.oracle_session,
+                log_data=log_data
             )
         )
         return self.response(data=info_save_document)
