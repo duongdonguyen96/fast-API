@@ -11,8 +11,9 @@ from app.utils.constant.cif import (
     CRM_GENDER_TYPE_FEMALE, CRM_GENDER_TYPE_MALE, SOA_GENDER_TYPE_MALE
 )
 from app.utils.constant.soa import (
-    SOA_DATETIME_FORMAT, SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT,
-    SOA_REPONSE_STATUS_SUCCESS
+    SOA_CASA_REPONSE_STATUS_SUCCESS, SOA_DATETIME_FORMAT,
+    SOA_ENDPOINT_URL_RETRIEVE_CURRENT_ACCOUNT_CASA,
+    SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT, SOA_REPONSE_STATUS_SUCCESS
 )
 from app.utils.error_messages import ERROR_INVALID_URL, MESSAGE_STATUS
 from app.utils.functions import date_string_to_other_date_string_format
@@ -151,3 +152,57 @@ class ServiceSOA:
             return False, return_data
 
         return is_success, return_data
+
+    async def retrieve_current_account_casa(self, casa_account_number):
+        """
+            Input:
+                casa_account_number - Số tài khoản thanh toán
+            Output: (is_success, is_existed/error_message) - Thành công, Có tồn tại/ Lỗi Service SOA
+        """
+        request_data = {
+            "retrieveCurrentAccountCASA_in": {
+                "transactionInfo": {
+                    "clientCode": "INAPPTABLET",  # TODO
+                    "cRefNum": "CRM1641783511239",  # TODO
+                    "branchInfo": {
+                        "branchCode": "000"  # TODO
+                    }
+                },
+                "accountInfo": {
+                    "accountNum": casa_account_number
+                }
+            }
+        }
+
+        api_url = f"{self.url}{SOA_ENDPOINT_URL_RETRIEVE_CURRENT_ACCOUNT_CASA}"
+        return_data = dict(
+            is_existed=True
+        )
+        try:
+            async with self.session.post(url=api_url, json=request_data) as response:
+                logger.log("SERVICE", f"[SOA] {response.status} {api_url}")
+
+                if response.status != status.HTTP_200_OK:
+                    return_data.update(message=response.status)
+                    return False, return_data
+                else:
+                    data = await response.json()
+                    # Nếu KHÔNG tồn tại tài khoản thanh toán
+                    if data['retrieveCurrentAccountCASA_out']['transactionInfo']['transactionErrorCode'] != SOA_CASA_REPONSE_STATUS_SUCCESS:
+                        return_data.update(is_existed=False)
+                    return True, return_data
+
+        except aiohttp.ClientConnectorError as ex:
+            logger.error(str(ex))
+            return_data.update(message="Connect to service SOA error please try again later")
+            return False, return_data
+
+        except KeyError as ex:
+            logger.error(str(ex))
+            return_data.update(message="Key error " + str(ex))
+            return False, return_data
+
+        except aiohttp.InvalidURL as ex:
+            logger.error(str(ex))
+            return_data.update(message=MESSAGE_STATUS[ERROR_INVALID_URL] + ": " + str(ex))
+            return False, return_data

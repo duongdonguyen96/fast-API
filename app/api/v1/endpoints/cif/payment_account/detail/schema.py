@@ -29,6 +29,10 @@ class PaymentAccountResponse(BaseSchema):
     account_salary_organization_name: Optional[str] = Field(..., description="Chủ tài khoản chi lương", nullable=True)
 
 
+class CheckExistCasaAccountNumberResponse(BaseSchema):
+    is_existed: bool = Field(..., description="Cờ đã tồn tại hay chưa <br>`True` => tồn tại <br>`False` => chưa tồn tại")
+
+
 ########################################################################################################################
 # Request Body
 ########################################################################################################################
@@ -48,3 +52,7 @@ class SavePaymentAccountRequest(BaseSchema):
                                                 \n`self_selected_account_flag`=`False` => Không bắt buộc truyền lên""")
     account_salary_organization_account: Optional[str] = Field(None, description="Tài khoản của tổ chức chi lương")
     account_salary_organization_name: Optional[str] = Field(None, description="Chủ tài khoản chi lương", nullable=True)
+
+
+class CheckExistCasaAccountRequest(BaseSchema):
+    casa_account_number: str = Field(..., description='Số tài khoản thanh toán', min_length=1)

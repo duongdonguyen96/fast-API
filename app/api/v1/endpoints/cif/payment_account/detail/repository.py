@@ -7,6 +7,7 @@ from app.api.base.repository import ReposReturn, auto_commit
 from app.api.v1.endpoints.repository import (
     write_transaction_log_and_update_booking
 )
+from app.settings.event import service_soa
 from app.third_parties.oracle.models.cif.payment_account.model import (
     CasaAccount
 )
@@ -14,7 +15,9 @@ from app.third_parties.oracle.models.master_data.account import (
     AccountClass, AccountStructureType, AccountType
 )
 from app.third_parties.oracle.models.master_data.others import Currency
-from app.utils.error_messages import ERROR_NO_DATA, MESSAGE_STATUS
+from app.utils.error_messages import (
+    ERROR_CALL_SERVICE_SOA, ERROR_NO_DATA, MESSAGE_STATUS
+)
 from app.utils.functions import dropdown, now
 
 
@@ -116,3 +119,16 @@ async def repos_check_casa_account(cif_id: str, session: Session):
     ).scalars().first()
 
     return ReposReturn(casa_account)
+
+
+async def repos_check_exist_casa_account_number(casa_account_number: str, session: Session):
+    """
+        Kiểm tra số tài khoản thanh toán có tồn tại hay không
+    """
+    is_success, check_exist_info = await service_soa.retrieve_current_account_casa(
+        casa_account_number=casa_account_number
+    )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA, detail=check_exist_info["message"])
+
+    return ReposReturn(data=check_exist_info)
