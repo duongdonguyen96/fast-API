@@ -586,13 +586,13 @@ class CtrIdentityDocument(BaseController):
             )
         await self.check_exist_multi_file(uuids=[identity_image_uuid, face_compare_image_url])
 
-        is_error, compare_response = await service_ekyc.compare_face(
+        is_success, compare_response = await service_ekyc.compare_face(
             face_uuid=compare_face_uuid_ekyc,
             avatar_image_uuid=identity_avatar_image_uuid
         )
 
-        if not is_error:
-            return self.response_exception(msg=compare_response['message'])
+        if not is_success:
+            return self.response_exception(msg=compare_response['message'], detail=compare_response['detail'])
         similar_percent = compare_response['data']['similarity_percent']
 
         # dict dùng để tạo mới hoặc lưu lại CustomerCompareImage
