@@ -47,14 +47,7 @@ class ServiceEKYC:
                 response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
-            return False, {
-                "message": str({
-                    "proxy": self.proxy,
-                    "type": type(self.proxy),
-                    "url": api_url,
-                    "res": response
-                }),
-            }
+            return False, {"message": str(ex)}
 
         # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body
@@ -69,14 +62,21 @@ class ServiceEKYC:
 
         is_success = True
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy="") as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
                 if response.status != status.HTTP_201_CREATED:
                     is_success = False
                 response_body = await response.json()
         except Exception as ex:
             logger.error(str(ex))
-            return False, {}
+            return False, {
+                "message": str({
+                    "proxy": self.proxy,
+                    "type": type(self.proxy),
+                    "url": api_url,
+                    "res": str(ex)
+                }),
+            }
 
         # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
         return is_success, response_body
@@ -102,7 +102,15 @@ class ServiceEKYC:
                 response_body = await response.json()
         except HTTPException as ex:
             logger.error(str(ex))
-            return False, {"message": "eKYC server error, please try again"}
+            return False, {
+                "message": str({
+                    "proxy": self.proxy,
+                    "type": type(self.proxy),
+                    "url": api_url,
+                    "res": str(ex)
+                }),
+            }
+
 
         return is_success, response_body
 

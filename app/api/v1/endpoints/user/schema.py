@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema, CreatedUpdatedBaseModel
@@ -7,7 +9,7 @@ class UserInfoResponse(BaseSchema):
     user_id: str = Field(..., description='Id người dùng')
     username: str = Field(..., description='Tên đăng nhập')
     full_name_vn: str = Field(..., description='Họ và tên người dùng')
-    avatar_url: str = Field(..., description='Link avatar')
+    avatar_url: Optional[str] = Field(..., description='Link avatar')
 
 
 class AuthResponse(BaseSchema):

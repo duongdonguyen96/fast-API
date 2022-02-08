@@ -25,7 +25,7 @@ class CustomerPersonalRelationship(Base):
                   comment='Loại quan hệ khách hàng cá nhân (0: Người giám hộ, 1: Mối quan hệ khách hàng)')
     customer_personal_relationship_cif_number = Column('cust_personal_relationship_cif_num', VARCHAR(9),
                                                        comment='Số cif của Người giám hộ hoặc Mối quan hệ khách hàng')
-    customer_relationship_id = Column('cust_relationship_id', VARCHAR(36), comment='Mã Khách hàng có mối quan hệ')
+    # customer_relationship_id = Column('cust_relationship_id', VARCHAR(36), comment='Mã Khách hàng có mối quan hệ')
 
     customer_relationship_type = relationship('CustomerRelationshipType')
     customer = relationship('Customer')

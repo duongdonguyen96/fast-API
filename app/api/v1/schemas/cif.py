@@ -75,7 +75,7 @@ class AddressInformationResponse(BaseSchema):
 # Thông tin dùng chung cho Mối quan hệ khách hàng, Người giám hộ
 class RelationshipResponse(BaseSchema):
     id: str = Field(..., description="ID")
-    avatar_url: Optional[str] = Field(..., description="URL avatar", nullable=True)
+    avatar_url: Optional[str] = Field(..., description="URL avatar")
     basic_information: BasicInformationResponse = Field(..., description="I. Thông tin cơ bản")
     identity_document: IdentityDocumentResponse = Field(..., description="II. Giấy tờ định danh")
     address_information: AddressInformationResponse = Field(..., description="III. Thông tin địa chỉ")

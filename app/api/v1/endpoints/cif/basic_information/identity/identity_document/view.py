@@ -108,7 +108,7 @@ async def view_save(
         request: Request,
         identity_document_request: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest] = Body(
             ...
-        ),
+        ),  # TODO: Thêm example
         current_user=Depends(get_current_user_from_header())
 ):
     # Vì 2 Model CMND, CCCD có cùng dạng ở level 1 nên phải kiểm tra để parse data sang model chuẩn tránh việc nhầm lẫn

@@ -27,7 +27,7 @@ router = APIRouter()
     ),
 )
 async def view_create_signature(
-        signatures: SignaturesRequest,
+        signatures: SignaturesRequest,  # TODO: Thêm example
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):

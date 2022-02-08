@@ -3,6 +3,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
+from app.api.v1.endpoints.cif.e_banking.schema import GetInitialPasswordMethod
 from app.api.v1.endpoints.repository import (
     write_transaction_log_and_update_booking
 )
@@ -44,45 +45,49 @@ async def repos_save_e_banking_data(
         log_data: json
 ) -> ReposReturn:
     # clear old data
-    e_banking_reg_balance = session.execute(select(
-        EBankingRegisterBalance.id
-    ).filter(
-        EBankingRegisterBalance.customer_id == cif_id,
-    )).scalars().all()
-
-    session.execute(delete(
-        EBankingReceiverNotificationRelationship
-    ).filter(
-        EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id.in_(e_banking_reg_balance),
-    ))
-
-    session.execute(delete(
-        EBankingRegisterBalanceNotification
-    ).filter(
-        EBankingRegisterBalanceNotification.eb_reg_balance_id.in_(e_banking_reg_balance),
-    ))
-
-    session.execute(delete(EBankingRegisterBalance).filter(EBankingRegisterBalance.id.in_(e_banking_reg_balance)))
-
-    session.execute(delete(
-        EBankingRegisterBalanceOption
-    ).filter(
-        EBankingRegisterBalanceOption.customer_id == cif_id,
-    ))
-
     e_banking_info = session.execute(select(
         EBankingInfo
     ).filter(
         EBankingInfo.customer_id == cif_id,
     )).first()
 
-    session.execute(delete(
-        EBankingInfoAuthentication
-    ).filter(
-        EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
-    ))
+    if e_banking_info:
 
-    session.delete(e_banking_info.EBankingInfo)
+        session.execute(delete(
+            EBankingInfoAuthentication
+        ).filter(
+            EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
+        ))
+
+        session.delete(e_banking_info.EBankingInfo)
+
+        e_banking_reg_balance = session.execute(select(
+            EBankingRegisterBalance.id
+        ).filter(
+            EBankingRegisterBalance.customer_id == cif_id,
+        )).scalars().all()
+
+        if e_banking_reg_balance:
+            session.execute(delete(
+                EBankingReceiverNotificationRelationship
+            ).filter(
+                EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id.in_(e_banking_reg_balance),
+            ))
+
+            session.execute(delete(
+                EBankingRegisterBalanceNotification
+            ).filter(
+                EBankingRegisterBalanceNotification.eb_reg_balance_id.in_(e_banking_reg_balance),
+            ))
+
+            session.execute(
+                delete(EBankingRegisterBalance).filter(EBankingRegisterBalance.id.in_(e_banking_reg_balance)))
+
+            session.execute(delete(
+                EBankingRegisterBalanceOption
+            ).filter(
+                EBankingRegisterBalanceOption.customer_id == cif_id,
+            ))
 
     session.bulk_save_objects(insert_data)
 
@@ -324,8 +329,8 @@ async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn
         if auth_method.EBankingInfo:
             account_info["register_flag"] = True
             account_info["account_name"] = auth_method.EBankingInfo.account_name
-            account_info["charged_account_id"] = auth_method.EBankingInfo.account_payment_fee
-            account_info["method_active_password"] = auth_method.EBankingInfo.method_active_password_id
+            account_info["charged_account"] = auth_method.EBankingInfo.account_payment_fee
+            account_info["get_initial_password_method"] = GetInitialPasswordMethod(auth_method.EBankingInfo.method_active_password_id)
             break
 
     return ReposReturn(data={
