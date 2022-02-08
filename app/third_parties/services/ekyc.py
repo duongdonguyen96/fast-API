@@ -8,6 +8,7 @@ from starlette import status
 
 from app.settings.config import APPLICATION
 from app.settings.service import SERVICE
+from app.utils.error_messages import ERROR_CALL_SERVICE_EKYC
 
 
 class ServiceEKYC:
@@ -36,21 +37,21 @@ class ServiceEKYC:
         form_data.add_field("file", value=file, filename=filename)
         form_data.add_field("type", value=str(identity_type))
 
-        is_success = True
-
         try:
             async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
                 if response.status != status.HTTP_200_OK:
-                    is_success = False
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS" + str(response.status)
+                    }
 
-                response_body = await response.json()
+                # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
+                return True, await response.json()
+
         except Exception as ex:
             logger.error(str(ex))
             return False, {"message": str(ex)}
-
-        # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
-        return is_success, response_body
 
     async def add_face(self, file: bytes):
         """
@@ -60,13 +61,18 @@ class ServiceEKYC:
         form_data = aiohttp.FormData()
         form_data.add_field("file", value=file, filename='abc.jpg')
 
-        is_success = True
         try:
             async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
                 if response.status != status.HTTP_201_CREATED:
-                    is_success = False
-                response_body = await response.json()
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS" + str(response.status)
+                    }
+
+                # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
+                return True, await response.json()
+
         except Exception as ex:
             logger.error(str(ex))
             return False, {
@@ -78,16 +84,12 @@ class ServiceEKYC:
                 }),
             }
 
-        # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
-        return is_success, response_body
-
     async def compare_face(self, face_uuid: str, avatar_image_uuid: str):
         """
         So sánh khuôn mặt trong 2 ảnh
         """
         api_url = f"{self.url}/api/v1/face-service/compare/"
 
-        is_success = True
         data = {
             "image_face_1_uuid": face_uuid,
             "image_face_2_uuid": avatar_image_uuid
@@ -97,9 +99,20 @@ class ServiceEKYC:
             async with self.session.post(url=api_url, json=data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
 
-                if response.status != status.HTTP_200_OK:
-                    is_success = False
-                response_body = await response.json()
+                if response.status == status.HTTP_200_OK:
+                    return True, response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    detail = await response.json()
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": detail['message']
+                    }
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS" + str(response.status)
+                    }
+
         except HTTPException as ex:
             logger.error(str(ex))
             return False, {
@@ -110,9 +123,6 @@ class ServiceEKYC:
                     "res": str(ex)
                 }),
             }
-
-
-        return is_success, response_body
 
     async def validate(self, data, document_type):
         api_url = f"{self.url}/api/v1/card-service/validate/"
@@ -127,12 +137,17 @@ class ServiceEKYC:
             async with self.session.post(url=api_url, json=request_body, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[VALIDATE] {response.status} : {api_url}")
                 if response.status != status.HTTP_200_OK:
-                    is_success = False
+                    return False, {
+                        "errors": {
+                            "message": ERROR_CALL_SERVICE_EKYC,
+                            "detail": "STATUS" + str(response.status)
+                        }
+                    }
                 response_body = await response.json()
                 if not response_body['success']:
                     is_success = False
+
+                return is_success, response_body
         except Exception as ex:
             logger.error(str(ex))
             return False, {"errors": {"message": "eKYC error please try again later"}}
-
-        return is_success, response_body
