@@ -1,7 +1,8 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.payment_account.detail.repository import (
     repos_check_casa_account, repos_check_exist_casa_account_number,
-    repos_detail_payment_account, repos_save_payment_account
+    repos_detail_payment_account, repos_get_casa_account_from_soa,
+    repos_save_payment_account
 )
 from app.api.v1.endpoints.cif.payment_account.detail.schema import (
     SavePaymentAccountRequest
@@ -16,6 +17,7 @@ from app.utils.constant.cif import (
     ACC_STRUCTURE_TYPE_LEVEL_3, STAFF_TYPE_BUSINESS_CODE
 )
 from app.utils.error_messages import (
+    ERROR_CASA_ACCOUNT_EXIST, ERROR_CASA_ACCOUNT_NOT_EXIST,
     ERROR_INVALID_NUMBER, ERROR_NOT_NULL, MESSAGE_STATUS
 )
 from app.utils.functions import is_valid_number, now
@@ -57,9 +59,22 @@ class CtrPaymentAccount(BaseController):
         self_selected_account_flag = payment_account_save_request.self_selected_account_flag
         if self_selected_account_flag:
             # TODO: Số tài khoản có thể có yêu cầu nghiệp vụ về độ dài tùy theo kiểu kiến trúc, VALIDATE
-            if not payment_account_save_request.casa_account_number:
+            casa_account_number = payment_account_save_request.casa_account_number
+            if not casa_account_number:
                 return self.response_exception(
                     msg=f"casa_account_number {MESSAGE_STATUS[ERROR_NOT_NULL]}",
+                    loc="casa_account_number"
+                )
+
+            # Kiểm tra tài khoản thanh toán đã tồn tại chưa
+            account_salary_organization = self.call_repos(await repos_get_casa_account_from_soa(
+                casa_account_number=casa_account_number,
+                loc="casa_account_number"
+            ))
+            if account_salary_organization['is_existed']:
+                return self.response_exception(
+                    msg=ERROR_CASA_ACCOUNT_EXIST,
+                    detail=MESSAGE_STATUS[ERROR_CASA_ACCOUNT_EXIST],
                     loc="casa_account_number"
                 )
 
@@ -81,8 +96,24 @@ class CtrPaymentAccount(BaseController):
                 )
             )
 
-        # TODO: Tài khoản của tổ chức chi lương chưa được mô tả
-        # TODO: Tên tài khoản của tổ chức chi lương chưa được mô tả
+        # Lấy thông tin Tài khoản của tổ chức chi lương
+        account_salary_organization_account_name = None
+        account_salary_organization_account_number = payment_account_save_request.account_salary_organization_account
+        if account_salary_organization_account_number:
+            account_salary_organization = self.call_repos(await repos_get_casa_account_from_soa(
+                casa_account_number=account_salary_organization_account_number,
+                loc="account_salary_organization_account"
+            ))
+
+            if not account_salary_organization['is_existed']:
+                return self.response_exception(
+                    msg=ERROR_CASA_ACCOUNT_NOT_EXIST,
+                    detail=MESSAGE_STATUS[ERROR_CASA_ACCOUNT_NOT_EXIST],
+                    loc="account_salary_organization_account"
+                )
+
+            account_salary_organization_account_name = account_salary_organization['retrieveCurrentAccountCASA_out']['accountInfo']['customerInfo']['fullname']
+
         # TODO: Mở tài khoản thông thường, hiện tại không gửi data để lưu kiểu kiến trúc cấp 3
 
         # check currency exist
@@ -114,8 +145,8 @@ class CtrPaymentAccount(BaseController):
             'acc_class_id': payment_account_save_request.account_class.id,
             'acc_structure_type_id': payment_account_save_request.account_structure_type_level_3.id,
             "staff_type_id": STAFF_TYPE_BUSINESS_CODE,
-            "acc_salary_org_name": payment_account_save_request.account_salary_organization_name,
-            "acc_salary_org_acc": payment_account_save_request.account_salary_organization_account,
+            "acc_salary_org_name": account_salary_organization_account_name,
+            "acc_salary_org_acc": account_salary_organization_account_number,
             "maker_id": self.current_user.user_id,
             "maker_at": now(),
             "checker_id": 1,

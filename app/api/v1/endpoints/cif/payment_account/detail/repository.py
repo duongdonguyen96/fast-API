@@ -16,9 +16,9 @@ from app.third_parties.oracle.models.master_data.account import (
 )
 from app.third_parties.oracle.models.master_data.others import Currency
 from app.utils.error_messages import (
-    ERROR_CALL_SERVICE_SOA, ERROR_NO_DATA, MESSAGE_STATUS
+    ERROR_CALL_SERVICE_SOA, ERROR_INVALID_NUMBER, ERROR_NO_DATA, MESSAGE_STATUS
 )
-from app.utils.functions import dropdown, now
+from app.utils.functions import dropdown, is_valid_number, now
 
 
 async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposReturn:
@@ -63,7 +63,6 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
         "casa_account_number": detail.CasaAccount.casa_account_number,
         "account_salary_organization_account": detail.CasaAccount.acc_salary_org_acc,
         "account_salary_organization_name": detail.CasaAccount.acc_salary_org_name
-
     })
 
 
@@ -118,7 +117,7 @@ async def repos_check_casa_account(cif_id: str, session: Session):
         )
     ).scalars().first()
 
-    return ReposReturn(casa_account)
+    return ReposReturn(data=casa_account)
 
 
 async def repos_check_exist_casa_account_number(casa_account_number: str, session: Session):
@@ -132,3 +131,26 @@ async def repos_check_exist_casa_account_number(casa_account_number: str, sessio
         return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA, detail=check_exist_info["message"])
 
     return ReposReturn(data=check_exist_info)
+
+
+async def repos_get_casa_account_from_soa(casa_account_number: str, loc: str):
+    """
+    Lấy thông tin tài khoản thanh toán bằng số tài khoản thanh toán
+    """
+    if not is_valid_number(casa_account_number):
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_INVALID_NUMBER,
+            detail=MESSAGE_STATUS[ERROR_INVALID_NUMBER],
+            loc=loc
+        )
+
+    is_success, account_salary_organization_response = await service_soa.retrieve_current_account_casa(
+        casa_account_number=casa_account_number
+    )
+
+    if not is_success:
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA,
+                           detail=MESSAGE_STATUS[ERROR_CALL_SERVICE_SOA])
+
+    return ReposReturn(data=account_salary_organization_response)
