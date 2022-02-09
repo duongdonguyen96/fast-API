@@ -128,12 +128,12 @@ async def repos_get_customer_relationships(
 
     relationship_details = []
     for relationship, relationship_type in customer_relationships:
-        guardian_detail = await repos_get_customer_detail_by_cif_number(
+        customer_relationship = await repos_get_customer_detail_by_cif_number(
             cif_number=relationship.customer_personal_relationship_cif_number,
             session=session
         )
-        guardian_detail.data['basic_information']['customer_relationship'] = dropdown(relationship_type)
-        relationship_details.append(guardian_detail.data)
+        customer_relationship.data['basic_information']['customer_relationship'] = dropdown(relationship_type)
+        relationship_details.append(customer_relationship.data)
 
     data = {
         'customer_relationship_flag': True if customer_relationships else False,
