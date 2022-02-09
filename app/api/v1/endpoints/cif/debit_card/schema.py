@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.cif import AddressRequest, OptionalAddressResponse
 from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
@@ -55,7 +56,7 @@ class CardDeliveryAddressResponse(BaseSchema):
 
 class SubDebitCardResponse(BaseSchema):
     id: str = Field(..., description="Id thẻ phụ")
-    cif_number: str = Field(..., description="Số cif")
+    cif_number: str = CustomField().CIFNumberField
     name_on_card: NameOnCardResponse = Field(..., description="Tên trên thẻ")
     physical_card_type: List[DropdownResponse] = Field(..., description="TÍnh vật lý: thẻ vật lý, thẻ phi vật lý")
     card_issuance_type: DropdownResponse = Field(..., description="Hình thức phát hành")
@@ -104,7 +105,7 @@ class CardDeliveryAddressRequest(BaseSchema):
 
 
 class SubDebitCardRequest(BaseSchema):
-    cif_number: str = Field(..., description="Số cif")
+    cif_number: str = CustomField().CIFNumberField
     name_on_card: NameOnCardRequest = Field(..., description="Tên trên thẻ")
     physical_card_type: List[DropdownRequest] = Field(..., description="TÍnh vật lý")
     card_issuance_type: DropdownRequest = Field(..., description="Hình thức phát hành")

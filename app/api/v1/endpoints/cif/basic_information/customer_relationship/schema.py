@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.cif import RelationshipResponse
 from app.api.v1.schemas.utils import DropdownRequest
 
@@ -28,5 +29,5 @@ class DetailCustomerRelationshipResponse(BaseSchema):
 ########################################################################################################################
 # Thông tin mối quan hệ khách hàng
 class SaveCustomerRelationshipRequest(BaseSchema):
-    cif_number: str = Field(..., description="Số CIF")
+    cif_number: str = CustomField().CIFNumberField
     customer_relationship: DropdownRequest = Field(..., description="Mối quan hệ với khách hàng")

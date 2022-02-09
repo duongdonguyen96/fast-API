@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.cif import AddressRequest
 from app.api.v1.schemas.utils import DropdownRequest
 
@@ -37,7 +38,7 @@ class CifInformationRequest(BaseSchema):
     self_selected_cif_flag: bool = Field(..., description='Cờ CIF thông thường/ tự chọn. '
                                                           '`False`: thông thường. '
                                                           '`True`: tự chọn')
-    cif_number: Optional[str] = Field(..., min_length=1, description='Số CIF yêu cầu', nullable=True)
+    cif_number: Optional[str] = CustomField(description='Số CIF yêu cầu').OptionalCIFNumberField
     customer_classification: DropdownRequest = Field(..., description='Đối tượng khách hàng')
     customer_economic_profession: DropdownRequest = Field(..., description='Mã ngành KT')
 
