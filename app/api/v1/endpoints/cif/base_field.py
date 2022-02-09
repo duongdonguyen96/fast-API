@@ -2,8 +2,7 @@ from typing import Optional
 
 from pydantic import Field
 
-CIF_NUMBER_MIN_LENGTH = 7
-CIF_NUMBER_MAX_LENGTH = 7
+from app.utils.constant.cif import CIF_NUMBER_MAX_LENGTH, CIF_NUMBER_MIN_LENGTH
 
 STR_MIN_LENGTH = 1
 

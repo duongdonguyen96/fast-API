@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.utils import (
     DropdownRequest, DropdownResponse, OptionalDropdownResponse
 )
@@ -43,11 +44,11 @@ class FingerPrintRequest(BaseSchema):
 
 
 ########################################################################################################################
-# Phần này đùng chung cho Người giám hộ, Mối quan hệ với khách hàng
+# Phần này dùng chung cho Người giám hộ, Mối quan hệ với khách hàng
 ########################################################################################################################
 # I. Thông tin cơ bản
 class BasicInformationResponse(BaseSchema):
-    cif_number: str = Field(..., description="Số CIF")
+    cif_number: str = CustomField().CIFNumberField
     customer_relationship: DropdownResponse = Field(..., description="Mối quan hệ với khách hàng")
     full_name_vn: str = Field(..., description="Họ và tên")
     date_of_birth: date = Field(..., description="Ngày sinh")

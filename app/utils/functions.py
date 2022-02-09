@@ -168,3 +168,10 @@ def parse_file_uuid(url: str, default='') -> str:
 
 def orjson_dumps(data: Union[dict, list]) -> json:
     return orjson.dumps(data).decode(UTF_8)
+
+
+def is_valid_number(casa_account_number: str):
+    regex = re.search("[0-9]+", casa_account_number)
+    if not regex or len(regex.group()) != len(casa_account_number):
+        return False
+    return True

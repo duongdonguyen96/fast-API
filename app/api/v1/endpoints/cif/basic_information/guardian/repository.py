@@ -160,6 +160,9 @@ async def repos_save_guardians(
         log_data: json,
         relationship_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN,
 ):
+    """
+        repos xài chung cho guardians và relationship
+    """
     # clear old data
     session.execute(delete(
         CustomerPersonalRelationship

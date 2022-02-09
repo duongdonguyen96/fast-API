@@ -238,7 +238,7 @@ async def repos_get_customer_professional_and_identity_and_address(cif_id: str, 
             Customer.customer_professional_id == CustomerProfessional.id,
         ))
         .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
-        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .outerjoin(CustomerAddress, Customer.id == CustomerAddress.customer_id)
         .filter(Customer.id == cif_id)
     ).all()
     return ReposReturn(data=customer_professional_and_identity_and_address)

@@ -4,6 +4,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.utils import DropdownResponse
 
 
@@ -11,18 +12,18 @@ class CifInformationResponse(BaseSchema):
     self_selected_cif_flag: bool = Field(..., description='Cờ CIF thông thường/ tự chọn. '
                                                           '`False`: thông thường. '
                                                           '`True`: tự chọn')
-    cif_number: Optional[str] = Field(..., description='Số CIF yêu cầu', nullable=True)
+    cif_number: str = CustomField(description='Số CIF yêu cầu').CIFNumberField
     customer_classification: DropdownResponse = Field(..., description='Đối tượng khách hàng')
     customer_economic_profession: DropdownResponse = Field(..., description='Mã ngành KT')
     kyc_level: DropdownResponse = Field(..., description='Cấp độ KYC')
 
 
 class CheckExistCIFSuccessResponse(BaseSchema):
-    is_existed: bool = Field(..., description="Cờ đã tồn tại hay chưa")
+    is_existed: bool = Field(..., description="Cờ đã tồn tại hay chưa <br>`True` => tồn tại <br>`False` => chưa tồn tại")
 
 
 class CheckExistCIFRequest(BaseSchema):
-    cif_number: str = Field(..., description="Số CIF", min_length=7, max_length=7)
+    cif_number: str = CustomField().CIFNumberField
 
 
 # ################################### lịch sử hồ sơ (log)####################################3
@@ -62,7 +63,7 @@ class EmployeeResponse(BaseSchema):
 class CifCustomerInformationResponse(BaseSchema):
     customer_id: str = Field(..., description="Mã định danh khách hàng")
     status: StatusResponse = Field(..., description="Trạng thái")
-    cif_number: str = Field(..., description="Số CIF")
+    cif_number: str = CustomField().CIFNumberField
     avatar_url: Optional[str] = Field(..., description="Đường dẫn hình ảnh khách hàng")
     customer_classification: DropdownResponse = Field(..., description="Hạng khách hàng")
     full_name: str = Field(..., description="Họ tên tiếng anh")
