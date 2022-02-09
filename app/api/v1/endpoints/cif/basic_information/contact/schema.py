@@ -26,11 +26,11 @@ class ForeignAddressResponse(BaseSchema):
     address_2: Optional[str] = Field(..., description="Địa chỉ 2", nullable=True)
     province: OptionalDropdownResponse = Field(..., description="Thành phố")
     state: OptionalDropdownResponse = Field(..., description="Tỉnh/Bang")
-    zip_code: str = Field(..., min_length=1, description="Mã bưu chính", nullable=True)
+    zip_code: Optional[str] = Field(..., min_length=1, description="Mã bưu chính", nullable=True)
 
 
 class ResidentAddressContactInformationResponse(BaseSchema):
-    domestic_flag: bool = Field(..., description="""Cờ địa chỉ trong nước
+    domestic_flag: Optional[bool] = Field(..., description="""Cờ địa chỉ trong nước
     \n`flag` = `True` => Địa chỉ trong nước
     \n`flag` = `False` => Địa chỉ nước ngoài""")
     domestic_address: Optional[DomesticAddressResponse] = Field(..., description="Địa chỉ trong nước", nullable=True)

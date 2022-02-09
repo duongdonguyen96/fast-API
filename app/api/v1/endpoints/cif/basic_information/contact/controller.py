@@ -132,10 +132,11 @@ class CtrContactInformation(BaseController):
         customer_resident_address = None
         customer_contact_address = None
         for _, _, _, customer_address in customer_datas:
-            if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
-                customer_resident_address = customer_address
-            if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
-                customer_contact_address = customer_address
+            if customer_address:
+                if customer_address.address_type_id == RESIDENT_ADDRESS_CODE:
+                    customer_resident_address = customer_address
+                if customer_address.address_type_id == CONTACT_ADDRESS_CODE:
+                    customer_contact_address = customer_address
 
         is_passport = False
         # RULE: Nếu GTĐD là Hộ chiếu -> có địa chỉ thường trú, địa chỉ liên lạc
@@ -162,10 +163,9 @@ class CtrContactInformation(BaseController):
                         msg="Domestic Address not is not null",
                         loc="resident_address -> domestic_address"
                     )
-
                 # check resident_address_domestic_address_country
                 resident_domestic_country_id = resident_address.domestic_address.country.id
-                if is_create or (customer_resident_address.address_country_id != resident_domestic_country_id):
+                if is_create or resident_domestic_country_id:
                     await self.get_model_object_by_id(
                         model_id=resident_domestic_country_id,
                         model=AddressCountry,
@@ -315,17 +315,15 @@ class CtrContactInformation(BaseController):
                     "address_2": None,
                     "address_same_permanent_flag": False
                 }
-
             # Nếu địa chỉ liên lạc giống địa chỉ thường trú
             else:
-                saving_contact_address = saving_resident_address
+                saving_contact_address = saving_resident_address.copy()
                 # Giống địa chỉ thường trú nhưng vẫn là tạm trú
                 saving_contact_address.update({
                     "address_same_permanent_flag": True,
                     "address_type_id": CONTACT_ADDRESS_CODE,
                     "address_domestic_flag": True  # Địa chỉ liên lạc là địa chỉ trong nước
                 })
-
         ############################################################################################################
 
         ################################################################################################################
@@ -349,7 +347,13 @@ class CtrContactInformation(BaseController):
             await self.get_model_object_by_id(company_position_id, Position,
                                               "career_information -> company_position -> id")
 
+        if is_create:
+            # Tạo thông tin nghề nghiệp khách hàng
+            customer_professional_id = generate_uuid()
+        else:
+            customer_professional_id = customer_professional.id
         saving_career_information = {
+            "id": customer_professional_id,
             "career_id": career_id,
             "average_income_amount_id": average_income_amount_id,
             "company_name": contact_information_save_request.career_information.company_name,
@@ -359,13 +363,6 @@ class CtrContactInformation(BaseController):
         }
 
         ################################################################################################################
-
-        if is_create:
-            # Tạo thông tin nghề nghiệp khách hàng
-            customer_professional_id = generate_uuid()
-        else:
-            customer_professional_id = customer_professional.id
-
         contact_information_detail_data = self.call_repos(
             await repos_save_contact_information(
                 cif_id=cif_id,
