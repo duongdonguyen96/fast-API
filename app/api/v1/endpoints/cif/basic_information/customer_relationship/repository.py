@@ -7,31 +7,20 @@ from app.api.base.repository import ReposReturn
 from app.api.v1.endpoints.cif.basic_information.customer_relationship.schema import (
     SaveCustomerRelationshipRequest
 )
-from app.third_parties.oracle.models.cif.basic_information.contact.model import (
-    CustomerAddress
+from app.api.v1.endpoints.cif.basic_information.repository import (
+    repos_get_customer_detail_by_cif_number
 )
 from app.third_parties.oracle.models.cif.basic_information.guardian_and_relationship.model import (
     CustomerPersonalRelationship
 )
-from app.third_parties.oracle.models.cif.basic_information.identity.model import (
-    CustomerIdentity
-)
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
-from app.third_parties.oracle.models.cif.basic_information.personal.model import (
-    CustomerIndividualInfo
-)
-from app.third_parties.oracle.models.master_data.address import (
-    AddressCountry, AddressDistrict, AddressProvince, AddressWard
-)
 from app.third_parties.oracle.models.master_data.customer import (
-    CustomerGender, CustomerRelationshipType
+    CustomerRelationshipType
 )
-from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.utils.constant.cif import (
-    CIF_ID_TEST, CONTACT_ADDRESS_CODE,
-    CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
+    CIF_ID_TEST, CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
@@ -126,91 +115,122 @@ async def repos_get_customer_relationships(
     customer_relationships = session.execute(
         select(
             CustomerPersonalRelationship,
-            CustomerRelationshipType,
-            Customer.id,
-            Customer.avatar_url,
-            Customer.cif_number,
-            Customer.full_name_vn,
-            Customer.telephone_number,
-            Customer.mobile_number,
-            Customer.email,
-            CustomerIndividualInfo,
-            CustomerGender,
-            AddressCountry,
-            CustomerIdentity,
-            PlaceOfIssue,
-            CustomerAddress,
-            AddressProvince,
-            AddressDistrict,
-            AddressWard,
+            CustomerRelationshipType
         )
-        .join(Customer, CustomerPersonalRelationship.customer_relationship_id == Customer.id)
-        .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+        .join(Customer, CustomerPersonalRelationship.customer_id == Customer.id)
         .join(CustomerRelationshipType,
               CustomerPersonalRelationship.customer_relationship_type_id == CustomerRelationshipType.id)
-        .outerjoin(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
-        .outerjoin(AddressCountry, Customer.nationality_id == AddressCountry.id)
-        .outerjoin(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
-        .outerjoin(PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id)
-        .outerjoin(CustomerAddress, Customer.id == CustomerAddress.customer_id)
-        .outerjoin(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
-        .outerjoin(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
-        .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
         .filter(
             CustomerPersonalRelationship.customer_id == cif_id,
             CustomerPersonalRelationship.type == CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP,
         )
     ).all()
 
-    # vì join với address bị lặp dữ liệu nên cần tạo dict địa chỉ dựa trên id để trả về
-    customer_relationship_id__infos = {}
-    for customer_relationship in customer_relationships:
-        if not customer_relationship_id__infos.get(customer_relationship.id):
-            customer_relationship_id__infos[customer_relationship.id] = {
-                "customer_relationship": customer_relationship,
-                "contact_address": None,
-                "resident_address": None,
-            }
-        address = {
-            "province": dropdown(customer_relationship.AddressProvince),
-            "district": dropdown(customer_relationship.AddressDistrict),
-            "ward": dropdown(customer_relationship.AddressWard),
-            "number_and_street": customer_relationship.CustomerAddress.address
-        }
-        if customer_relationship.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
-            customer_relationship_id__infos[customer_relationship.id]["contact_address"] = address
-        else:
-            customer_relationship_id__infos[customer_relationship.id]["resident_address"] = address
+    relationship_details = []
+    for relationship, relationship_type in customer_relationships:
+        guardian_detail = await repos_get_customer_detail_by_cif_number(
+            cif_number=relationship.customer_personal_relationship_cif_number,
+            session=session
+        )
+        guardian_detail.data['basic_information']['customer_relationship'] = dropdown(relationship_type)
+        relationship_details.append(guardian_detail.data)
 
-    return ReposReturn(data={
-        "customer_relationship_flag": True if customer_relationship_id__infos else False,
-        "number_of_customer_relationship": len(customer_relationship_id__infos),
-        "relationships": [{
-            "id": info["customer_relationship"].id,
-            "avatar_url": info["customer_relationship"].avatar_url,
-            "basic_information": {
-                "cif_number": info["customer_relationship"].cif_number,
-                "customer_relationship": dropdown(info["customer_relationship"].CustomerRelationshipType),
-                "full_name_vn": info["customer_relationship"].full_name_vn,
-                "date_of_birth": info["customer_relationship"].CustomerIndividualInfo.date_of_birth,
-                "gender": dropdown(info["customer_relationship"].CustomerGender),
-                "nationality": dropdown(info["customer_relationship"].AddressCountry),
-                "telephone_number": info["customer_relationship"].telephone_number,
-                "mobile_number": info["customer_relationship"].mobile_number,
-                "email": info["customer_relationship"].email,
-            },
-            "identity_document": {
-                "identity_number": info["customer_relationship"].CustomerIdentity.identity_num,
-                "issued_date": info["customer_relationship"].CustomerIdentity.issued_date,
-                "place_of_issue": dropdown(info["customer_relationship"].PlaceOfIssue),
-                "expired_date": info["customer_relationship"].CustomerIdentity.expired_date
-            },
-            "address_information": {
-                "contact_address": info["contact_address"],
-                "resident_address": info["resident_address"],
-            }
-        } for info in customer_relationship_id__infos.values()]
-    })
+    data = {
+        'customer_relationship_flag': True if customer_relationships else False,
+        'number_of_customer_relationship': len(customer_relationships),
+        "relationships": relationship_details
+    }
+    return ReposReturn(data=data)
+
+    # móc data từ db crm
+    # customer_relationships = session.execute(
+    #     select(
+    #         CustomerPersonalRelationship,
+    #         CustomerRelationshipType,
+    #         Customer.id,
+    #         Customer.avatar_url,
+    #         Customer.cif_number,
+    #         Customer.full_name_vn,
+    #         Customer.telephone_number,
+    #         Customer.mobile_number,
+    #         Customer.email,
+    #         CustomerIndividualInfo,
+    #         CustomerGender,
+    #         AddressCountry,
+    #         CustomerIdentity,
+    #         PlaceOfIssue,
+    #         CustomerAddress,
+    #         AddressProvince,
+    #         AddressDistrict,
+    #         AddressWard,
+    #     )
+    #     .join(Customer, CustomerPersonalRelationship.customer_relationship_id == Customer.id)
+    #     .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
+    #     .join(CustomerRelationshipType,
+    #           CustomerPersonalRelationship.customer_relationship_type_id == CustomerRelationshipType.id)
+    #     .outerjoin(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
+    #     .outerjoin(AddressCountry, Customer.nationality_id == AddressCountry.id)
+    #     .outerjoin(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
+    #     .outerjoin(PlaceOfIssue, CustomerIdentity.place_of_issue_id == PlaceOfIssue.id)
+    #     .outerjoin(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+    #     .outerjoin(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
+    #     .outerjoin(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
+    #     .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
+    #     .filter(
+    #         CustomerPersonalRelationship.customer_id == cif_id,
+    #         CustomerPersonalRelationship.type == CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP,
+    #     )
+    # ).all()
+
+    # # vì join với address bị lặp dữ liệu nên cần tạo dict địa chỉ dựa trên id để trả về
+    # customer_relationship_id__infos = {}
+    # for customer_relationship in customer_relationships:
+    #     if not customer_relationship_id__infos.get(customer_relationship.id):
+    #         customer_relationship_id__infos[customer_relationship.id] = {
+    #             "customer_relationship": customer_relationship,
+    #             "contact_address": None,
+    #             "resident_address": None,
+    #         }
+    #     address = {
+    #         "province": dropdown(customer_relationship.AddressProvince),
+    #         "district": dropdown(customer_relationship.AddressDistrict),
+    #         "ward": dropdown(customer_relationship.AddressWard),
+    #         "number_and_street": customer_relationship.CustomerAddress.address
+    #     }
+    #     if customer_relationship.CustomerAddress.address_type_id == CONTACT_ADDRESS_CODE:
+    #         customer_relationship_id__infos[customer_relationship.id]["contact_address"] = address
+    #     else:
+    #         customer_relationship_id__infos[customer_relationship.id]["resident_address"] = address
+
+    # return ReposReturn(data={
+    #     "customer_relationship_flag": True if customer_relationship_id__infos else False,
+    #     "number_of_customer_relationship": len(customer_relationship_id__infos),
+    #     "relationships": [{
+    #         "id": info["customer_relationship"].id,
+    #         "avatar_url": info["customer_relationship"].avatar_url,
+    #         "basic_information": {
+    #             "cif_number": info["customer_relationship"].cif_number,
+    #             "customer_relationship": dropdown(info["customer_relationship"].CustomerRelationshipType),
+    #             "full_name_vn": info["customer_relationship"].full_name_vn,
+    #             "date_of_birth": info["customer_relationship"].CustomerIndividualInfo.date_of_birth,
+    #             "gender": dropdown(info["customer_relationship"].CustomerGender),
+    #             "nationality": dropdown(info["customer_relationship"].AddressCountry),
+    #             "telephone_number": info["customer_relationship"].telephone_number,
+    #             "mobile_number": info["customer_relationship"].mobile_number,
+    #             "email": info["customer_relationship"].email,
+    #         },
+    #         "identity_document": {
+    #             "identity_number": info["customer_relationship"].CustomerIdentity.identity_num,
+    #             "issued_date": info["customer_relationship"].CustomerIdentity.issued_date,
+    #             "place_of_issue": dropdown(info["customer_relationship"].PlaceOfIssue),
+    #             "expired_date": info["customer_relationship"].CustomerIdentity.expired_date
+    #         },
+    #         "address_information": {
+    #             "contact_address": info["contact_address"],
+    #             "resident_address": info["resident_address"],
+    #         }
+    #     } for info in customer_relationship_id__infos.values()]
+    # })
 
 
 async def repos_save_customer_relationship(
