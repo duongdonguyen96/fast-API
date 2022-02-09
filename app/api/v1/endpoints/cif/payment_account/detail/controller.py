@@ -1,7 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.payment_account.detail.repository import (
-    repos_check_casa_account, repos_detail_payment_account,
-    repos_save_payment_account
+    repos_check_casa_account, repos_check_exist_casa_account_number,
+    repos_detail_payment_account, repos_save_payment_account
 )
 from app.api.v1.endpoints.cif.payment_account.detail.schema import (
     SavePaymentAccountRequest
@@ -15,8 +15,10 @@ from app.third_parties.oracle.models.master_data.others import Currency
 from app.utils.constant.cif import (
     ACC_STRUCTURE_TYPE_LEVEL_3, STAFF_TYPE_BUSINESS_CODE
 )
-from app.utils.error_messages import ERROR_NOT_NULL, MESSAGE_STATUS
-from app.utils.functions import now
+from app.utils.error_messages import (
+    ERROR_INVALID_NUMBER, ERROR_NOT_NULL, MESSAGE_STATUS
+)
+from app.utils.functions import is_valid_number, now
 
 
 class CtrPaymentAccount(BaseController):
@@ -136,3 +138,19 @@ class CtrPaymentAccount(BaseController):
             ))
 
         return self.response(data=save_payment_account_info)
+
+    async def check_exist_casa_account_number(self, casa_account_number):
+        # VALIDATE: casa_account_number
+        if not is_valid_number(casa_account_number):
+            return self.response_exception(
+                msg=ERROR_INVALID_NUMBER,
+                loc="casa_account_number"
+            )
+
+        casa_account_info = self.call_repos(
+            await repos_check_exist_casa_account_number(
+                casa_account_number=casa_account_number,
+                session=self.oracle_session
+            )
+        )
+        return self.response(data=casa_account_info)

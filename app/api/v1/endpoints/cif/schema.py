@@ -19,7 +19,7 @@ class CifInformationResponse(BaseSchema):
 
 
 class CheckExistCIFSuccessResponse(BaseSchema):
-    is_existed: bool = Field(..., description="Cờ đã tồn tại hay chưa")
+    is_existed: bool = Field(..., description="Cờ đã tồn tại hay chưa <br>`True` => tồn tại <br>`False` => chưa tồn tại")
 
 
 class CheckExistCIFRequest(BaseSchema):
