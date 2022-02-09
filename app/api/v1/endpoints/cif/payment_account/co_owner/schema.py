@@ -4,6 +4,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.utils import OptionalDropdownResponse
 
 ############################################################
@@ -17,7 +18,7 @@ class SignatureResponse(BaseSchema):
 
 
 class BasicInformationResponse(BaseSchema):
-    cif_number: Optional[str] = Field(None, description='Số CIF của đồng sở hữu', min_length=7, max_length=7)
+    cif_number: Optional[str] = CustomField(description='Số CIF của đồng sở hữu').OptionalCIFNumberField
     customer_relationship: OptionalDropdownResponse = Field(None, description='Mỗi quan hệ với khách hàng')
     full_name_vn: Optional[str] = Field(None, description='Tên tiếng việt của đồng sở hữu')
     date_of_birth: Optional[date] = Field(None, description='Ngày sinh của đồng sở hữu')
@@ -72,11 +73,11 @@ class AccountHolderSuccessResponse(BaseSchema):
 ############################################################
 
 class AccountRequest(BaseSchema):
-    cif_number: str = Field(..., description='Số CIF của đồng sở hữu')
+    cif_number: str = CustomField(description='Số CIF của đồng sở hữu').CIFNumberField
 
 
 class SignatureAgreementAuthorRequest(BaseSchema):
-    cif_number: str = Field(..., description='Mã định danh của đồng sở hữu')
+    cif_number: str = CustomField(description='Mã định danh của đồng sở hữu').CIFNumberField
     full_name_vn: str = Field(..., description='Tên tiếng việt của đồng sở hữu')
 
 

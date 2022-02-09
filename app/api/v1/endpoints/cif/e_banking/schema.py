@@ -5,6 +5,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
 
 
@@ -134,7 +135,7 @@ class EBankingResetPasswordMethod(DropdownResponse):
 # Chi tiết cấp lại mật khẩu E-Banking call center -> I. Thông tin cá nhân khách hàng
 class PersonalCustomerInformationResponse(BaseSchema):
     id: str = Field(..., description="ID")
-    cif_number: str = Field(..., description="Số CIF")
+    cif_number: str = CustomField().CIFNumberField
     customer_classification: DropdownResponse = Field(..., description="Loại khách hàng (VD: Cá Nhân)")
     avatar_url: Optional[str] = Field(..., description="URL Avatar khách hàng")
     full_name: str = Field(..., description="Tên khách hàng không dấu")

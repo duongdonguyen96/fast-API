@@ -11,6 +11,7 @@ from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
     AccountHolderRequest, AccountHolderSuccessResponse, DetailCoOwnerResponse
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
+from app.utils.constant.cif import CIF_NUMBER_MAX_LENGTH, CIF_NUMBER_MIN_LENGTH
 
 router = APIRouter()
 
@@ -61,7 +62,11 @@ async def view_retrieve_co_owner(
 )
 async def view_detail_co_owner(
         cif_id: str = Path(..., description='Id CIF ảo'),
-        cif_number: str = Query(..., description='Số CIF cần lấy thông tin'),
+        cif_number: str = Query(
+            ..., description='Số CIF cần lấy thông tin',
+            min_length=CIF_NUMBER_MIN_LENGTH,
+            max_length=CIF_NUMBER_MAX_LENGTH
+        ),
         current_user=Depends(get_current_user_from_header())
 ):
     detail_co_owner = await CtrCoOwner(current_user).detail_co_owner(

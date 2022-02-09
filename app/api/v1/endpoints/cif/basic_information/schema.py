@@ -4,17 +4,19 @@ from typing import Optional
 from pydantic import Field
 
 from app.api.base.schema import BaseSchema
+from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.cif import OptionalAddressResponse
+from app.api.v1.schemas.utils import OptionalDropdownResponse
+
 ########################################################################################################################
 # Response
 ########################################################################################################################
 # Thông tin chi tiết người giám hộ hoặc người có quan hệ với khách hàng qua mã CIF
-from app.api.v1.schemas.utils import OptionalDropdownResponse
 
 
 # I. Thông tin cơ bản
 class BasicInformationResponse(BaseSchema):
-    cif_number: Optional[str] = Field(..., description="Số CIF")
+    cif_number: str = CustomField().CIFNumberField
     full_name_vn: Optional[str] = Field(..., description="Họ và tên")
     date_of_birth: Optional[date] = Field(..., description="Ngày sinh")
     gender: OptionalDropdownResponse = Field(..., description="Giới tính")
