@@ -12,8 +12,8 @@ class EmployeeDropdownResponse(BaseSchema):
 
 
 class OtherInformationResponse(BaseSchema):
-    legal_agreement_flag: bool = Field(..., description="cờ thỏa thuận pháp lý `True`: có , `False`: không ")
-    advertising_marketing_flag: bool = Field(
+    legal_agreement_flag: Optional[bool] = Field(..., description="cờ thỏa thuận pháp lý `True`: có , `False`: không ")
+    advertising_marketing_flag: Optional[bool] = Field(
         ...,
         description="Cờ đồng ý nhận SMS, Email tiếp thị quảng cáo từ SCB. "
                     "`True`: có, "
