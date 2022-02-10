@@ -43,7 +43,7 @@ class ServiceEKYC:
                 if response.status != status.HTTP_200_OK:
                     return False, {
                         "message": ERROR_CALL_SERVICE_EKYC,
-                        "detail": "STATUS" + str(response.status)
+                        "detail": "STATUS " + str(response.status)
                     }
 
                 # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
@@ -100,7 +100,7 @@ class ServiceEKYC:
                 logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
 
                 if response.status == status.HTTP_200_OK:
-                    return True, response.json()
+                    return True, await response.json()
                 elif response.status == status.HTTP_400_BAD_REQUEST:
                     detail = await response.json()
                     return False, {
@@ -110,7 +110,7 @@ class ServiceEKYC:
                 else:
                     return False, {
                         "message": ERROR_CALL_SERVICE_EKYC,
-                        "detail": "STATUS" + str(response.status)
+                        "detail": "STATUS " + str(response.status)
                     }
 
         except HTTPException as ex:
@@ -140,7 +140,7 @@ class ServiceEKYC:
                     return False, {
                         "errors": {
                             "message": ERROR_CALL_SERVICE_EKYC,
-                            "detail": "STATUS" + str(response.status)
+                            "detail": "STATUS " + str(response.status)
                         }
                     }
                 response_body = await response.json()
