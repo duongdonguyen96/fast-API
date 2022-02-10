@@ -187,6 +187,7 @@ class ServiceSOA:
                     return False, return_data
                 else:
                     data = await response.json()
+                    return_data.update(data)
                     # Nếu KHÔNG tồn tại tài khoản thanh toán
                     if data['retrieveCurrentAccountCASA_out']['transactionInfo']['transactionErrorCode'] != SOA_CASA_REPONSE_STATUS_SUCCESS:
                         return_data.update(is_existed=False)

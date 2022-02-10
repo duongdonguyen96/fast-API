@@ -49,9 +49,12 @@ class SavePaymentAccountRequest(BaseSchema):
     account_structure_type_level_3: OptionalDropdownRequest = Field(..., description="Kiểu kiến trúc cấp 3")
     casa_account_number: Optional[str] = Field(None, description="""Số tài khoản
                                                 \n`self_selected_account_flag`=`True` => Bắt buộc truyền lên
-                                                \n`self_selected_account_flag`=`False` => Không bắt buộc truyền lên""")
-    account_salary_organization_account: Optional[str] = Field(None, description="Tài khoản của tổ chức chi lương")
-    account_salary_organization_name: Optional[str] = Field(None, description="Chủ tài khoản chi lương", nullable=True)
+                                                \n`self_selected_account_flag`=`False` => Không bắt buộc truyền lên""",
+                                               min_length=1)
+    account_salary_organization_account: Optional[str] = Field(None, description="Tài khoản của tổ chức chi lương",
+                                                               min_length=1)
+    account_salary_organization_name: Optional[str] = Field(None, description="Chủ tài khoản chi lương", nullable=True,
+                                                            min_length=1)
 
 
 class CheckExistCasaAccountRequest(BaseSchema):
