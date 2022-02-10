@@ -109,5 +109,5 @@ MESSAGE_STATUS = {
     ERROR_NOT_NULL: " is not null",
     ERROR_CIF_ID_NOT_CUSTOMER_ADDRESS_EXIST: "CIF_ID is not address",
 
-    ERROR_NO_DATA: "No data"
+    ERROR_NO_DATA: "No data, please create data before get data"
 }

@@ -20,7 +20,7 @@ from app.third_parties.oracle.models.master_data.others import (
 from app.utils.constant.cif import (
     STAFF_TYPE_BUSINESS_CODE, STAFF_TYPE_REFER_INDIRECT_CODE
 )
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST, ERROR_NO_DATA
 from app.utils.functions import now
 
 
@@ -59,11 +59,15 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
                     "id": employee.id,
                     "fullname_vn": employee.fullname_vn
                 }
+    legal_agreement_flag = customer_employee[0][0].legal_agreement_flag
+    advertising_marketing_flag = customer_employee[0][0].advertising_marketing_flag
+    if legal_agreement_flag is None or advertising_marketing_flag is None:
+        return ReposReturn(is_error=True, msg=ERROR_NO_DATA)
 
     return ReposReturn(data={
         # lấy ra data ở vị trí 0 trong query sau đó lấy ra customer ở vị trí 0
-        "legal_agreement_flag": customer_employee[0][0].legal_agreement_flag,
-        "advertising_marketing_flag": customer_employee[0][0].advertising_marketing_flag,
+        "legal_agreement_flag": legal_agreement_flag,
+        "advertising_marketing_flag": advertising_marketing_flag,
         "sale_staff": sale_staff,
         "indirect_sale_staff": indirect_sale_staff,
     })
