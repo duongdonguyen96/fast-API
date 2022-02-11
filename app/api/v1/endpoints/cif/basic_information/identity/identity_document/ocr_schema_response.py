@@ -190,7 +190,7 @@ class OCRBackSideCitizenCardResponse(BaseSchema):
 # So sánh khuôn mặt đối chiếu với khuôn mặt trên giấy tờ định danh
 ########################################################################################################################
 class CompareSuccessResponse(BaseSchema):
-    similar_percent: float = Field(
+    similar_percent: int = Field(
         ...,
         description="Tỉ lệ chính xác giữa khuôn mặt đối chiếu với khuôn mặt trên giấy tờ định danh"
     )
