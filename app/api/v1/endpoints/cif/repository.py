@@ -32,8 +32,7 @@ from app.third_parties.oracle.models.master_data.others import (
 from app.utils.constant.cif import CIF_ID_TEST
 from app.utils.error_messages import (
     ERROR_CALL_SERVICE_SOA, ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_EXIST,
-    ERROR_CIF_NUMBER_INVALID, ERROR_CIF_NUMBER_NOT_EXIST,
-    ERROR_CUSTOMER_DETAIL_CALL_SERVICE_SOA, MESSAGE_STATUS
+    ERROR_CIF_NUMBER_INVALID, ERROR_CIF_NUMBER_NOT_EXIST, MESSAGE_STATUS
 )
 from app.utils.functions import dropdown
 
@@ -248,9 +247,6 @@ async def repos_check_exist_cif(cif_number: str):
     is_success, customer_detail = await service_soa.retrieve_customer_ref_data_mgmt(cif_number=cif_number)
     if not is_success:
         return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA, detail=customer_detail["message"])
-
-    if not customer_detail['is_existed']:
-        return ReposReturn(is_error=True, msg=ERROR_CUSTOMER_DETAIL_CALL_SERVICE_SOA, detail="customer_detail")
 
     return ReposReturn(data={
         "is_existed": customer_detail["is_existed"]
