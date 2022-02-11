@@ -593,7 +593,11 @@ class CtrIdentityDocument(BaseController):
         )
 
         if not is_success:
-            return self.response_exception(msg=compare_response['message'], detail=compare_response['detail'])
+            return self.response_exception(
+                loc="face_uuid_ekyc",
+                msg=ERROR_CALL_SERVICE_EKYC,
+                detail=compare_response['message']
+            )
         similar_percent = compare_response['data']['similarity_percent']
 
         # dict dùng để tạo mới hoặc lưu lại CustomerCompareImage
@@ -645,6 +649,7 @@ class CtrIdentityDocument(BaseController):
         return self.response(data=upload_info)
 
     async def compare_face(self, face_image: UploadFile, identity_image_uuid: str):
+
         face_image_data = await face_image.read()
         self.call_validator(await file_validator(face_image_data))
 
