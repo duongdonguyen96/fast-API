@@ -1002,8 +1002,12 @@ async def repos_compare_face(face_image_data: bytes, identity_image_uuid: str, s
     is_success, compare_face_info = await service_ekyc.compare_face(face_uuid, identity_image_uuid)
 
     if not is_success:
-        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_EKYC,
-                           detail=compare_face_info.get('message', 'compare'))
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_CALL_SERVICE_EKYC,
+            detail=compare_face_info['message'],
+            loc="identity_image_uuid, face_image"
+        )
 
     return ReposReturn(data={
         "similar_percent": compare_face_info.get('data').get('similarity_percent'),
