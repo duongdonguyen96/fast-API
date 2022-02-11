@@ -1,12 +1,7 @@
-from typing import List
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
-from app.api.v1.endpoints.cif.basic_information.customer_relationship.schema import (
-    SaveCustomerRelationshipRequest
-)
 from app.api.v1.endpoints.cif.basic_information.repository import (
     repos_get_customer_detail_by_cif_number
 )
@@ -20,10 +15,9 @@ from app.third_parties.oracle.models.master_data.customer import (
     CustomerRelationshipType
 )
 from app.utils.constant.cif import (
-    CIF_ID_TEST, CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
+    CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
 )
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown, now
+from app.utils.functions import dropdown
 
 CUSTOMER_RELATIONSHIP_INFO_DETAIL = {
     "customer_relationship_flag": True,
@@ -232,17 +226,17 @@ async def repos_get_customer_relationships(
     #     } for info in customer_relationship_id__infos.values()]
     # })
 
-
-async def repos_save_customer_relationship(
-        cif_id: str,
-        customer_relationship_save_request: List[SaveCustomerRelationshipRequest],
-        created_by
-):
-    if cif_id != CIF_ID_TEST:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
-
-    return ReposReturn(data={
-        "cif_id": cif_id,
-        "created_at": now(),
-        "created_by": created_by
-    })
+# Hiện tại lưu mối quan hệ khách hàng đang dùng chung hàm với Người giám hộ
+# async def repos_save_customer_relationship(
+#         cif_id: str,
+#         customer_relationship_save_request: List[SaveCustomerRelationshipRequest],
+#         created_by
+# ):
+#     if cif_id != CIF_ID_TEST:
+#         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+#
+#     return ReposReturn(data={
+#         "cif_id": cif_id,
+#         "created_at": now(),
+#         "created_by": created_by
+#     })
