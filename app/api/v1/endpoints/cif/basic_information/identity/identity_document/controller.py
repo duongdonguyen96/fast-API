@@ -38,19 +38,19 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_MALE,
-    CUSTOMER_UNCOMPLETED_FLAG, EKYC_DOCUMENT_TYPE_NEW_CITIZEN,
-    EKYC_DOCUMENT_TYPE_NEW_IDENTITY, EKYC_DOCUMENT_TYPE_OLD_CITIZEN,
-    EKYC_DOCUMENT_TYPE_OLD_IDENTITY, EKYC_DOCUMENT_TYPE_PASSPORT,
-    EKYC_GENDER_TYPE_FEMALE, EKYC_GENDER_TYPE_MALE, EKYC_IDENTITY_TYPE,
-    IDENTITY_DOCUMENT_TYPE, IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD,
-    IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD, IDENTITY_DOCUMENT_TYPE_PASSPORT,
-    IDENTITY_DOCUMENT_TYPE_TYPE, IDENTITY_IMAGE_FLAG_BACKSIDE,
-    IDENTITY_IMAGE_FLAG_FRONT_SIDE, IMAGE_TYPE_CODE_IDENTITY,
-    RESIDENT_ADDRESS_CODE
+    ADDRESS_COUNTRY_CODE_VN, CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE,
+    CRM_GENDER_TYPE_MALE, CUSTOMER_UNCOMPLETED_FLAG,
+    EKYC_DOCUMENT_TYPE_NEW_CITIZEN, EKYC_DOCUMENT_TYPE_NEW_IDENTITY,
+    EKYC_DOCUMENT_TYPE_OLD_CITIZEN, EKYC_DOCUMENT_TYPE_OLD_IDENTITY,
+    EKYC_DOCUMENT_TYPE_PASSPORT, EKYC_GENDER_TYPE_FEMALE,
+    EKYC_GENDER_TYPE_MALE, EKYC_IDENTITY_TYPE, IDENTITY_DOCUMENT_TYPE,
+    IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
+    IDENTITY_DOCUMENT_TYPE_PASSPORT, IDENTITY_DOCUMENT_TYPE_TYPE,
+    IDENTITY_IMAGE_FLAG_BACKSIDE, IDENTITY_IMAGE_FLAG_FRONT_SIDE,
+    IMAGE_TYPE_CODE_IDENTITY, RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (  # noqa
-    ERROR_IDENTITY_DOCUMENT_NOT_EXIST,
+    ERROR_CALL_SERVICE_EKYC, ERROR_IDENTITY_DOCUMENT_NOT_EXIST,
     ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST, ERROR_INVALID_URL,
     ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
 )
@@ -357,7 +357,8 @@ class CtrIdentityDocument(BaseController):
                 "address_province_id": resident_address_province_id,
                 "address_district_id": resident_address_district_id,
                 "address_ward_id": resident_address_ward_id,
-                "address": address_information.resident_address.number_and_street
+                "address": address_information.resident_address.number_and_street,
+                "address_domestic_flag": True if nationality_id == ADDRESS_COUNTRY_CODE_VN else False
             }
             ###########################################################################################################
 
@@ -390,7 +391,8 @@ class CtrIdentityDocument(BaseController):
                 "address_province_id": contact_address_province_id,
                 "address_district_id": contact_address_district_id,
                 "address_ward_id": contact_address_ward_id,
-                "address": address_information.contact_address.number_and_street
+                "address": address_information.contact_address.number_and_street,
+                "address_domestic_flag": True,  # Địa chỉ liên lạc đối với CMND/CCCD là địa chỉ trong nước
             }
             ############################################################################################################
 
@@ -572,10 +574,9 @@ class CtrIdentityDocument(BaseController):
         if not is_valid:
             errors = validate_response['errors']
             return_errors = []
-            for key, values in errors.items():
-                for value in values:
-                    return_errors.append(f"{key} -> {value['message']}")
-            return self.response_exception(msg=validate_response['message'], detail=', '.join(return_errors))
+            for key, value in errors.items():
+                return_errors.append(f"{key} -> {value}")
+            return self.response_exception(msg=ERROR_CALL_SERVICE_EKYC, detail=', '.join(return_errors))
 
         # So sánh khuôn mặt
         if not compare_face_uuid_ekyc:
@@ -592,7 +593,11 @@ class CtrIdentityDocument(BaseController):
         )
 
         if not is_success:
-            return self.response_exception(msg=compare_response['message'], detail=compare_response['detail'])
+            return self.response_exception(
+                loc="face_uuid_ekyc",
+                msg=ERROR_CALL_SERVICE_EKYC,
+                detail=compare_response['message']
+            )
         similar_percent = compare_response['data']['similarity_percent']
 
         # dict dùng để tạo mới hoặc lưu lại CustomerCompareImage
@@ -644,6 +649,7 @@ class CtrIdentityDocument(BaseController):
         return self.response(data=upload_info)
 
     async def compare_face(self, face_image: UploadFile, identity_image_uuid: str):
+
         face_image_data = await face_image.read()
         self.call_validator(await file_validator(face_image_data))
 

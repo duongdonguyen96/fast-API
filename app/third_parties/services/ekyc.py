@@ -40,14 +40,15 @@ class ServiceEKYC:
         try:
             async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
-                if response.status != status.HTTP_200_OK:
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                else:
                     return False, {
                         "message": ERROR_CALL_SERVICE_EKYC,
-                        "detail": "STATUS" + str(response.status)
+                        "detail": "STATUS " + str(response.status)
                     }
-
-                # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
-                return True, await response.json()
 
         except Exception as ex:
             logger.error(str(ex))
@@ -63,15 +64,16 @@ class ServiceEKYC:
 
         try:
             async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
-                logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
-                if response.status != status.HTTP_201_CREATED:
+                logger.log("SERVICE", f"[ADD FACE] {response.status} : {api_url}")
+                if response.status == status.HTTP_201_CREATED:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                else:
                     return False, {
                         "message": ERROR_CALL_SERVICE_EKYC,
                         "detail": "STATUS" + str(response.status)
                     }
-
-                # chỗ này fail trả về response_body để trả luôn message lỗi bên eKYC
-                return True, await response.json()
 
         except Exception as ex:
             logger.error(str(ex))
@@ -97,20 +99,16 @@ class ServiceEKYC:
 
         try:
             async with self.session.post(url=api_url, json=data, headers=self.headers, proxy=self.proxy) as response:
-                logger.log("SERVICE", f"[FACE] {response.status} : {api_url}")
+                logger.log("SERVICE", f"[COMPARE FACE] {response.status} : {api_url}")
 
                 if response.status == status.HTTP_200_OK:
-                    return True, response.json()
-                elif response.status == status.HTTP_400_BAD_REQUEST:
-                    detail = await response.json()
-                    return False, {
-                        "message": ERROR_CALL_SERVICE_EKYC,
-                        "detail": detail['message']
-                    }
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST or response.status == status.HTTP_404_NOT_FOUND:
+                    return False, await response.json()
                 else:
                     return False, {
                         "message": ERROR_CALL_SERVICE_EKYC,
-                        "detail": "STATUS" + str(response.status)
+                        "detail": "STATUS " + str(response.status)
                     }
 
         except HTTPException as ex:
@@ -140,7 +138,7 @@ class ServiceEKYC:
                     return False, {
                         "errors": {
                             "message": ERROR_CALL_SERVICE_EKYC,
-                            "detail": "STATUS" + str(response.status)
+                            "detail": "STATUS " + str(response.status)
                         }
                     }
                 response_body = await response.json()
