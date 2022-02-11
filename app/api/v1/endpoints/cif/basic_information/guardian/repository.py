@@ -27,7 +27,7 @@ from app.utils.constant.cif import (
 from app.utils.error_messages import (
     ERROR_CIF_NUMBER_NOT_COMPLETED, ERROR_CIF_NUMBER_NOT_EXIST
 )
-from app.utils.functions import now
+from app.utils.functions import dropdown, now
 
 
 async def repos_get_guardians(
@@ -48,11 +48,12 @@ async def repos_get_guardians(
         )
     ).all()
     guardian_details = []
-    for guardian, _ in guardians:
+    for guardian, guardian_relationship in guardians:
         guardian_detail = await repos_get_customer_detail_by_cif_number(
             cif_number=guardian.customer_personal_relationship_cif_number,
             session=session
         )
+        guardian_detail.data['basic_information']['customer_relationship'] = dropdown(guardian_relationship)
         guardian_details.append(guardian_detail.data)
     data = {
         "guardian_flag": True if guardians else False,
