@@ -55,6 +55,10 @@ class CtrPaymentAccount(BaseController):
         if casa_account.data:
             is_created = False
 
+        casa_account_number = None
+        account_structure_type_level_3_id = None
+        account_salary_organization_account_name = None
+
         # Nếu là Tài khoản yêu cầu
         self_selected_account_flag = payment_account_save_request.self_selected_account_flag
         if self_selected_account_flag:
@@ -87,9 +91,10 @@ class CtrPaymentAccount(BaseController):
 
             # check acc_structure_type_level_3_id exist
             # Trường hợp đặc biệt, phải check luôn cả loại kiến trúc là cấp 3 nên không dùng get_model_object_by_id
+            account_structure_type_level_3_id = payment_account_save_request.account_structure_type_level_3.id
             self.call_repos(
                 await repos_get_acc_structure_type(
-                    acc_structure_type_id=payment_account_save_request.account_structure_type_level_3.id,
+                    acc_structure_type_id=account_structure_type_level_3_id,
                     level=ACC_STRUCTURE_TYPE_LEVEL_3,
                     loc="account_structure_type_level_3",
                     session=self.oracle_session
@@ -97,7 +102,6 @@ class CtrPaymentAccount(BaseController):
             )
 
         # Lấy thông tin Tài khoản của tổ chức chi lương
-        account_salary_organization_account_name = None
         account_salary_organization_account_number = payment_account_save_request.account_salary_organization_account
         if account_salary_organization_account_number:
             account_salary_organization = self.call_repos(await repos_get_casa_account_from_soa(
@@ -114,7 +118,7 @@ class CtrPaymentAccount(BaseController):
 
             account_salary_organization_account_name = account_salary_organization['retrieveCurrentAccountCASA_out']['accountInfo']['customerInfo']['fullname']
 
-        # TODO: Mở tài khoản thông thường, hiện tại không gửi data để lưu kiểu kiến trúc cấp 3
+        # Mở tài khoản thông thường, hiện tại không gửi data để lưu kiểu kiến trúc cấp 3
 
         # check currency exist
         await self.get_model_object_by_id(
@@ -139,11 +143,11 @@ class CtrPaymentAccount(BaseController):
 
         data_insert = {
             "customer_id": cif_id,
-            "casa_account_number": payment_account_save_request.casa_account_number,
+            "casa_account_number": casa_account_number,
             "currency_id": payment_account_save_request.currency.id,
             'acc_type_id': payment_account_save_request.account_type.id,
             'acc_class_id': payment_account_save_request.account_class.id,
-            'acc_structure_type_id': payment_account_save_request.account_structure_type_level_3.id,
+            'acc_structure_type_id': account_structure_type_level_3_id,
             "staff_type_id": STAFF_TYPE_BUSINESS_CODE,
             "acc_salary_org_name": account_salary_organization_account_name,
             "acc_salary_org_acc": account_salary_organization_account_number,
