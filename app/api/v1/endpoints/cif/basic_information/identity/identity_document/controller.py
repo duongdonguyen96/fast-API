@@ -245,6 +245,10 @@ class CtrIdentityDocument(BaseController):
             validate_place_of_issue = await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue,
                                                                         loc='place_of_issue_id')
             validate_place_of_issue_name = validate_place_of_issue.name
+            # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
+            # Nên việc validate không hợp lệ, cần phải thay đổi để validate
+            if validate_place_of_issue_name == "TPHCM":
+                validate_place_of_issue_name = "TP HCM"
 
         # dict dùng để tạo mới hoặc lưu lại customer_identity
         saving_customer_identity = {
@@ -571,6 +575,7 @@ class CtrIdentityDocument(BaseController):
                 loc="identity_document_type -> type_id"
             )
         is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
+        print(ekyc_request_data)
         if not is_valid:
             errors = validate_response['errors']
             return_errors = []
