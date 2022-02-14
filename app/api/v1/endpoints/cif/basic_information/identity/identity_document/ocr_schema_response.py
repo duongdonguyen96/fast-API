@@ -194,4 +194,7 @@ class CompareSuccessResponse(BaseSchema):
         ...,
         description="Tỉ lệ chính xác giữa khuôn mặt đối chiếu với khuôn mặt trên giấy tờ định danh"
     )
-    face_uuid_ekyc: str = Field(..., description="uuid của `face_image` trả về từ hệ thống eKYC")
+    face_uuid_ekyc: str = Field(..., description="uuid của `face_image` trả về từ hệ thống eKYC, "
+                                                 "dùng để lưu trong API `Lưu Giấy tờ định danh`")
+    face_compare_image_url: str = Field(..., description="url của `face_image` trả về từ hệ thống eKYC, "
+                                                         "dùng để lưu trong API `Lưu Giấy tờ định danh`")

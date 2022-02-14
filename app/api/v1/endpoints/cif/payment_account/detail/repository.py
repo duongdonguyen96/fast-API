@@ -15,6 +15,7 @@ from app.third_parties.oracle.models.master_data.account import (
     AccountClass, AccountStructureType, AccountType
 )
 from app.third_parties.oracle.models.master_data.others import Currency
+from app.utils.constant.cif import DROPDOWN_NONE_DICT
 from app.utils.error_messages import (
     ERROR_CALL_SERVICE_SOA, ERROR_INVALID_NUMBER, ERROR_NO_DATA, MESSAGE_STATUS
 )
@@ -37,12 +38,12 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
         .join(Currency, CasaAccount.currency_id == Currency.id)
         .join(AccountClass, CasaAccount.acc_class_id == AccountClass.id)
         .join(AccountType, CasaAccount.acc_type_id == AccountType.id)
-        .join(AccountStructureType, CasaAccount.acc_structure_type_id == AccountStructureType.id)
-        .join(
+        .outerjoin(AccountStructureType, CasaAccount.acc_structure_type_id == AccountStructureType.id)
+        .outerjoin(
             account_structure_type_level_2,
             AccountStructureType.parent_id == account_structure_type_level_2.id
         )
-        .join(
+        .outerjoin(
             account_structure_type_level_1,
             account_structure_type_level_2.parent_id == account_structure_type_level_1.id
         )
@@ -52,14 +53,21 @@ async def repos_detail_payment_account(cif_id: str, session: Session) -> ReposRe
     if not detail:
         return ReposReturn(is_error=True, msg=ERROR_NO_DATA, detail=MESSAGE_STATUS[ERROR_NO_DATA])
 
+    account_structure_type_level_1 = detail.account_structure_type_level_1
+    account_structure_type_level_2 = detail.account_structure_type_level_2
+    account_structure_type_level_3 = detail.AccountStructureType
+
     return ReposReturn(data={
         "self_selected_account_flag": detail.CasaAccount.self_selected_account_flag,
         "currency": dropdown(detail.Currency),
         "account_type": dropdown(detail.AccountType),
         "account_class": dropdown(detail.AccountClass),
-        "account_structure_type_level_1": dropdown(detail.account_structure_type_level_1),
-        "account_structure_type_level_2": dropdown(detail.account_structure_type_level_2),
-        "account_structure_type_level_3": dropdown(detail.AccountStructureType),
+        "account_structure_type_level_1": dropdown(account_structure_type_level_1)
+        if account_structure_type_level_1 else DROPDOWN_NONE_DICT,
+        "account_structure_type_level_2": dropdown(account_structure_type_level_2)
+        if account_structure_type_level_2 else DROPDOWN_NONE_DICT,
+        "account_structure_type_level_3": dropdown(account_structure_type_level_3)
+        if account_structure_type_level_3 else DROPDOWN_NONE_DICT,
         "casa_account_number": detail.CasaAccount.casa_account_number,
         "account_salary_organization_account": detail.CasaAccount.acc_salary_org_acc,
         "account_salary_organization_name": detail.CasaAccount.acc_salary_org_name

@@ -96,6 +96,7 @@ async def get_optional_model_object_by_code_or_name(
 async def repos_get_data_model_config(session: Session, model: Base, country_id: Optional[str] = None,
                                       province_id: Optional[str] = None, district_id: Optional[str] = None,
                                       region_id: Optional[str] = None, ward_id: Optional[str] = None,
+                                      level: Optional[str] = None, parent_id: Optional[str] = None,
                                       is_special_dropdown: bool = False):
     list_data_engine = select(model)
     if hasattr(model, "country_id"):
@@ -112,6 +113,12 @@ async def repos_get_data_model_config(session: Session, model: Base, country_id:
 
     if hasattr(model, "ward_id") and ward_id:
         list_data_engine = list_data_engine.filter(model.ward_id == ward_id)
+
+    if hasattr(model, "level") and level:
+        list_data_engine = list_data_engine.filter(model.level == level)
+
+    if hasattr(model, "parent_id") and parent_id:
+        list_data_engine = list_data_engine.filter(model.parent_id == parent_id)
 
     if hasattr(model, 'active_flag'):
         list_data_engine = list_data_engine.filter(model.active_flag == 1)

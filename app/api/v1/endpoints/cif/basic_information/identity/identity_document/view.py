@@ -97,7 +97,7 @@ router_special = APIRouter()
 @router_special.post(
     path="/basic-information/identity/identity-document/",
     name="1. GTĐD - A. GTĐD - Lưu",
-    description="Lưu",
+    description="Lưu Giấy tờ định danh",
     responses=swagger_response(
         response_model=ResponseData[SaveSuccessResponse],
         success_status_code=status.HTTP_200_OK
