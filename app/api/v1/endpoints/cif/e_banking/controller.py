@@ -235,14 +235,23 @@ class CtrEBanking(BaseController):
         return self.response(data=e_banking_data)
 
     async def ctr_balance_payment_account(self, cif_id: str):
-        payment_account_data = self.call_repos(
+        is_success, payment_account = self.call_repos(
             await repos_get_list_balance_payment_account(
                 cif_id=cif_id,
                 session=self.oracle_session
             )
         )
+        response_data = []
+        if payment_account:
+            payment_accounts = payment_account['selectCurrentAccountFromCIF_out']['accountInfo']
+            for account in payment_accounts:
+                response_data.append({
+                    "id": account['customerInfo']['rowOrder'],
+                    "account_number": account['accountNum'],
+                    "product_name": account['accountClassName'],
+                })
 
-        return self.response(data=payment_account_data)
+        return self.response(data=response_data)
 
     async def get_detail_reset_password(self, cif_id: str):
         detail_reset_password_data = self.call_repos(await repos_get_detail_reset_password(cif_id))
