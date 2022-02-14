@@ -12,8 +12,8 @@ from app.api.v1.endpoints.cif.e_banking.examples import (
     GET_E_BANKING_SUCCESS, POST_E_BANKING
 )
 from app.api.v1.endpoints.cif.e_banking.schema import (
-    BalanceSavingAccountsResponse, EBankingRequest, EBankingResponse,
-    ListBalancePaymentAccountResponse, ResetPasswordEBankingResponse,
+    BalancePaymentAccountResponses, BalanceSavingAccountsResponse,
+    EBankingRequest, EBankingResponse, ResetPasswordEBankingResponse,
     ResetPasswordTellerResponse
 )
 from app.api.v1.schemas.utils import SaveSuccessResponse
@@ -65,7 +65,7 @@ async def view_retrieve_e_banking(
     name="Danh sách tài khoản thanh toán",
     description="Lấy dữ liệu tab `DANH SÁCH TÀI KHOẢN THANH TOÁN`",
     responses=swagger_response(
-        response_model=ResponseData[List[ListBalancePaymentAccountResponse]],
+        response_model=ResponseData[List[BalancePaymentAccountResponses]],
         success_status_code=status.HTTP_200_OK
     ),
 )
@@ -74,7 +74,7 @@ async def view_balance_payment_account(
         current_user=Depends(get_current_user_from_header())
 ):
     balance_payment_account_data = await CtrEBanking(current_user).ctr_balance_payment_account(cif_id)
-    return ResponseData[List[ListBalancePaymentAccountResponse]](**balance_payment_account_data)
+    return ResponseData[List[BalancePaymentAccountResponses]](**balance_payment_account_data)
 
 
 @router.get(
