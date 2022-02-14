@@ -575,7 +575,6 @@ class CtrIdentityDocument(BaseController):
                 loc="identity_document_type -> type_id"
             )
         is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
-        print(ekyc_request_data)
         if not is_valid:
             errors = validate_response['errors']
             return_errors = []
