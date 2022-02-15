@@ -87,6 +87,8 @@ class AgreementAuthorization(Base):
     code = Column('agreement_author_code', VARCHAR(50), comment='Mã code')
     name = Column('agreement_author_name', VARCHAR(1000), comment='Tên ủy quyền')
     active_flag = Column('agreement_active_flag', NUMBER(1, 2, True), comment='Cờ trạng thái kích hoạt')
+
+    agreement_author_type = Column('agreement_author_type', VARCHAR(20), comment='Loại tài khoản thỏa thuận ủy quyền (FD, DD, CSD, TD)')
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
 

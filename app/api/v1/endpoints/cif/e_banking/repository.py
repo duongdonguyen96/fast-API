@@ -7,6 +7,7 @@ from app.api.v1.endpoints.cif.e_banking.schema import GetInitialPasswordMethod
 from app.api.v1.endpoints.repository import (
     write_transaction_log_and_update_booking
 )
+from app.settings.event import service_soa
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
@@ -16,10 +17,6 @@ from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption,
     TdAccount
 )
-from app.third_parties.oracle.models.cif.payment_account.model import (
-    CasaAccount
-)
-from app.third_parties.oracle.models.master_data.account import AccountType
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerContactType, CustomerRelationshipType
 )
@@ -330,7 +327,8 @@ async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn
             account_info["register_flag"] = True
             account_info["account_name"] = auth_method.EBankingInfo.account_name
             account_info["charged_account"] = auth_method.EBankingInfo.account_payment_fee
-            account_info["get_initial_password_method"] = GetInitialPasswordMethod(auth_method.EBankingInfo.method_active_password_id)
+            account_info["get_initial_password_method"] = GetInitialPasswordMethod(
+                auth_method.EBankingInfo.method_active_password_id)
             break
 
     return ReposReturn(data={
@@ -344,7 +342,8 @@ async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn
                     "group": contact_type.CustomerContactType.group,
                     "description": contact_type.CustomerContactType.description,
                     "checked_flag": True if contact_type.EBankingRegisterBalanceOption else False
-                } for contact_type in contact_types if contact_type.EBankingRegisterBalanceOption.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING
+                } for contact_type in contact_types if
+                contact_type.EBankingRegisterBalanceOption.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING
             ],
             "register_balance_casas": [
                 {
@@ -379,7 +378,8 @@ async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn
                     "group": contact_type.CustomerContactType.group,
                     "description": contact_type.CustomerContactType.description,
                     "checked_flag": True if contact_type.EBankingRegisterBalanceOption else False
-                } for contact_type in contact_types if contact_type.EBankingRegisterBalanceOption.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_SAVING
+                } for contact_type in contact_types if
+                contact_type.EBankingRegisterBalanceOption.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_SAVING
             ],
             "mobile_number": "2541365822",
             "range": {
@@ -413,26 +413,18 @@ async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn
 
 
 async def repos_get_list_balance_payment_account(cif_id: str, session: Session) -> ReposReturn:
-    balance_payments = session.execute(
+    # lấy danh sách tài khoản thanh toán theo số cif trong SOA
+    customer_cif_number = session.execute(
         select(
-            CasaAccount,
-            AccountType
-        ).join(
-            AccountType, CasaAccount.acc_type_id == AccountType.id
-        ).filter(CasaAccount.customer_id == cif_id)
-    ).all()
+            Customer.cif_number
+        ).filter(Customer.id == cif_id)
+    ).scalar()
+    account_casa = None
 
-    if not balance_payments:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    if customer_cif_number:
+        account_casa = await service_soa.current_account_from_cif(casa_cif_number=customer_cif_number)
 
-    response_data = [{
-        "id": balance_payment.id,
-        "account_number": balance_payment.casa_account_number,
-        "product_name": dropdown(account_type),
-        "checked_flag": balance_payment.acc_active_flag
-    } for balance_payment, account_type in balance_payments]
-
-    return ReposReturn(data=response_data)
+    return ReposReturn(data=account_casa)
 
 
 async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
