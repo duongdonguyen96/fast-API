@@ -26,7 +26,7 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.others import (
     MaritalStatus, ResidentStatus
 )
-from app.utils.constant.cif import BUSINESS_FORM_TTK
+from app.utils.constant.cif import BUSINESS_FORM_TTCN_TTCN
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
@@ -89,7 +89,7 @@ async def repos_save_personal(
         log_data=log_data,
         session=session,
         customer_id=cif_id,
-        business_form_id=BUSINESS_FORM_TTK
+        business_form_id=BUSINESS_FORM_TTCN_TTCN
     )
 
     return ReposReturn(data={
