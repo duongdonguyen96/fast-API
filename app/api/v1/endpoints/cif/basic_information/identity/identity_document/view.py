@@ -12,6 +12,9 @@ from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.controller import (
     CtrIdentityDocument
 )
+from app.api.v1.endpoints.cif.basic_information.identity.identity_document.example import (
+    save_identity_examples
+)
 from app.api.v1.endpoints.cif.basic_information.identity.identity_document.ocr_schema_response import (
     CompareSuccessResponse, OCRBackSideCitizenCardResponse,
     OCRBackSideIdentityCardResponse, OCRFrontSideCitizenCardResponse,
@@ -88,6 +91,7 @@ async def view_list_logs(
         **logs_info
     )
 
+
 ########################################################################################################################
 
 # router_special dùng để khai báo cho việc sử dụng các api khi cif_id chưa có
@@ -106,9 +110,10 @@ router_special = APIRouter()
 )
 async def view_save(
         request: Request,
-        identity_document_request: Union[IdentityCardSaveRequest, CitizenCardSaveRequest, PassportSaveRequest] = Body(
-            ...
-        ),  # TODO: Thêm example
+        identity_document_request: Union[PassportSaveRequest, IdentityCardSaveRequest, CitizenCardSaveRequest] = Body(
+            ...,
+            examples=save_identity_examples
+        ),
         current_user=Depends(get_current_user_from_header())
 ):
     # Vì 2 Model CMND, CCCD có cùng dạng ở level 1 nên phải kiểm tra để parse data sang model chuẩn tránh việc nhầm lẫn
