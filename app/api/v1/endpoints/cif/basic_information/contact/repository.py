@@ -22,7 +22,9 @@ from app.third_parties.oracle.models.master_data.address import (
 from app.third_parties.oracle.models.master_data.others import (
     AverageIncomeAmount, Career, Position
 )
-from app.utils.constant.cif import CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
+from app.utils.constant.cif import (
+    BUSINESS_FORM_TTCN_TTLL, CONTACT_ADDRESS_CODE, RESIDENT_ADDRESS_CODE
+)
 from app.utils.error_messages import ERROR_NO_DATA
 
 
@@ -206,7 +208,8 @@ async def repos_save_contact_information(
             description="Tạo CIF -> Thông tin cá nhân -> Thông tin liên lạc -- Cập nhật",
             log_data=log_data,
             session=session,
-            customer_id=cif_id
+            customer_id=cif_id,
+            business_form_id=BUSINESS_FORM_TTCN_TTLL
         )
         if not fail_result:
             return ReposReturn(is_error=True, msg=message)
