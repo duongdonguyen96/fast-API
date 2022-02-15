@@ -17,7 +17,7 @@ from app.third_parties.oracle.models.master_data.customer import (
     CustomerRelationshipType
 )
 from app.utils.constant.cif import (
-    CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
+    BUSINESS_FORM_TTCN_MQHKH, CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
 )
 from app.utils.error_messages import (
     ERROR_CIF_NUMBER_DUPLICATED, ERROR_RELATION_CUSTOMER_SELF_RELATED
@@ -93,7 +93,8 @@ class CtrCustomerRelationship(BaseController):
                 created_by=self.current_user.full_name_vn,
                 session=self.oracle_session,
                 relationship_type=CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP,
-                log_data=log_data
+                log_data=log_data,
+                business_form_id=BUSINESS_FORM_TTCN_MQHKH
             ))
 
         return self.response(data=save_customer_relationship_info)
