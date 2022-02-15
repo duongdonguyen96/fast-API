@@ -14,7 +14,9 @@ from app.utils.constant.soa import (
     SOA_CASA_REPONSE_STATUS_SUCCESS, SOA_DATETIME_FORMAT,
     SOA_ENDPOINT_URL_RETRIEVE_CURRENT_ACCOUNT_CASA,
     SOA_ENDPOINT_URL_RETRIEVE_CURRENT_ACCOUNT_CASA_FROM_CIF,
-    SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT, SOA_REPONSE_STATUS_SUCCESS
+    SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT,
+    SOA_ENDPOINT_URL_RETRIEVE_DEPOSIT_ACCOUNT_FROM_CIF,
+    SOA_REPONSE_STATUS_SUCCESS
 )
 from app.utils.error_messages import ERROR_INVALID_URL, MESSAGE_STATUS
 from app.utils.functions import date_string_to_other_date_string_format
@@ -246,6 +248,42 @@ class ServiceSOA:
                     # if data['retrieveCurrentAccountCASA_out']['transactionInfo'][
                     #     'transactionErrorCode'] != SOA_CASA_REPONSE_STATUS_SUCCESS:
                     #     return_data.update(is_existed=False)
+                    return True, return_data
+        except aiohttp.ClientConnectorError as ex:
+            logger.error(str(ex))
+            return data
+
+    async def deposit_account_from_cif(self, saving_cif_number):
+        request_data = {
+            "selectDepositAccountFromCIF_in": {
+                "transactionInfo": {
+                    "clientCode": "INAPPTABLET",
+                    "cRefNum": "CRM1641783511239",
+                    "branchInfo": {
+                        "branchCode": "001"
+                    }
+                },
+                "CIFInfo": {
+                    "CIFNum": saving_cif_number
+                }
+            }
+        }
+        api_url = f"{self.url}{SOA_ENDPOINT_URL_RETRIEVE_DEPOSIT_ACCOUNT_FROM_CIF}"
+
+        return_data = dict(
+            is_existed=True
+        )
+        data = None
+        try:
+            async with self.session.post(url=api_url, json=request_data) as response:
+                logger.log("SERVICE", f"[SOA] {response.status} {api_url}")
+
+                if response.status != status.HTTP_200_OK:
+                    return_data.update(message=response.status)
+                    return False, return_data
+                else:
+                    data = await response.json()
+                    return_data.update(data)
                     return True, return_data
         except aiohttp.ClientConnectorError as ex:
             logger.error(str(ex))
