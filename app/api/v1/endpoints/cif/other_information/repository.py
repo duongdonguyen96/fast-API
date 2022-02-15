@@ -18,7 +18,7 @@ from app.third_parties.oracle.models.master_data.others import (
     HrmEmployee, StaffType
 )
 from app.utils.constant.cif import (
-    STAFF_TYPE_BUSINESS_CODE, STAFF_TYPE_REFER_INDIRECT_CODE
+    BUSINESS_FORM_TTK, STAFF_TYPE_BUSINESS_CODE, STAFF_TYPE_REFER_INDIRECT_CODE
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST, ERROR_NO_DATA
 from app.utils.functions import now
@@ -117,7 +117,8 @@ async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInfor
         description="Tạo CIF -> Thông tin khác -> Cập nhật",
         log_data=update_other_info_req.json(),
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TTK
     )
     if not is_success:
         return ReposReturn(is_error=True, msg=msg)
