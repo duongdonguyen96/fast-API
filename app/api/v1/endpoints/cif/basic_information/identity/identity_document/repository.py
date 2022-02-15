@@ -38,7 +38,8 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    ADDRESS_COUNTRY_CODE_VN, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_FEMALE,
+    ADDRESS_COUNTRY_CODE_VN, BUSINESS_FORM_TTCN_GTDD_GTDD,
+    BUSINESS_FORM_TTCN_GTDD_KM, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_FEMALE,
     CRM_GENDER_TYPE_MALE, EKYC_GENDER_TYPE_FEMALE,
     EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD,
     EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD,
@@ -442,8 +443,17 @@ async def repos_save_identity(
             ),
             BookingBusinessForm(
                 booking_id=new_booking_id,
-                business_form_id="BE_TEST",  # TODO
-                save_flag=False,
+                business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD,
+                save_flag=True,  # Save_flag đổi lại thành True do Business Form giờ là những Tab nhỏ nhiều cấp
+                created_at=now(),
+                updated_at=now()
+            ),
+            # Hiện tại Tab khuôn mặt không có chức năng lưu
+            # vì api GTDD đã upload khuôn mặt nên Tab này coi như hoàn thành
+            BookingBusinessForm(
+                booking_id=new_booking_id,
+                business_form_id=BUSINESS_FORM_TTCN_GTDD_KM,
+                save_flag=True,
                 created_at=now(),
                 updated_at=now()
             )
