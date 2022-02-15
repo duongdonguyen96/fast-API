@@ -13,7 +13,9 @@ from app.third_parties.oracle.models.cif.basic_information.identity.model import
 from app.third_parties.oracle.models.master_data.identity import (
     FingerType, HandSide
 )
-from app.utils.constant.cif import IMAGE_TYPE_FINGERPRINT
+from app.utils.constant.cif import (
+    BUSINESS_FORM_TTCN_GTDD_VT, IMAGE_TYPE_FINGERPRINT
+)
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import now
 
@@ -49,10 +51,11 @@ async def repos_save_fingerprint(
     session.bulk_save_objects([CustomerIdentityImage(**data_insert) for data_insert in list_data_insert])
 
     await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Thông tin cá nhân -> Khuôn mặt -- Tạo mới",
+        description="Tạo CIF -> Thông tin cá nhân -> Vân tay -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TTCN_GTDD_VT
     )
 
     return ReposReturn(data={

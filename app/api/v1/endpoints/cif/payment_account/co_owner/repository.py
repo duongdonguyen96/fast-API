@@ -37,7 +37,9 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, PlaceOfIssue
 )
-from app.utils.constant.cif import DROPDOWN_NONE_DICT, IMAGE_TYPE_SIGNATURE
+from app.utils.constant.cif import (
+    BUSINESS_FORM_TKTT_DSH, DROPDOWN_NONE_DICT, IMAGE_TYPE_SIGNATURE
+)
 from app.utils.error_messages import (
     ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CALL_SERVICE_SOA,
     ERROR_CASA_ACCOUNT_NOT_EXIST, ERROR_CIF_NUMBER_NOT_EXIST, ERROR_NO_DATA
@@ -115,7 +117,8 @@ async def repos_save_co_owner(
         description="Tạo CIF -> Tài khoản thanh toán -> Thông tin đồng sở hữu -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TKTT_DSH
     )
 
     return ReposReturn(data={

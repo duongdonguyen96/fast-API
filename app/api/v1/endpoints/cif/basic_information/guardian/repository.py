@@ -159,6 +159,7 @@ async def repos_save_guardians(
         created_by: str,
         session: Session,
         log_data: json,
+        business_form_id: str,
         relationship_type: int = CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN,
 ):
     """
@@ -177,7 +178,8 @@ async def repos_save_guardians(
         description=f"Tạo CIF -> Thông tin cá nhân -> {CUSTOMER_RELATIONSHIP_TYPE[relationship_type]} -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=business_form_id
     )
 
     return ReposReturn(data={

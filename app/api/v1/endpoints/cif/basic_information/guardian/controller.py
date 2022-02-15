@@ -12,7 +12,9 @@ from app.api.v1.endpoints.cif.basic_information.repository import (
     repos_get_customer_detail_by_cif_number
 )
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
-from app.utils.constant.cif import CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
+from app.utils.constant.cif import (
+    BUSINESS_FORM_TTCN_NGH, CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
+)
 from app.utils.error_messages import (
     ERROR_CIF_NUMBER_DUPLICATED, ERROR_RELATION_CUSTOMER_SELF_RELATED,
     ERROR_RELATIONSHIP_NOT_GUARDIAN
@@ -113,7 +115,8 @@ class CtrGuardian(BaseController):
                 list_data_insert=list_data_insert,
                 created_by=self.current_user.full_name_vn,
                 session=self.oracle_session,
-                log_data=log_data
+                log_data=log_data,
+                business_form_id=BUSINESS_FORM_TTCN_NGH
             ))
 
         return self.response(data=save_guardian_info)

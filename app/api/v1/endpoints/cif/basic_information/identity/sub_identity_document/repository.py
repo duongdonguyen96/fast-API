@@ -18,7 +18,9 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerSubIdentityType, PlaceOfIssue
 )
-from app.utils.constant.cif import IMAGE_TYPE_CODE_SUB_IDENTITY
+from app.utils.constant.cif import (
+    BUSINESS_FORM_TTCN_GTDD_GTDDP, IMAGE_TYPE_CODE_SUB_IDENTITY
+)
 from app.utils.error_messages import ERROR_SUB_IDENTITY_DOCUMENT_NOT_EXIST
 from app.utils.functions import dropdown
 
@@ -164,7 +166,8 @@ async def repos_save_sub_identity(
         description="Tạo CIF -> Thông tin cá nhân -> GTĐDP -- Cập nhật",
         log_data=log_data,
         session=session,
-        customer_id=customer.id
+        customer_id=customer.id,
+        business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDDP
     )
     if not is_success:
         return ReposReturn(is_error=True, msg=message)

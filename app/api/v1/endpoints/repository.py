@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.cif.form.model import (
-    Booking, BookingAccount, BookingCustomer, TransactionAll, TransactionDaily
+    Booking, BookingAccount, BookingBusinessForm, BookingCustomer,
+    TransactionAll, TransactionDaily
 )
 from app.third_parties.oracle.models.master_data.account import (
     AccountStructureType
@@ -148,6 +149,7 @@ async def repos_get_data_model_config(session: Session, model: Base, country_id:
 async def write_transaction_log_and_update_booking(description: str,
                                                    log_data: json,
                                                    session: Session,
+                                                   business_form_id: str,
                                                    customer_id: Optional[str] = None,
                                                    account_id: Optional[str] = None,
                                                    transaction_stage_id: str = 'BE_TEST'  # TODO: đợi dữ liệu danh mục
@@ -225,6 +227,15 @@ async def write_transaction_log_and_update_booking(description: str,
             transaction_id=transaction_id
         )
     )
+
+    # Cập nhật đã hoàn thành Tab này
+    session.add(BookingBusinessForm(
+        booking_id=booking.id,
+        business_form_id=business_form_id,
+        save_flag=True,
+        created_at=now(),
+        updated_at=now()
+    ))
 
     return True, None
 

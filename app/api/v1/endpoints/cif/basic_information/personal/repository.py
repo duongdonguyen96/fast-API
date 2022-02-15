@@ -26,6 +26,7 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.others import (
     MaritalStatus, ResidentStatus
 )
+from app.utils.constant.cif import BUSINESS_FORM_TTCN_TTCN
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
@@ -87,7 +88,8 @@ async def repos_save_personal(
         description="Tạo CIF -> Thông tin cá nhân -> Thông tin cá nhân -- Cập nhật",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TTCN_TTCN
     )
 
     return ReposReturn(data={

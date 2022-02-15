@@ -26,7 +26,8 @@ from app.third_parties.oracle.models.master_data.others import (
     MethodAuthentication
 )
 from app.utils.constant.cif import (
-    CIF_ID_TEST, EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACCOUNT_TYPE_SAVING
+    BUSINESS_FORM_EB, CIF_ID_TEST, EBANKING_ACCOUNT_TYPE_CHECKING,
+    EBANKING_ACCOUNT_TYPE_SAVING
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
@@ -91,7 +92,8 @@ async def repos_save_e_banking_data(
         description="Tạo CIF -> e-banking -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_EB
     )
 
     return ReposReturn(data={
