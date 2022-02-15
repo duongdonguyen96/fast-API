@@ -22,7 +22,7 @@ from app.third_parties.oracle.models.master_data.card import (
 )
 from app.third_parties.oracle.models.master_data.customer import CustomerType
 from app.third_parties.oracle.models.master_data.others import Branch
-from app.utils.constant.cif import CIF_ID_TEST
+from app.utils.constant.cif import BUSINESS_FORM_TGN, CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
@@ -222,7 +222,8 @@ async def repos_add_debit_card(
         description="Tạo CIF -> Thẻ ghi nợ -> -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TGN
     )
     return ReposReturn(data={
         "cif_id": cif_id,
