@@ -70,6 +70,17 @@ class CtrIdentityDocument(BaseController):
                 session=self.oracle_session
             )
         )
+
+        front_side_image = detail_data['front_side_information']['identity_image_url']
+        back_side_image = detail_data['back_side_information']['identity_image_url']
+        compare_image = detail_data['front_side_information']['face_compare_image_url']
+
+        image_uuids = [front_side_image, back_side_image, compare_image]
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+        detail_data['front_side_information']['identity_image_url'] = uuid__link_downloads[front_side_image]
+        detail_data['back_side_information']['identity_image_url'] = uuid__link_downloads[back_side_image]
+        detail_data['front_side_information']['face_compare_image_url'] = uuid__link_downloads[compare_image]
+
         return detail_data['identity_document_type']['code'], self.response(data=detail_data)
 
     async def get_identity_log_list(self, cif_id: str):
