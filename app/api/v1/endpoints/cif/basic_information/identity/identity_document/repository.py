@@ -516,7 +516,8 @@ async def repos_save_identity(
             description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
             log_data=log_data,
             session=session,
-            customer_id=customer_id
+            customer_id=customer_id,
+            business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD
         )
 
     return ReposReturn(data={
