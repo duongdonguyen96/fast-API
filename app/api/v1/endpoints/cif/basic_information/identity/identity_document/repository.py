@@ -838,7 +838,7 @@ async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session
                     "nationality": dropdown(optional_nationality) if optional_nationality else None,
                     "place_of_birth": dropdown(optional_place_of_birth) if optional_place_of_birth else None,
                     "identity_card_number": ocr_data.get('id_card_number'),
-                    "mrz_content": f"{ocr_data.get('mrz_1', '')}\n{ocr_data.get('mrz_2', '')}"
+                    "mrz_content": f"{ocr_data.get('mrz_1', '')}{ocr_data.get('mrz_2', '')}"
                 }
         }
     }
