@@ -5,7 +5,7 @@ from pydantic import Field
 
 from app.api.base.schema import BaseSchema
 from app.api.v1.endpoints.cif.base_field import CustomField
-from app.api.v1.schemas.utils import OptionalDropdownResponse
+from app.api.v1.schemas.utils import DropdownRequest, OptionalDropdownResponse
 
 ############################################################
 # Response
@@ -25,7 +25,7 @@ class BasicInformationResponse(BaseSchema):
     gender: OptionalDropdownResponse = Field(None, description='Giới tính của đồng sở hữu')
     nationality: OptionalDropdownResponse = Field(None, description='Quốc tịch của đồng sở hữu')
     mobile_number: Optional[str] = Field(None, description='Số ĐTDD')
-    signature: List[SignatureResponse] = Field(..., description='Mẫu chữ ký của đồng sở hữu')
+    signature: Optional[List[SignatureResponse]] = Field(..., description='Mẫu chữ ký của đồng sở hữu')
 
 
 class IdentityDocumentResponse(BaseSchema):
@@ -33,7 +33,7 @@ class IdentityDocumentResponse(BaseSchema):
     # identity_type: OptionalDropdownResponse = Field(..., description='Loại giấy tờ định danh')
     issued_date: Optional[date] = Field(..., description='Ngày cấp')
     expired_date: Optional[date] = Field(..., description='Ngày hết hạn')
-    place_of_issue: OptionalDropdownResponse = Field(..., description='Nơi cấp')
+    place_of_issue: Optional[str] = Field(..., description='Nơi cấp')
 
 
 class AddressInformationResponse(BaseSchema):
@@ -43,7 +43,7 @@ class AddressInformationResponse(BaseSchema):
 
 class AccountHolderResponse(BaseSchema):
     id: str = Field(..., description='Mã định danh của đồng sở hữu')
-    full_name_vn: str = Field(..., description='Tên tiếng việt của đồng sở hữu')
+    avatar_url: Optional[str] = Field(..., description='Tên tiếng việt của đồng sở hữu')
     basic_information: BasicInformationResponse = Field(..., description='Thông tin cơ bản của đồng sở hữu')
     identity_document: IdentityDocumentResponse = Field(..., description='Giấy tờ định danh của đồng sở hữu')
     address_information: AddressInformationResponse = Field(..., description='Địa chỉ liên hệ của đồng sở hữu')
@@ -65,7 +65,7 @@ class AccountHolderSuccessResponse(BaseSchema):
     joint_account_holder_flag: bool = Field(..., description='Có đồng chủ sở hữu. `True`: Có , `False`: Không')
     number_of_joint_account_holder: int = Field(..., description='Số lượng đồng sở hữu')
     joint_account_holders: List[AccountHolderResponse] = Field(..., description='Thông tin cá nhân')
-    agreement_authorization: List[AgreementAuthorResponse] = Field(..., description='Danh mục thỏa thuận và uỷ quyền')
+    agreement_authorization: Optional[List[AgreementAuthorResponse]] = Field(..., description='Danh mục thỏa thuận và uỷ quyền')
 
 
 ############################################################
@@ -74,6 +74,7 @@ class AccountHolderSuccessResponse(BaseSchema):
 
 class AccountRequest(BaseSchema):
     cif_number: str = CustomField(description='Số CIF của đồng sở hữu').CIFNumberField
+    customer_relationship: DropdownRequest = Field(..., description="Mối quan hệ với khách hàng")
 
 
 class SignatureAgreementAuthorRequest(BaseSchema):

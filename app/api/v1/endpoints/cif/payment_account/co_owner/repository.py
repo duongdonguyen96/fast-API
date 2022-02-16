@@ -37,10 +37,14 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, PlaceOfIssue
 )
-from app.utils.constant.cif import DROPDOWN_NONE_DICT, IMAGE_TYPE_SIGNATURE
+from app.utils.constant.cif import (
+    AGREEMENT_AUTHOR_TYPE_DD, CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP,
+    DROPDOWN_NONE_DICT, IMAGE_TYPE_SIGNATURE
+)
 from app.utils.error_messages import (
     ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CALL_SERVICE_SOA,
-    ERROR_CASA_ACCOUNT_NOT_EXIST, ERROR_CIF_NUMBER_NOT_EXIST, ERROR_NO_DATA
+    ERROR_CASA_ACCOUNT_NOT_EXIST, ERROR_CIF_NUMBER_NOT_EXIST, ERROR_NO_DATA,
+    ERROR_RELATIONSHIP_EXIST
 )
 from app.utils.functions import dropdown, now
 
@@ -56,6 +60,111 @@ async def repos_check_list_cif_number(list_cif_number_request: list, session: Se
         return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_NOT_EXIST, loc="joint_account_holders -> cif_number")
 
     return ReposReturn(data=list_customer)
+
+
+async def repos_check_list_relationship_id(list_cif_number_relationship_request: list, session: Session) -> ReposReturn:
+    list_relationship = session.execute(
+        select(
+            CustomerRelationshipType
+        ).filter(CustomerRelationshipType.id.in_(list_cif_number_relationship_request))
+    ).all()
+
+    if not list_relationship:
+        return ReposReturn(is_error=True, msg=ERROR_RELATIONSHIP_EXIST, loc="joint_account_holders -> customer_relationship")
+
+    return ReposReturn(data=list_relationship)
+
+
+async def repos_get_co_owner(cif_id: str, session: Session) -> ReposReturn:
+    customer_relationships = session.execute(
+        select(
+            CustomerPersonalRelationship,
+            CustomerRelationshipType
+        )
+        .join(Customer, CustomerPersonalRelationship.customer_id == Customer.id)
+        .join(CustomerRelationshipType,
+              CustomerPersonalRelationship.customer_relationship_type_id == CustomerRelationshipType.id)
+        .filter(
+            CustomerPersonalRelationship.customer_id == cif_id,
+            CustomerPersonalRelationship.type == CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP,
+        )
+    ).all()
+
+    account_holders = session.execute(
+        select(
+            JointAccountHolder
+        ).join(
+            CasaAccount,
+            CasaAccount.id == JointAccountHolder.casa_account_id
+        ).filter(CasaAccount.customer_id == cif_id)
+    ).scalars().all()
+
+    customer_relationship_detail = []
+    for account in account_holders:
+        is_success, customer_relationship = await service_soa.retrieve_customer_ref_data_mgmt(
+            cif_number=account.cif_num,
+            flat_address=True,
+        )
+        customer_detail_data = customer_relationship['data']
+
+        if customer_detail_data['basic_information']['gender']:
+            gender = await repos_get_model_object_by_id_or_code(
+                model_id=customer_detail_data['basic_information']['gender'],
+                model_code=None,
+                loc="[SERVICE][SOA] gender",
+                model=CustomerGender,
+                session=session
+            )
+            customer_detail_data['basic_information']['gender'] = dropdown(gender.data) if gender.data else DROPDOWN_NONE_DICT
+        if customer_detail_data['basic_information']['nationality']:
+            nationality = await repos_get_model_object_by_id_or_code(
+                model_id=customer_detail_data['basic_information']['nationality'],
+                model_code=None,
+                loc="[SERVICE][SOA] nationality",
+                model=AddressCountry,
+                session=session
+            )
+            if nationality.data:
+                customer_detail_data['basic_information']['nationality'] = dropdown(nationality.data)
+        for relationship, relationship_type in customer_relationships:
+            customer_detail_data['basic_information'].update({
+                'customer_relationship': dropdown(relationship_type)
+            })
+        # TODO: place_of_issue query k có trong db crm nên đang để là str
+        # if customer_detail_data['identity_document']['place_of_issue']:
+        #
+        #     place_of_issue_model = await get_optional_model_object_by_code_or_name(
+        #         model=PlaceOfIssue,
+        #         model_code=None,
+        #         model_name=customer_detail_data['identity_document']['place_of_issue'],
+        #         session=session
+        #     )
+        #     customer_detail_data['identity_document']['place_of_issue'] = dropdown(place_of_issue_model) if place_of_issue_model else DROPDOWN_NONE_DICT
+
+        # TODO: pypass chữ ký vì trong SOA không có chữ ký
+        customer_detail_data['basic_information'].update(
+            {
+                "signature": [
+                    {
+                        "id": "string",
+                        "image_url": "https://example.com"
+                    },
+                    {
+                        "id": "string",
+                        "image_url": "https://example.com"
+                    }
+                ]
+            }
+        )
+
+        customer_relationship_detail.append(customer_relationship.get('data'))
+
+    return ReposReturn(data={
+        "joint_account_holder_flag": account_holders[0].joint_account_holder_flag,
+        "number_of_joint_account_holder": len(account_holders),
+        "joint_account_holders": customer_relationship_detail,
+        "agreement_authorization": None
+    })
 
 
 async def repos_get_casa_account(cif_id: str, session: Session) -> ReposReturn:
@@ -74,6 +183,7 @@ async def repos_save_co_owner(
         cif_id: str,
         save_account_holder: list,
         save_account_agree: list,
+        save_cust_personal_relationship: list,
         log_data: json,
         session: Session,
         created_by: str
@@ -98,19 +208,26 @@ async def repos_save_co_owner(
             JointAccountHolderAgreementAuthorization.joint_account_holder_id.in_(account_holder_ids)
         )
     )
-
     # xóa account holder
     session.execute(
         delete(
             JointAccountHolder
         ).filter(JointAccountHolder.id.in_(account_holder_ids))
     )
-
+    # xóa relationship
+    session.execute(
+        delete(
+            CustomerPersonalRelationship
+        ).filter(CustomerPersonalRelationship.customer_id == cif_id)
+    )
     session.bulk_save_objects([JointAccountHolder(**data_insert) for data_insert in save_account_holder])
 
     session.bulk_save_objects(
         [JointAccountHolderAgreementAuthorization(**data_insert) for data_insert in save_account_agree])
 
+    session.bulk_save_objects([
+        CustomerPersonalRelationship(**data_insert) for data_insert in save_cust_personal_relationship
+    ])
     await write_transaction_log_and_update_booking(
         description="Tạo CIF -> Tài khoản thanh toán -> Thông tin đồng sở hữu -- Tạo mới",
         log_data=log_data,
@@ -209,7 +326,7 @@ async def repos_get_agreement_authorizations(session: Session) -> ReposReturn:
     agreement_authorizations = session.execute(
         select(
             AgreementAuthorization
-        )
+        ).filter(AgreementAuthorization.agreement_author_type == AGREEMENT_AUTHOR_TYPE_DD)
     ).scalars()
 
     if not agreement_authorizations:
