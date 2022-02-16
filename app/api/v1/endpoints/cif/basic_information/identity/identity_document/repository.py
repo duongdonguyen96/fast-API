@@ -153,8 +153,8 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         .join(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
         .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
         .join(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
-        .join(Nation, CustomerIndividualInfo.nation_id == Nation.id)
-        .join(Religion, CustomerIndividualInfo.religion_id == Religion.id)
+        .outerjoin(Nation, CustomerIndividualInfo.nation_id == Nation.id)
+        .outerjoin(Religion, CustomerIndividualInfo.religion_id == Religion.id)
         .outerjoin(PassportType, CustomerIdentity.passport_type_id == PassportType.id)
         .outerjoin(PassportCode, CustomerIdentity.passport_code_id == PassportCode.id)
         .filter(
