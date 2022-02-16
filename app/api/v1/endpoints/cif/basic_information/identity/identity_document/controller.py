@@ -311,6 +311,11 @@ class CtrIdentityDocument(BaseController):
                                                                         loc='province_id')
             validate_place_of_birth_name = validate_place_of_birth.name
 
+            # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
+            # Nên việc validate không hợp lệ, cần phải thay đổi để validate
+            if validate_place_of_birth_name == "TPHCM":
+                validate_place_of_birth_name = "TP HCM"
+
         # dict dùng để tạo mới hoặc lưu lại customer_individual_info
         saving_customer_individual_info = {
             "gender_id": gender_id,
