@@ -111,6 +111,7 @@ class OCRDocumentCitizenCardRequest(BaseSchema):  # noqa
     place_of_issue: DropdownRequest = Field(..., description="Nơi cấp")
     mrz_content: str = Field(None, min_length=90, max_length=90, description="MRZ")  # CCCD
     qr_code_content: str = Field(None, description="Nội dung QR Code")  # CCCD
+    signer: str = Field(..., description="Người ký")
 
 
 # III. Phân tích OCR -> 2. Thông tin cơ bản (CCCD)
