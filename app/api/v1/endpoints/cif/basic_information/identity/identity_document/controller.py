@@ -128,8 +128,6 @@ class CtrIdentityDocument(BaseController):
         validate_religion_name = None
         validate_ethnic_name = None
         validate_gender_code = None
-        validate_place_of_issue_name = None
-        validate_place_of_birth_name = None
         ekyc_document_type_request = None
         resident_address_ward_name = ""
         resident_address_district_name = ""
@@ -252,14 +250,15 @@ class CtrIdentityDocument(BaseController):
         ################################################################################################################
 
         place_of_issue_id = identity_document.place_of_issue.id
-        if is_create or (customer_identity.place_of_issue_id != place_of_issue_id):
-            validate_place_of_issue = await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue,
-                                                                        loc='place_of_issue_id')
-            validate_place_of_issue_name = validate_place_of_issue.name
-            # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
-            # Nên việc validate không hợp lệ, cần phải thay đổi để validate
-            if validate_place_of_issue_name == "TPHCM":
-                validate_place_of_issue_name = "TP HCM"
+        # RULE: Trường hợp đặc biệt: dù tạo mới, cập nhật hay không cũng phải dùng để validate field bên EKYC
+        # if is_create or (customer_identity.place_of_issue_id != place_of_issue_id):
+        validate_place_of_issue = await self.get_model_object_by_id(model_id=place_of_issue_id, model=PlaceOfIssue,
+                                                                    loc='place_of_issue_id')
+        validate_place_of_issue_name = validate_place_of_issue.name
+        # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
+        # Nên việc validate không hợp lệ, cần phải thay đổi để validate
+        if validate_place_of_issue_name == "TPHCM":
+            validate_place_of_issue_name = "TP HCM"
 
         # dict dùng để tạo mới hoặc lưu lại customer_identity
         saving_customer_identity = {
@@ -293,9 +292,10 @@ class CtrIdentityDocument(BaseController):
             if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
                 # check ethnic_id
                 ethnic_id = basic_information.ethnic.id
-                if is_create or (customer_individual_info.nation_id != ethnic_id):
-                    validate_ethnic = await self.get_model_object_by_id(model_id=ethnic_id, model=Nation, loc='ethnic_id')
-                    validate_ethnic_name = validate_ethnic.name
+                # RULE: Trường hợp đặc biệt: dù tạo mới, cập nhật hay không cũng phải dùng để validate field bên EKYC
+                # if is_create or (customer_individual_info.nation_id != ethnic_id):
+                validate_ethnic = await self.get_model_object_by_id(model_id=ethnic_id, model=Nation, loc='ethnic_id')
+                validate_ethnic_name = validate_ethnic.name
 
                 # check religion_id
                 religion_id = basic_information.religion.id
@@ -306,15 +306,16 @@ class CtrIdentityDocument(BaseController):
                 mother_full_name_vn = basic_information.mother_full_name_vn
 
         # check place_of_birth or province.id        # check place_of_birth or province.id
-        if is_create or (customer_individual_info.place_of_birth_id != province_id):
-            validate_place_of_birth = await self.get_model_object_by_id(model_id=province_id, model=AddressProvince,
-                                                                        loc='province_id')
-            validate_place_of_birth_name = validate_place_of_birth.name
+        # RULE: Trường hợp đặc biệt: dù tạo mới, cập nhật hay không cũng phải dùng để validate field bên EKYC
+        # if is_create or (customer_individual_info.place_of_birth_id != province_id):
+        validate_place_of_birth = await self.get_model_object_by_id(model_id=province_id, model=AddressProvince,
+                                                                    loc='province_id')
+        validate_place_of_birth_name = validate_place_of_birth.name
 
-            # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
-            # Nên việc validate không hợp lệ, cần phải thay đổi để validate
-            if validate_place_of_birth_name == "TPHCM":
-                validate_place_of_birth_name = "TP HCM"
+        # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
+        # Nên việc validate không hợp lệ, cần phải thay đổi để validate
+        if validate_place_of_birth_name == "TPHCM":
+            validate_place_of_birth_name = "TP HCM"
 
         # dict dùng để tạo mới hoặc lưu lại customer_individual_info
         saving_customer_individual_info = {
