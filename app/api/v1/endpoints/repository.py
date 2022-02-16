@@ -228,14 +228,24 @@ async def write_transaction_log_and_update_booking(description: str,
         )
     )
 
+    booking_business_form = session.execute(
+        select(
+            BookingBusinessForm
+        ).filter(and_(
+            BookingBusinessForm.business_form_id == business_form_id,
+            BookingBusinessForm.booking_id == booking.id
+        ))
+    ).scalar()
+
     # Cập nhật đã hoàn thành Tab này
-    session.add(BookingBusinessForm(
-        booking_id=booking.id,
-        business_form_id=business_form_id,
-        save_flag=True,
-        created_at=now(),
-        updated_at=now()
-    ))
+    if not booking_business_form:
+        session.add(BookingBusinessForm(
+            booking_id=booking.id,
+            business_form_id=business_form_id,
+            save_flag=True,
+            created_at=now(),
+            updated_at=now()
+        ))
 
     return True, None
 
