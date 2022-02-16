@@ -972,6 +972,7 @@ async def mapping_ekyc_back_side_citizen_card_ocr_data(image_url: str, ocr_data:
     mrz_content1 = ocr_data.get('mrz_1') if ocr_data.get('mrz_1') else ''
     mrz_content2 = ocr_data.get('mrz_2') if ocr_data.get('mrz_2') else ''
     mrz_content3 = ocr_data.get('mrz_3') if ocr_data.get('mrz_3') else ''
+    signer = ocr_data.get("signer") if ocr_data.get('signer') else ''
     optional_mrz_content = mrz_content1 + mrz_content2 + mrz_content3
 
     optional_place_of_issue = await get_optional_model_object_by_code_or_name(
@@ -990,6 +991,7 @@ async def mapping_ekyc_back_side_citizen_card_ocr_data(image_url: str, ocr_data:
                                                                        from_format='%d/%m/%Y'),
                 "place_of_issue": dropdown(optional_place_of_issue) if optional_place_of_issue else None,
                 "mrz_content": optional_mrz_content if optional_mrz_content else None,
+                "signer": signer
             },
             "basic_information": {
                 "identity_characteristic": ocr_data.get('personal_identification'),
