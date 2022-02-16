@@ -61,7 +61,7 @@ class BusinessForm(Base):
     code = Column('business_form_code', VARCHAR(20), nullable=False)
     name = Column('business_form_name', VARCHAR(200), nullable=False)
     business_type_id = Column(VARCHAR(36), nullable=False)
-    parent_id = Column('business_form', VARCHAR(36), nullable=False)
+    parent_id = Column('business_form_parent_id', VARCHAR(36), nullable=False)
     order_no = Column(NUMBER(asdecimal=False), nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime)
