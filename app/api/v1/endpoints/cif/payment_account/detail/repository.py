@@ -15,7 +15,9 @@ from app.third_parties.oracle.models.master_data.account import (
     AccountClass, AccountStructureType, AccountType
 )
 from app.third_parties.oracle.models.master_data.others import Currency
-from app.utils.constant.cif import DROPDOWN_NONE_DICT
+from app.utils.constant.cif import (
+    BUSINESS_FORM_TKTT_CTTKTT, DROPDOWN_NONE_DICT
+)
 from app.utils.error_messages import (
     ERROR_CALL_SERVICE_SOA, ERROR_INVALID_NUMBER, ERROR_NO_DATA, MESSAGE_STATUS
 )
@@ -90,7 +92,8 @@ async def repos_save_payment_account(
             description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Tạo mới",
             log_data=log_data,
             session=session,
-            customer_id=cif_id
+            customer_id=cif_id,
+            business_form_id=BUSINESS_FORM_TKTT_CTTKTT
         )
     # Cập nhật
     else:
@@ -103,7 +106,8 @@ async def repos_save_payment_account(
             description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Cập nhật",
             log_data=log_data,
             session=session,
-            customer_id=cif_id
+            customer_id=cif_id,
+            business_form_id=BUSINESS_FORM_TKTT_CTTKTT
         )
 
     return ReposReturn(data={

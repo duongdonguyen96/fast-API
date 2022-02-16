@@ -52,7 +52,7 @@ from app.utils.constant.cif import (
 from app.utils.error_messages import (  # noqa
     ERROR_CALL_SERVICE_EKYC, ERROR_IDENTITY_DOCUMENT_NOT_EXIST,
     ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST, ERROR_INVALID_URL,
-    ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
+    ERROR_NO_DATA, ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
 )
 from app.utils.functions import (  # noqa
     calculate_age, date_to_string, now, parse_file_uuid
@@ -70,6 +70,17 @@ class CtrIdentityDocument(BaseController):
                 session=self.oracle_session
             )
         )
+
+        front_side_image = detail_data['front_side_information']['identity_image_url']
+        back_side_image = detail_data['back_side_information']['identity_image_url']
+        compare_image = detail_data['front_side_information']['face_compare_image_url']
+
+        image_uuids = [front_side_image, back_side_image, compare_image]
+        uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
+        detail_data['front_side_information']['identity_image_url'] = uuid__link_downloads[front_side_image]
+        detail_data['back_side_information']['identity_image_url'] = uuid__link_downloads[back_side_image]
+        detail_data['front_side_information']['face_compare_image_url'] = uuid__link_downloads[compare_image]
+
         return detail_data['identity_document_type']['code'], self.response(data=detail_data)
 
     async def get_identity_log_list(self, cif_id: str):
@@ -401,6 +412,13 @@ class CtrIdentityDocument(BaseController):
             ############################################################################################################
 
             if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD:
+                signer = identity_document_request.ocr_result.identity_document.signer
+                if not signer:
+                    return self.response_exception(
+                        msg=ERROR_NO_DATA,
+                        detail="No Signer",
+                        loc="front_side_information -> ocr_result -> identity_document -> signer"
+                    )
                 saving_customer_identity.update({
                     "qrcode_content": identity_document_request.ocr_result.identity_document.qr_code_content,
                     "mrz_content": identity_document_request.ocr_result.identity_document.mrz_content
@@ -495,7 +513,7 @@ class CtrIdentityDocument(BaseController):
                                                   _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
                     gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
                     personal_identification=identity_characteristic,
-                    signer="Trần Quốc Sáng",  # TODO
+                    signer=identity_document_request.ocr_result.identity_document.signer
                 )
 
                 if identity_document_type_type_id == EKYC_DOCUMENT_TYPE_OLD_CITIZEN:
@@ -509,7 +527,6 @@ class CtrIdentityDocument(BaseController):
                         mrz_2=mrz_content[30:60] if mrz_content else None,
                         mrz_3=mrz_content[60:] if mrz_content else None,
                         qr_code=identity_document_request.ocr_result.identity_document.qr_code_content,
-                        signer="Tô Văn Huệ",  # TODO
                     )
 
         # HO_CHIEU

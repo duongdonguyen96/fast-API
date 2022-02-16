@@ -168,7 +168,8 @@ class BackSideCitizenCardResponse(BaseSchema):
 class OCRBackSideIdentityDocumentCitizenCardResponse(BaseSchema):
     issued_date: Optional[date] = Field(..., description="Ngày cấp", nullable=True)
     place_of_issue: Optional[DropdownResponse] = Field(..., description="Nơi cấp", nullable=True)
-    mrz_content: Optional[str] = Field(..., description="Đặc điểm nhận dạng", nullable=True)
+    mrz_content: Optional[str] = Field(..., description="Mã MRZ", nullable=True)
+    signer: Optional[str] = Field(..., description="Người ký", nullable=True)
 
 
 class OCRBackSideBasicInformationCitizenCardResponse(BaseSchema):

@@ -38,7 +38,8 @@ from app.third_parties.oracle.models.master_data.identity import (
 )
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    ADDRESS_COUNTRY_CODE_VN, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_FEMALE,
+    ADDRESS_COUNTRY_CODE_VN, BUSINESS_FORM_TTCN_GTDD_GTDD,
+    BUSINESS_FORM_TTCN_GTDD_KM, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_FEMALE,
     CRM_GENDER_TYPE_MALE, EKYC_GENDER_TYPE_FEMALE,
     EKYC_IDENTITY_TYPE_BACK_SIDE_CITIZEN_CARD,
     EKYC_IDENTITY_TYPE_BACK_SIDE_IDENTITY_CARD,
@@ -442,8 +443,17 @@ async def repos_save_identity(
             ),
             BookingBusinessForm(
                 booking_id=new_booking_id,
-                business_form_id="BE_TEST",  # TODO
-                save_flag=False,
+                business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD,
+                save_flag=True,  # Save_flag đổi lại thành True do Business Form giờ là những Tab nhỏ nhiều cấp
+                created_at=now(),
+                updated_at=now()
+            ),
+            # Hiện tại Tab khuôn mặt không có chức năng lưu
+            # vì api GTDD đã upload khuôn mặt nên Tab này coi như hoàn thành
+            BookingBusinessForm(
+                booking_id=new_booking_id,
+                business_form_id=BUSINESS_FORM_TTCN_GTDD_KM,
+                save_flag=True,
                 created_at=now(),
                 updated_at=now()
             )
@@ -506,7 +516,8 @@ async def repos_save_identity(
             description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
             log_data=log_data,
             session=session,
-            customer_id=customer_id
+            customer_id=customer_id,
+            business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD
         )
 
     return ReposReturn(data={
@@ -961,6 +972,7 @@ async def mapping_ekyc_back_side_citizen_card_ocr_data(image_url: str, ocr_data:
     mrz_content1 = ocr_data.get('mrz_1') if ocr_data.get('mrz_1') else ''
     mrz_content2 = ocr_data.get('mrz_2') if ocr_data.get('mrz_2') else ''
     mrz_content3 = ocr_data.get('mrz_3') if ocr_data.get('mrz_3') else ''
+    signer = ocr_data.get("signer") if ocr_data.get('signer') else ''
     optional_mrz_content = mrz_content1 + mrz_content2 + mrz_content3
 
     optional_place_of_issue = await get_optional_model_object_by_code_or_name(
@@ -979,6 +991,7 @@ async def mapping_ekyc_back_side_citizen_card_ocr_data(image_url: str, ocr_data:
                                                                        from_format='%d/%m/%Y'),
                 "place_of_issue": dropdown(optional_place_of_issue) if optional_place_of_issue else None,
                 "mrz_content": optional_mrz_content if optional_mrz_content else None,
+                "signer": signer
             },
             "basic_information": {
                 "identity_characteristic": ocr_data.get('personal_identification'),

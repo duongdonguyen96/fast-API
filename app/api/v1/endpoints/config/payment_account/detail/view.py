@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Depends, Query
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -8,9 +8,6 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.config.payment_account.detail.controller import (
     CtrConfigPaymentDetail
-)
-from app.api.v1.endpoints.config.payment_account.detail.schema import (
-    AccountStructureTypeRequest
 )
 from app.api.v1.schemas.utils import DropdownResponse
 
@@ -27,11 +24,12 @@ router = APIRouter()
     )
 )
 async def view_account_structure_type_info(
-        request_body: AccountStructureTypeRequest = Body(...),
+        level: int = Query(..., description="Cấp độ kiểu kiến trúc tài khoản", ge=1, le=3),
+        parent_id: Optional[str] = Query(None, description="Mã cấp cha loại kết cấu tài khoản", min_length=1),
         current_user=Depends(get_current_user_from_header())
 ):
     account_structure_type_infos = await CtrConfigPaymentDetail(current_user).ctr_account_structure_type_info(
-        level=request_body.level,
-        parent_id=request_body.parent_id
+        level=level,
+        parent_id=parent_id
     )
     return ResponseData[List[DropdownResponse]](**account_structure_type_infos)

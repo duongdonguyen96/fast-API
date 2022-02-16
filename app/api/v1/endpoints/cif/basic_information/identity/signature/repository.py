@@ -10,7 +10,9 @@ from app.api.v1.endpoints.repository import (
 from app.third_parties.oracle.models.cif.basic_information.identity.model import (
     CustomerIdentity, CustomerIdentityImage
 )
-from app.utils.constant.cif import IMAGE_TYPE_CODE_SIGNATURE
+from app.utils.constant.cif import (
+    BUSINESS_FORM_TTCN_GTDD_CK, IMAGE_TYPE_CODE_SIGNATURE
+)
 from app.utils.error_messages import ERROR_SIGNATURE_IS_NULL
 from app.utils.functions import now
 
@@ -30,7 +32,8 @@ async def repos_save_signature(
         description="Tạo CIF -> Thông tin cá nhân -> Chữ ký -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TTCN_GTDD_CK
     )
 
     return ReposReturn(data={

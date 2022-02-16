@@ -14,8 +14,7 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingInfo, EBankingInfoAuthentication,
     EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
-    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption,
-    TdAccount
+    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption
 )
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerContactType, CustomerRelationshipType
@@ -27,7 +26,8 @@ from app.third_parties.oracle.models.master_data.others import (
     MethodAuthentication
 )
 from app.utils.constant.cif import (
-    CIF_ID_TEST, EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACCOUNT_TYPE_SAVING
+    BUSINESS_FORM_EB, CIF_ID_TEST, EBANKING_ACCOUNT_TYPE_CHECKING,
+    EBANKING_ACCOUNT_TYPE_SAVING
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
@@ -92,7 +92,8 @@ async def repos_save_e_banking_data(
         description="Tạo CIF -> e-banking -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_EB
     )
 
     return ReposReturn(data={
@@ -435,26 +436,35 @@ async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
 
 
 async def repos_balance_saving_account_data(cif_id: str, session: Session) -> ReposReturn:
-    saving_account = session.execute(
+    cif_number_saving_account = session.execute(
         select(
-            Customer,
-            TdAccount
+            Customer.cif_number
         ).filter(Customer.id == cif_id)
-    ).all()
+    ).scalar()
+    saving_account = None
+    if cif_number_saving_account:
+        saving_account = await service_soa.deposit_account_from_cif(saving_cif_number=cif_number_saving_account)
 
-    if not saving_account:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    # saving_account = session.execute(
+    #     select(
+    #         Customer,
+    #         TdAccount
+    #     ).filter(Customer.id == cif_id)
+    # ).all()
+    #
+    # if not saving_account:
+    #     return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    #
+    # response_data = [
+    #     {
+    #         "id": td_account.id,
+    #         "account_number": td_account.td_account_number,
+    #         "name": customer.full_name_vn,
+    #         "checked_flag": td_account.active_flag
+    #
+    #     } for customer, td_account in saving_account]
 
-    response_data = [
-        {
-            "id": td_account.id,
-            "account_number": td_account.td_account_number,
-            "name": customer.full_name_vn,
-            "checked_flag": td_account.active_flag
-
-        } for customer, td_account in saving_account]
-
-    return ReposReturn(data=response_data)
+    return ReposReturn(data=saving_account)
 
 
 async def repos_get_detail_reset_password_teller(cif_id: str) -> ReposReturn:

@@ -38,8 +38,9 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, PlaceOfIssue
 )
 from app.utils.constant.cif import (
-    AGREEMENT_AUTHOR_TYPE_DD, CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP,
-    DROPDOWN_NONE_DICT, IMAGE_TYPE_SIGNATURE
+    AGREEMENT_AUTHOR_TYPE_DD, BUSINESS_FORM_TKTT_DSH,
+    CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP, DROPDOWN_NONE_DICT,
+    IMAGE_TYPE_SIGNATURE
 )
 from app.utils.error_messages import (
     ERROR_AGREEMENT_AUTHORIZATIONS_NOT_EXIST, ERROR_CALL_SERVICE_SOA,
@@ -208,6 +209,7 @@ async def repos_save_co_owner(
             JointAccountHolderAgreementAuthorization.joint_account_holder_id.in_(account_holder_ids)
         )
     )
+
     # xóa account holder
     session.execute(
         delete(
@@ -232,7 +234,8 @@ async def repos_save_co_owner(
         description="Tạo CIF -> Tài khoản thanh toán -> Thông tin đồng sở hữu -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TKTT_DSH
     )
 
     return ReposReturn(data={

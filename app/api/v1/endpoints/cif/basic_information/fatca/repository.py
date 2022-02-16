@@ -12,6 +12,7 @@ from app.third_parties.oracle.models.cif.basic_information.fatca.model import (
     CustomerFatca, CustomerFatcaDocument
 )
 from app.third_parties.oracle.models.master_data.others import FatcaCategory
+from app.utils.constant.cif import BUSINESS_FORM_TTCN_FATCA
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 
 
@@ -49,7 +50,8 @@ async def repos_save_fatca_document(
         description="Tạo CIF -> Thông tin cá nhân -> Thông tin FATCA -- Tạo mới",
         log_data=log_data,
         session=session,
-        customer_id=cif_id
+        customer_id=cif_id,
+        business_form_id=BUSINESS_FORM_TTCN_FATCA
     )
 
     return ReposReturn(data={
