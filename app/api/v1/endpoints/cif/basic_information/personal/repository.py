@@ -140,9 +140,9 @@ async def repos_get_personal_data(cif_id: str, session: Session) -> ReposReturn:
 
     # TODO: chưa có rule và data contact type nên đang để test
     for row in query_data:
-        if row.CustomerContactType.name == 'BE_TEST1':
+        if row.CustomerContactType.name == 'EMAIL':
             data_contact['email_flag'] = row.CustomerContactTypeData.active_flag
-        if row.CustomerContactType.name == 'BE_TEST':
+        if row.CustomerContactType.name == 'MOBILE':
             data_contact['mobile_number_flag'] = row.CustomerContactTypeData.active_flag
 
     data_response = {
