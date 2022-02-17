@@ -33,7 +33,9 @@ class IdentityDocumentResponse(BaseSchema):
     # identity_type: OptionalDropdownResponse = Field(..., description='Loại giấy tờ định danh')
     issued_date: Optional[date] = Field(..., description='Ngày cấp')
     expired_date: Optional[date] = Field(..., description='Ngày hết hạn')
-    place_of_issue: Optional[str] = Field(..., description='Nơi cấp')
+    # place_of_issue: Optional[str] = Field(..., description='Nơi cấp')
+    # Rollback lại thành OptionalDropdown tránh 500 error
+    place_of_issue: OptionalDropdownResponse = Field(..., description='Nơi cấp')
 
 
 class AddressInformationResponse(BaseSchema):
