@@ -161,7 +161,7 @@ async def repos_get_co_owner(cif_id: str, session: Session) -> ReposReturn:
         customer_relationship_detail.append(customer_relationship.get('data'))
 
     return ReposReturn(data={
-        "joint_account_holder_flag": account_holders[0].joint_account_holder_flag,
+        "joint_account_holder_flag": account_holders[0].joint_account_holder_flag if account_holders else False,
         "number_of_joint_account_holder": len(account_holders),
         "joint_account_holders": customer_relationship_detail,
         "agreement_authorization": None

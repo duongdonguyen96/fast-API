@@ -100,4 +100,4 @@ async def http_except_custom(_: Request, exc: HTTPException) -> JSONResponse:
 utils.HTTP_422_UNPROCESSABLE_ENTITY = status.HTTP_400_BAD_REQUEST
 
 if __name__ == "__main__":
-    uvicorn.run('app.main:app', host="127.0.0.1", port=7111, reload=True)
+    uvicorn.run('app.main:app', host="127.0.0.1", port=9005, reload=True)
