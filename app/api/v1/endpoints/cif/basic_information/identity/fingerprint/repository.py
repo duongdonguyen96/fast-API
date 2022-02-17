@@ -16,7 +16,7 @@ from app.third_parties.oracle.models.master_data.identity import (
 from app.utils.constant.cif import (
     BUSINESS_FORM_TTCN_GTDD_VT, IMAGE_TYPE_FINGERPRINT
 )
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.error_messages import ERROR_NO_DATA
 from app.utils.functions import now
 
 
@@ -86,6 +86,6 @@ async def repos_get_data_finger(cif_id: str, session: Session) -> ReposReturn:
     ).all()
 
     if not query_data:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+        return ReposReturn(is_error=True, msg=ERROR_NO_DATA, loc="cif_id")
 
     return ReposReturn(data=query_data)
