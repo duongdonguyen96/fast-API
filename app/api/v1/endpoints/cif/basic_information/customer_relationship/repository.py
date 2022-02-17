@@ -126,6 +126,9 @@ async def repos_get_customer_relationships(
             cif_number=relationship.customer_personal_relationship_cif_number,
             session=session
         )
+        # kiểm tra gọi service SOA
+        if customer_relationship.is_error:
+            return customer_relationship
         customer_relationship.data['basic_information']['customer_relationship'] = dropdown(relationship_type)
         relationship_details.append(customer_relationship.data)
 
