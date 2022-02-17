@@ -74,12 +74,22 @@ class CtrIdentityDocument(BaseController):
         front_side_image = detail_data['front_side_information']['identity_image_url']
         back_side_image = detail_data['back_side_information']['identity_image_url']
         compare_image = detail_data['front_side_information']['face_compare_image_url']
+        fingerprints = detail_data['back_side_information']['fingerprint']
 
         image_uuids = [front_side_image, back_side_image, compare_image]
+        fingerprint_image_uuids = []
+        for fingerprint in fingerprints:
+            fingerprint_image_uuids.append(fingerprint['image_url'])
+        image_uuids = image_uuids + fingerprint_image_uuids
+
+        # uuid__link_downloads sẽ trả về 1 dict dạng { uuid: url } nên map chỉ cần gán uuid vào là được
         uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
         detail_data['front_side_information']['identity_image_url'] = uuid__link_downloads[front_side_image]
         detail_data['back_side_information']['identity_image_url'] = uuid__link_downloads[back_side_image]
         detail_data['front_side_information']['face_compare_image_url'] = uuid__link_downloads[compare_image]
+
+        for fingerprint in fingerprints:
+            fingerprint['image_url'] = uuid__link_downloads[fingerprint['image_url']]
 
         return detail_data['identity_document_type']['code'], self.response(data=detail_data)
 
