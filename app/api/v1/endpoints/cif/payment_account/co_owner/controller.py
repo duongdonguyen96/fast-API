@@ -1,8 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.payment_account.co_owner.repository import (
-    repos_check_list_relationship_id, repos_detail_co_owner,
-    repos_get_agreement_authorizations, repos_get_casa_account,
-    repos_get_co_owner, repos_save_co_owner
+    repos_detail_co_owner, repos_get_agreement_authorizations,
+    repos_get_casa_account, repos_get_co_owner, repos_save_co_owner
 )
 from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
     AccountHolderRequest
@@ -10,26 +9,26 @@ from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
 from app.api.v1.endpoints.cif.repository import (
     repos_check_exist_cif, repos_validate_cif_number
 )
-from app.utils.constant.cif import (
-    CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP
-)
 from app.utils.functions import generate_uuid
 
 
 class CtrCoOwner(BaseController):
     async def ctr_save_co_owner(self, cif_id: str, co_owner: AccountHolderRequest):
         # lấy casa_account_id theo số cif_id
-        casa_account = self.call_repos(await repos_get_casa_account(cif_id=cif_id, session=self.oracle_session))
+        casa_account = self.call_repos(
+            await repos_get_casa_account(cif_id=cif_id, session=self.oracle_session)
+        )
 
         # lấy danh sách cif_number account request
-        list_cif_number_relationship_request = []
         for cif_number in co_owner.joint_account_holders:
             # check số cif_number có tồn tại trong SOA
-
-            response = self.call_repos(await repos_check_exist_cif(cif_number=cif_number.cif_number))
-            if not response['is_existed']:
-                return self.response_exception(msg="cif_number not exits in SOA", loc="AccountHolderRequest")
-            list_cif_number_relationship_request.append(cif_number.customer_relationship.id)
+            response = self.call_repos(
+                await repos_check_exist_cif(cif_number=cif_number.cif_number)
+            )
+            if not response["is_existed"]:
+                return self.response_exception(
+                    msg="cif_number not exits in SOA", loc="AccountHolderRequest"
+                )
 
         # # check cif_number có tồn tại
         # self.call_repos(
@@ -38,48 +37,38 @@ class CtrCoOwner(BaseController):
         #         session=self.oracle_session
         #     )
         # )
-        # check relationship id
-        self.call_repos(
-            await repos_check_list_relationship_id(
-                list_cif_number_relationship_request=list_cif_number_relationship_request,
-                session=self.oracle_session
-            )
-        )
-        save_cust_personal_relationship = []
+
         save_account_holder = []
         for account_holder in co_owner.joint_account_holders:
-            save_account_holder.append({
-                "id": generate_uuid(),
-                "cif_num": account_holder.cif_number,
-                "casa_account_id": casa_account,
-                "joint_account_holder_flag": co_owner.joint_account_holder_flag,
-                "joint_account_holder_no": 1
-            })
-            save_cust_personal_relationship.append({
-                "customer_id": cif_id,
-                "customer_relationship_type_id": account_holder.customer_relationship.id,
-                "type": CUSTOMER_RELATIONSHIP_TYPE_CUSTOMER_RELATIONSHIP,
-                "customer_personal_relationship_cif_number": account_holder.cif_number,
-            })
+            save_account_holder.append(
+                {
+                    "id": generate_uuid(),
+                    "cif_num": account_holder.cif_number,
+                    "casa_account_id": casa_account,
+                    "joint_account_holder_flag": co_owner.joint_account_holder_flag,
+                    "joint_account_holder_no": 1,
+                }
+            )
 
         save_account_agree = []
         for agreement in co_owner.agreement_authorization:
             for signature in agreement.signature_list:
                 for account_holder in save_account_holder:
-                    if signature.cif_number == account_holder['cif_num']:
-                        save_account_agree.append({
-                            "agreement_authorization_id": agreement.id,
-                            "joint_account_holder_id": account_holder['id'],
-                            "agreement_flag": agreement.agreement_flag,
-                            "method_sign": agreement.method_sign
-                        })
+                    if signature.cif_number == account_holder["cif_num"]:
+                        save_account_agree.append(
+                            {
+                                "agreement_authorization_id": agreement.id,
+                                "joint_account_holder_id": account_holder["id"],
+                                "agreement_flag": agreement.agreement_flag,
+                                "method_sign": agreement.method_sign,
+                            }
+                        )
 
         co_owner_data = self.call_repos(
             await repos_save_co_owner(
                 cif_id=cif_id,
                 save_account_holder=save_account_holder,
                 save_account_agree=save_account_agree,
-                save_cust_personal_relationship=save_cust_personal_relationship,
                 log_data=co_owner.json(),
                 session=self.oracle_session,
                 created_by=self.current_user.full_name_vn,
@@ -97,14 +86,18 @@ class CtrCoOwner(BaseController):
         )
 
         agreement_authorizations = self.call_repos(
-            await repos_get_agreement_authorizations(session=self.oracle_session))
+            await repos_get_agreement_authorizations(session=self.oracle_session)
+        )
 
-        agreement_authorization = [{
-            "id": item.id,
-            "code": item.code,
-            "name": item.name,
-            "active_flag": item.active_flag,
-        } for item in agreement_authorizations]
+        agreement_authorization = [
+            {
+                "id": item.id,
+                "code": item.code,
+                "name": item.name,
+                "active_flag": item.active_flag,
+            }
+            for item in agreement_authorizations
+        ]
 
         detail_co_owner.update(agreement_authorization=agreement_authorization)
 
@@ -216,13 +209,17 @@ class CtrCoOwner(BaseController):
     async def detail_co_owner(self, cif_id: str, cif_number_need_to_find: str):
 
         # validate cif_number
-        self.call_repos(await repos_validate_cif_number(cif_number=cif_number_need_to_find))
+        self.call_repos(
+            await repos_validate_cif_number(cif_number=cif_number_need_to_find)
+        )
 
-        detail_co_owner = self.call_repos(await repos_detail_co_owner(
-            cif_id=cif_id,
-            cif_number_need_to_find=cif_number_need_to_find,
-            session=self.oracle_session
-        ))
+        detail_co_owner = self.call_repos(
+            await repos_detail_co_owner(
+                cif_id=cif_id,
+                cif_number_need_to_find=cif_number_need_to_find,
+                session=self.oracle_session,
+            )
+        )
 
         # resident_address = None
         # contact_address = None
