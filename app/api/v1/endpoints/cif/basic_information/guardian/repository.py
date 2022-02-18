@@ -53,7 +53,12 @@ async def repos_get_guardians(
             cif_number=guardian.customer_personal_relationship_cif_number,
             session=session
         )
-        guardian_detail.data['basic_information']['customer_relationship'] = dropdown(guardian_relationship)
+
+        # kiểm tra gọi service SOA
+        if guardian_detail.is_error:
+            return guardian_detail
+        guardian_detail.data["basic_information"]["customer_relationship"] = dropdown(guardian_relationship)
+
         guardian_details.append(guardian_detail.data)
     data = {
         "guardian_flag": True if guardians else False,
