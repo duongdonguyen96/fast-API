@@ -138,5 +138,6 @@ class BookingBusinessForm(Base):
     save_flag = Column(NUMBER(1, 0, False), nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime)
+    form_data = Column(NCLOB, comment='Dữ liệu form nhập')
     booking = relationship('Booking')
     business_form = relationship('BusinessForm')

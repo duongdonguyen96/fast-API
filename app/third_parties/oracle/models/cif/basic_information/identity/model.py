@@ -44,6 +44,7 @@ sys_guid()
     identity_id = Column(VARCHAR(36), nullable=False, comment='(FK) Id Giấy tờ định danh')
     image_type_id = Column(VARCHAR(36), nullable=False, comment='(KF) Id Loại giấy tờ định danh')
     image_url = Column(VARCHAR(200), nullable=False, comment='Đường dẫn hình')
+    avatar_image_uuid = Column('AVATAR_IMAGE', nullable=False, comment='Đường dẫn hình avatar')
     hand_side_id = Column(VARCHAR(36),
                           comment='(FK) Id Loại bàn tay (trái phải). NotNull nếu Loại giấy tờ định danh là Vân tay')
     finger_type_id = Column(VARCHAR(36), comment='(FK) Id Loại ngón tay. NotNull nếu Loại giấy tờ định danh là Vân tay')
