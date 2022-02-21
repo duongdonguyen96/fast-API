@@ -357,29 +357,32 @@ class CtrIdentityDocument(BaseController):
             )
             # check resident_address_province_id
             resident_address_province_id = address_information.resident_address.province.id
-            if is_create or (customer_resident_address.address_province_id != resident_address_province_id):
-                resident_address_province = await self.get_model_object_by_id(model_id=resident_address_province_id,
-                                                                              model=AddressProvince,
-                                                                              loc='resident_address -> province -> id')
-                resident_address_province_name = resident_address_province.name
+            # RULE: Trường hợp đặc biệt: dù tạo mới, cập nhật hay không cũng phải dùng để validate field bên EKYC
+            # if is_create or (customer_resident_address.address_province_id != resident_address_province_id):
+            resident_address_province = await self.get_model_object_by_id(model_id=resident_address_province_id,
+                                                                          model=AddressProvince,
+                                                                          loc='resident_address -> province -> id')
+            resident_address_province_name = resident_address_province.name
 
             # check resident_address_district_id
             resident_address_district_id = address_information.resident_address.district.id
-            if is_create or (customer_resident_address.address_district_id != resident_address_district_id):
-                resident_address_district = await self.get_model_object_by_id(model_id=resident_address_district_id,
-                                                                              model=AddressDistrict,
-                                                                              loc='resident_address -> district -> id')
-                resident_address_district_name = resident_address_district.name
+            # RULE: Trường hợp đặc biệt: dù tạo mới, cập nhật hay không cũng phải dùng để validate field bên EKYC
+            # if is_create or (customer_resident_address.address_district_id != resident_address_district_id):
+            resident_address_district = await self.get_model_object_by_id(model_id=resident_address_district_id,
+                                                                          model=AddressDistrict,
+                                                                          loc='resident_address -> district -> id')
+            resident_address_district_name = resident_address_district.name
 
             # check resident_address_ward_id
             resident_address_ward_id = address_information.resident_address.ward.id
-            if is_create or (customer_resident_address.address_ward_id != resident_address_ward_id):
-                resident_address_ward = await self.get_model_object_by_id(
-                    model_id=resident_address_ward_id,
-                    model=AddressWard,
-                    loc='resident_address -> ward -> id'
-                )
-                resident_address_ward_name = resident_address_ward.name
+            # RULE: Trường hợp đặc biệt: dù tạo mới, cập nhật hay không cũng phải dùng để validate field bên EKYC
+            # if is_create or (customer_resident_address.address_ward_id != resident_address_ward_id):
+            resident_address_ward = await self.get_model_object_by_id(
+                model_id=resident_address_ward_id,
+                model=AddressWard,
+                loc='resident_address -> ward -> id'
+            )
+            resident_address_ward_name = resident_address_ward.name
 
             # dict dùng để tạo mới hoặc lưu lại customer_resident_address
             saving_customer_resident_address = {
