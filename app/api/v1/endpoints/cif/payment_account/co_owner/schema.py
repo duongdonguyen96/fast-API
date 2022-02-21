@@ -17,6 +17,11 @@ class SignatureResponse(BaseSchema):
     image_url: Optional[str] = Field(..., description="Hình ảnh mẫu chữ ký")
 
 
+class SignatureListResponse(BaseSchema):
+    cif_number: str = Field(..., description="CIF_NUMBER")
+    full_name_vn: Optional[str] = Field(..., description="Tên tiếng việt")
+
+
 class BasicInformationResponse(BaseSchema):
     cif_number: Optional[str] = CustomField(
         description="Số CIF của đồng sở hữu"
@@ -81,6 +86,8 @@ class AgreementAuthorResponse(BaseSchema):
         ...,
         description="Thỏa thuận chữ ký các hồ sơ chứng từ.`True`: Có , `False`: Không",
     )
+    method_sign: int = Field(..., description="Phương thức ký")
+    signature_list: List[SignatureListResponse] = Field(..., description='Danh sách chữ ký')
 
 
 class AccountHolderSuccessResponse(BaseSchema):
