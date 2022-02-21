@@ -1,7 +1,8 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.payment_account.co_owner.repository import (
-    repos_detail_co_owner, repos_get_agreement_authorizations,
-    repos_get_casa_account, repos_get_co_owner, repos_save_co_owner
+    repos_detail_co_owner, repos_get_account_holders,
+    repos_get_agreement_authorizations, repos_get_casa_account,
+    repos_get_co_owner, repos_save_co_owner
 )
 from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
     AccountHolderRequest
@@ -9,6 +10,7 @@ from app.api.v1.endpoints.cif.payment_account.co_owner.schema import (
 from app.api.v1.endpoints.cif.repository import (
     repos_check_exist_cif, repos_validate_cif_number
 )
+from app.settings.event import service_soa
 from app.utils.functions import generate_uuid
 
 
@@ -84,20 +86,65 @@ class CtrCoOwner(BaseController):
                 session=self.oracle_session,
             )
         )
-
         agreement_authorizations = self.call_repos(
-            await repos_get_agreement_authorizations(session=self.oracle_session)
+            await repos_get_agreement_authorizations(
+                session=self.oracle_session
+            )
         )
+        account_holders = self.call_repos(
+            await repos_get_account_holders(
+                cif_id=cif_id,
+                session=self.oracle_session
+            )
+        )
+        signature__data = {}
+        method__sign = {}
+
+        for item in account_holders:
+            is_success, customer = await service_soa.retrieve_customer_ref_data_mgmt(
+                cif_number=item.JointAccountHolder.cif_num
+            )
+            # lấy full_name_vn từ cif_number
+            customer_detail = customer.get('data')
+            agree_author = item.JointAccountHolderAgreementAuthorization.agreement_authorization_id
+            if agree_author not in signature__data:
+
+                signature__data[agree_author] = []
+                # lấy phương thức ký và flag
+                method__sign[agree_author] = {
+                    'method_sign': None,
+                    'agreement_flag': None
+                }
+                # gán lại giá trị cho phương thức ký và flag
+                method__sign[agree_author]['method_sign'] = item.JointAccountHolderAgreementAuthorization.method_sign
+                method__sign[agree_author]['agreement_flag'] = item.JointAccountHolderAgreementAuthorization.agreement_flag
+            # lấy cif_num và full_name_vn
+            signature__data[agree_author].append({
+                'cif_number': item.JointAccountHolder.cif_num,
+                'full_name_vn': customer_detail["basic_information"]["full_name_vn"]
+            })
 
         agreement_authorization = [
             {
                 "id": item.id,
                 "code": item.code,
                 "name": item.name,
-                "active_flag": item.active_flag,
+                "active_flag": None,
+                "method_sign": None,
+                'signature_list': None
             }
             for item in agreement_authorizations
         ]
+
+        for agreement_author in agreement_authorization:
+            for agree_author, signature_list in signature__data.items():
+                if agreement_author['id'] == agree_author:
+                    agreement_author['signature_list'] = signature_list
+
+            for agreements_author, method_sign in method__sign.items():
+                if agreement_author['id'] == agreements_author:
+                    agreement_author['method_sign'] = method_sign['method_sign']
+                    agreement_author['active_flag'] = method_sign['agreement_flag']
 
         detail_co_owner.update(agreement_authorization=agreement_authorization)
 

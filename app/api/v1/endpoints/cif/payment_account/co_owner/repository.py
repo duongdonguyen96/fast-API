@@ -51,7 +51,7 @@ from app.utils.functions import dropdown, now
 
 
 async def repos_check_list_cif_number(
-    list_cif_number_request: list, session: Session
+        list_cif_number_request: list, session: Session
 ) -> ReposReturn:
     list_customer = session.execute(
         select(Customer).filter(Customer.cif_number.in_(list_cif_number_request))
@@ -68,7 +68,7 @@ async def repos_check_list_cif_number(
 
 
 async def repos_check_list_relationship_id(
-    list_cif_number_relationship_request: list, session: Session
+        list_cif_number_relationship_request: list, session: Session
 ) -> ReposReturn:
     list_relationship = session.execute(
         select(CustomerRelationshipType).filter(
@@ -104,12 +104,13 @@ async def repos_get_co_owner(cif_id: str, session: Session) -> ReposReturn:
 
     account_holders = (
         session.execute(
-            select(JointAccountHolder)
+            select(
+                JointAccountHolder
+            )
             .join(CasaAccount, CasaAccount.id == JointAccountHolder.casa_account_id)
             .filter(CasaAccount.customer_id == cif_id)
         )
-        .scalars()
-        .all()
+        .scalars().all()
     )
 
     customer_relationship_detail = []
@@ -184,9 +185,7 @@ async def repos_get_co_owner(cif_id: str, session: Session) -> ReposReturn:
 
     return ReposReturn(
         data={
-            "joint_account_holder_flag": account_holders[0].joint_account_holder_flag
-            if account_holders
-            else False,
+            "joint_account_holder_flag": account_holders[0].joint_account_holder_flag if account_holders else False,
             "number_of_joint_account_holder": len(account_holders),
             "joint_account_holders": customer_relationship_detail,
             "agreement_authorization": None,
@@ -360,6 +359,7 @@ async def repos_get_customer_address(
 
 
 async def repos_get_agreement_authorizations(session: Session) -> ReposReturn:
+
     agreement_authorizations = session.execute(
         select(AgreementAuthorization).filter(
             AgreementAuthorization.agreement_author_type == AGREEMENT_AUTHOR_TYPE_DD
@@ -376,10 +376,30 @@ async def repos_get_agreement_authorizations(session: Session) -> ReposReturn:
     return ReposReturn(data=agreement_authorizations)
 
 
+async def repos_get_account_holders(cif_id: str, session: Session) -> ReposReturn:
+
+    casa_account_holder = session.execute(
+        select(
+            JointAccountHolder,
+            JointAccountHolderAgreementAuthorization,
+            AgreementAuthorization
+        )
+        .join(CasaAccount, JointAccountHolder.casa_account_id == CasaAccount.id)
+        .join(
+            JointAccountHolderAgreementAuthorization,
+            JointAccountHolder.id == JointAccountHolderAgreementAuthorization.joint_account_holder_id
+        )
+        .join(AgreementAuthorization,
+              JointAccountHolderAgreementAuthorization.agreement_authorization_id == AgreementAuthorization.id)
+        .filter(CasaAccount.customer_id == cif_id)
+    ).all()
+
+    return ReposReturn(data=casa_account_holder)
+
+
 async def repos_detail_co_owner(
     cif_id: str, cif_number_need_to_find: str, session: Session
 ):
-
     is_success, detail_co_owner = await service_soa.retrieve_customer_ref_data_mgmt(
         cif_number=cif_number_need_to_find, flat_address=True
     )
