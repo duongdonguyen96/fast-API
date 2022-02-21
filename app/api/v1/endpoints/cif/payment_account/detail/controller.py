@@ -82,24 +82,18 @@ class CtrPaymentAccount(BaseController):
                     loc="casa_account_number"
                 )
 
-            # check acc_structure_type_level_3_id required
-            if not payment_account_save_request.account_structure_type_level_3.id:
-                return self.response_exception(
-                    msg=f"ID {MESSAGE_STATUS[ERROR_NOT_NULL]}",
-                    loc="account_structure_type_level_3 -> id"
+            if payment_account_save_request.account_structure_type_level_3.id:
+                # check acc_structure_type_level_3_id exist
+                # Trường hợp đặc biệt, phải check luôn cả loại kiến trúc là cấp 3 nên không dùng get_model_object_by_id
+                account_structure_type_level_3_id = payment_account_save_request.account_structure_type_level_3.id
+                self.call_repos(
+                    await repos_get_acc_structure_type(
+                        acc_structure_type_id=account_structure_type_level_3_id,
+                        level=ACC_STRUCTURE_TYPE_LEVEL_3,
+                        loc="account_structure_type_level_3",
+                        session=self.oracle_session
+                    )
                 )
-
-            # check acc_structure_type_level_3_id exist
-            # Trường hợp đặc biệt, phải check luôn cả loại kiến trúc là cấp 3 nên không dùng get_model_object_by_id
-            account_structure_type_level_3_id = payment_account_save_request.account_structure_type_level_3.id
-            self.call_repos(
-                await repos_get_acc_structure_type(
-                    acc_structure_type_id=account_structure_type_level_3_id,
-                    level=ACC_STRUCTURE_TYPE_LEVEL_3,
-                    loc="account_structure_type_level_3",
-                    session=self.oracle_session
-                )
-            )
 
         # Lấy thông tin Tài khoản của tổ chức chi lương
         account_salary_organization_account_number = payment_account_save_request.account_salary_organization_account

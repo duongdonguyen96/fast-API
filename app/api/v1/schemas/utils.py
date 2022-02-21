@@ -22,7 +22,7 @@ class DropdownRequest(BaseSchema):
 
 
 class OptionalDropdownRequest(BaseSchema):
-    id: Optional[str] = Field(..., min_length=1, description='`Chuỗi định danh`', nullable=True)
+    id: Optional[str] = Field(None, min_length=1, description='`Chuỗi định danh`', nullable=True)
 
 
 ########################################################################################################################
