@@ -139,9 +139,6 @@ class CtrIdentityDocument(BaseController):
         validate_ethnic_name = None
         validate_gender_code = None
         ekyc_document_type_request = None
-        resident_address_ward_name = ""
-        resident_address_district_name = ""
-        resident_address_province_name = ""
 
         if identity_document_request.identity_document_type.id not in IDENTITY_DOCUMENT_TYPE:
             return self.response_exception(msg=ERROR_IDENTITY_DOCUMENT_NOT_EXIST, loc='identity_document_type -> id')
@@ -152,7 +149,7 @@ class CtrIdentityDocument(BaseController):
         customer: Optional[Customer] = None
         customer_identity: Optional[CustomerIdentity] = None
         customer_individual_info: Optional[CustomerIndividualInfo] = None
-        customer_resident_address: Optional[CustomerAddress] = None
+        # customer_resident_address: Optional[CustomerAddress] = None
         customer_contact_address: Optional[CustomerAddress] = None
 
         is_create = True
