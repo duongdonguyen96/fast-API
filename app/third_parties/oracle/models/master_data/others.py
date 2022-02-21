@@ -1,8 +1,8 @@
-from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, Table, text
+from sqlalchemy import VARCHAR, Column, DateTime, ForeignKey, text
 from sqlalchemy.dialects.oracle import NUMBER
 from sqlalchemy.orm import relationship
 
-from app.third_parties.oracle.base import Base, metadata
+from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.master_data.address import (  # noqa
     AddressCountry
 )
@@ -438,27 +438,31 @@ class TransactionStage(Base):
     status = relationship('TransactionStageStatus')
 
 
-t_crm_stage_phase = Table(
-    'crm_stage_phase', metadata,
-    Column('phase_id', ForeignKey('crm_phase.phase_id'), comment='Mã Giai đoạn xử lý'),
-    Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện'),
-    comment='''Giai đoạn xử lý
+class StagePhase(Base):
+    __tablename__ = 'crm_stage_phase'
+    __table_args__ = {'comment': '''Giai đoạn xử lý
+                      1. Mở CIF
+                      2. Upload giấy tờ
+                      3. Ebank'''}
 
-  1. Mở CIF
-  2. Upload giấy tờ
-  3. Ebank'''
-)
+    phase_id = Column('phase_id', ForeignKey('crm_phase.phase_id'), comment='Mã Giai đoạn xử lý', primary_key=True)
+    stage_id = Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước thực hiện', primary_key=True)
+    phase = relationship('Phase')
+    stage = relationship('Stage')
 
-t_crm_stage_lane = Table(
-    'crm_stage_lane', metadata,
-    Column('lane_id', ForeignKey('crm_lane.lane_id'), comment='Mã luồng xử lý của bước thực hiện'),
-    Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước  thực hiện'),
-    Column('department_id', VARCHAR(36), nullable=False, comment='ID Phòng ban'),
-    Column('branch_id', VARCHAR(20), nullable=False, comment='ID Chi nhánh'),
-    comment='''Luồng xử lý
 
-  1. Phòng A
-  2. Phòng B
-  3. Khối A
-  '''
-)
+class StageLane(Base):
+    __tablename__ = 'crm_stage_lane'
+    __table_args__ = {'comment': '''Luồng xử lý
+                        1. Phòng A
+                        2. Phòng B
+                        3. Khối A'''}
+
+    lane_id = Column('lane_id', ForeignKey('crm_lane.lane_id'), comment='Mã luồng xử lý của bước thực hiện', primary_key=True)
+    stage_id = Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước  thực hiện', primary_key=True)
+    branch_id = Column('branch_id', ForeignKey('crm_branch.branch_id'), comment='ID Chi nhánh', primary_key=True)
+    department_id = Column('department_id', VARCHAR(36), nullable=False, comment='ID Phòng ban')
+
+    lane = relationship('Lane')
+    stage = relationship('Stage')
+    branch = relationship('Branch')
