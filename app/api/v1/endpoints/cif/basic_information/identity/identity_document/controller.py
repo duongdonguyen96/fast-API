@@ -71,12 +71,21 @@ class CtrIdentityDocument(BaseController):
             )
         )
 
-        front_side_image = detail_data['front_side_information']['identity_image_url']
-        back_side_image = detail_data['back_side_information']['identity_image_url']
-        compare_image = detail_data['front_side_information']['face_compare_image_url']
-        fingerprints = detail_data['back_side_information']['fingerprint']
+        front_side_image = None
+        back_side_image = None
+        identity_image = None
+        if detail_data['identity_document_type']['id'] == IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            identity_image = detail_data['passport_information']['identity_image_url']
+            compare_image = detail_data['passport_information']['face_compare_image_url']
+            fingerprints = detail_data['passport_information']['fingerprint']
+            image_uuids = [identity_image, compare_image]
+        else:
+            front_side_image = detail_data['front_side_information']['identity_image_url']
+            back_side_image = detail_data['back_side_information']['identity_image_url']
+            compare_image = detail_data['front_side_information']['face_compare_image_url']
+            fingerprints = detail_data['back_side_information']['fingerprint']
+            image_uuids = [front_side_image, back_side_image, compare_image]
 
-        image_uuids = [front_side_image, back_side_image, compare_image]
         fingerprint_image_uuids = []
         for fingerprint in fingerprints:
             fingerprint_image_uuids.append(fingerprint['image_url'])
@@ -84,9 +93,14 @@ class CtrIdentityDocument(BaseController):
 
         # uuid__link_downloads sẽ trả về 1 dict dạng { uuid: url } nên map chỉ cần gán uuid vào là được
         uuid__link_downloads = await self.get_link_download_multi_file(uuids=image_uuids)
-        detail_data['front_side_information']['identity_image_url'] = uuid__link_downloads[front_side_image]
-        detail_data['back_side_information']['identity_image_url'] = uuid__link_downloads[back_side_image]
-        detail_data['front_side_information']['face_compare_image_url'] = uuid__link_downloads[compare_image]
+
+        if detail_data['identity_document_type']['id'] == IDENTITY_DOCUMENT_TYPE_PASSPORT:
+            detail_data['passport_information']['identity_image_url'] = uuid__link_downloads[identity_image]
+            detail_data['passport_information']['face_compare_image_url'] = uuid__link_downloads[compare_image]
+        else:
+            detail_data['front_side_information']['identity_image_url'] = uuid__link_downloads[front_side_image]
+            detail_data['back_side_information']['identity_image_url'] = uuid__link_downloads[back_side_image]
+            detail_data['front_side_information']['face_compare_image_url'] = uuid__link_downloads[compare_image]
 
         for fingerprint in fingerprints:
             fingerprint['image_url'] = uuid__link_downloads[fingerprint['image_url']]
