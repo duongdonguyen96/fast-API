@@ -139,7 +139,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         )
         .join(CustomerIdentity, Customer.id == CustomerIdentity.customer_id)
         .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
-        .join(CustomerAddress, Customer.id == CustomerAddress.customer_id)
+        .outerjoin(CustomerAddress, Customer.id == CustomerAddress.customer_id)
         .outerjoin(CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id)
         .outerjoin(CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id)
         .outerjoin(CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
@@ -150,9 +150,9 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
         .join(AddressCountry, CustomerIndividualInfo.country_of_birth_id == AddressCountry.id)
         .join(place_of_birth, CustomerIndividualInfo.place_of_birth_id == place_of_birth.id)
-        .join(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
-        .join(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
-        .join(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
+        .outerjoin(AddressProvince, CustomerAddress.address_province_id == AddressProvince.id)
+        .outerjoin(AddressDistrict, CustomerAddress.address_district_id == AddressDistrict.id)
+        .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
         .outerjoin(Nation, CustomerIndividualInfo.nation_id == Nation.id)
         .outerjoin(Religion, CustomerIndividualInfo.religion_id == Religion.id)
         .outerjoin(PassportType, CustomerIdentity.passport_type_id == PassportType.id)
@@ -313,7 +313,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
                 "gender": dropdown(first_row.CustomerGender),
                 "date_of_birth": first_row.CustomerIndividualInfo.date_of_birth,
                 "nationality": dropdown(first_row.AddressCountry),
-                "place_of_birth": dropdown(first_row.AddressProvince),
+                "place_of_birth": dropdown(first_row.PlaceOfBirth),
                 "identity_card_number": first_row.CustomerIdentity.identity_number_in_passport,
                 "mrz_content": first_row.CustomerIdentity.mrz_content
             }
