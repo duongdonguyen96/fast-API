@@ -18,6 +18,7 @@ from app.api.v1.schemas.utils import DropdownResponse
 class FrontSideIdentityCitizenCardResponse(BaseSchema):
     identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh mặt trước CMND/CCCD")
     face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
+    identity_avatar_image_uuid: str = Field(..., description='Hình ảnh khuôn mặt CMND/CCCD')
     similar_percent: int = Field(..., description="Tỉ lệ so khớp với Hình ảnh chụp khuôn mặt")
 
 
@@ -123,6 +124,7 @@ class CitizenCardDetailResponse(BaseSchema):
 class InformationPassportResponse(BaseSchema):
     identity_image_url: str = Field(..., min_length=1, description="URL hình ảnh Hộ chiếu")
     face_compare_image_url: str = Field(..., min_length=1, description="Hình ảnh chụp khuôn mặt")
+    identity_avatar_image_uuid: str = Field(..., description="Hình ảnh khuôn mặt Hộ chiếu ")
     similar_percent: int = Field(..., description="Tỉ lệ so khớp với Hình ảnh chụp khuôn mặt")
     fingerprint: List[FingerPrintResponse] = Field(..., description="Danh sách các vân tay đối chiếu")
 
