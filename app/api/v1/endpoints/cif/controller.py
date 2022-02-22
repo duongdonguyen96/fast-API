@@ -3,6 +3,7 @@ from app.api.v1.endpoints.cif.repository import (
     repos_check_exist_cif, repos_customer_information, repos_get_cif_info,
     repos_profile_history, repos_validate_cif_number
 )
+from app.utils.constant.cif import DROPDOWN_NONE_DICT
 from app.utils.functions import dropdown, dropdownflag
 
 
@@ -27,7 +28,7 @@ class CtrCustomer(BaseController):
         data_response = {
             "customer_id": first_row.Customer.id,
             "status": dropdownflag(first_row.CustomerStatus),
-            "cif_number": first_row.Customer.cif_number,
+            "cif_number": first_row.Customer.cif_number if first_row.CustomerType else None,
             "avatar_url": first_row.Customer.avatar_url,
             "customer_classification": dropdown(first_row.CustomerClassification),
             "full_name": first_row.Customer.full_name,
@@ -41,7 +42,7 @@ class CtrCustomer(BaseController):
             "date_of_birth": first_row.CustomerIndividualInfo.date_of_birth,
             "nationality": dropdown(first_row.AddressCountry),
             "marital_status": dropdown(first_row.MaritalStatus),
-            "customer_type": dropdown(first_row.CustomerType),
+            "customer_type": dropdown(first_row.CustomerType) if first_row.CustomerType else DROPDOWN_NONE_DICT,
             "credit_rating": None,
             "address": first_row.CustomerAddress.address
         }
