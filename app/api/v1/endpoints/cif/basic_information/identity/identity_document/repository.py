@@ -199,6 +199,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
                 response_data["front_side_information"] = {
                     "identity_image_url": row.CustomerIdentityImage.image_url,
                     "face_compare_image_url": row.CustomerCompareImage.compare_image_url,
+                    "identity_avatar_image_uuid": row.CustomerIdentityImage.avatar_image_uuid,
                     "similar_percent": row.CustomerCompareImage.similar_percent
                 }
                 break
@@ -295,6 +296,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         response_data['passport_information'] = {
             "identity_image_url": first_row.CustomerIdentityImage.image_url,
             "face_compare_image_url": first_row.CustomerCompareImage.compare_image_url,
+            "identity_avatar_image_uuid": first_row.CustomerIdentityImage.avatar_image_uuid,
             "similar_percent": first_row.CustomerCompareImage.similar_percent,
             "fingerprint": fingerprints,
         }

@@ -482,6 +482,7 @@ class CtrIdentityDocument(BaseController):
                 {
                     "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
                     "image_url": front_side_information_identity_image_uuid,
+                    "avatar_image_uuid": identity_avatar_image_uuid,
                     "hand_side_id": None,
                     "finger_type_id": None,
                     "vector_data": None,
@@ -495,6 +496,8 @@ class CtrIdentityDocument(BaseController):
                 {
                     "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
                     "image_url": back_side_information_identity_image_uuid,
+                    # lưu CMND, CCCD mặt sau k có avatar
+                    "avatar_image_uuid": None,
                     "hand_side_id": None,
                     "finger_type_id": None,
                     "vector_data": None,
@@ -588,6 +591,7 @@ class CtrIdentityDocument(BaseController):
             saving_customer_identity_images = [{
                 "image_type_id": IMAGE_TYPE_CODE_IDENTITY,
                 "image_url": identity_image_uuid,
+                "avatar_image_uuid": identity_avatar_image_uuid,
                 "hand_side_id": None,
                 "finger_type_id": None,
                 "vector_data": None,
