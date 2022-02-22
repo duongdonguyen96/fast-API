@@ -169,7 +169,7 @@ async def repos_customer_information(cif_id: str, session: Session) -> ReposRetu
         .join(CustomerClassification, Customer.customer_classification_id == CustomerClassification.id)
         .join(CustomerGender, CustomerIndividualInfo.gender_id == CustomerGender.id)
         .join(MaritalStatus, CustomerIndividualInfo.marital_status_id == MaritalStatus.id)
-        .join(CustomerType, Customer.customer_type_id == CustomerType.id)
+        .outerjoin(CustomerType, Customer.customer_type_id == CustomerType.id)
         .filter(
             Customer.id == cif_id
         ).order_by(desc(CustomerIdentity.maker_at))

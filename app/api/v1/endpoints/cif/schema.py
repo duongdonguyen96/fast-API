@@ -5,7 +5,7 @@ from pydantic import Field
 
 from app.api.base.schema import BaseSchema
 from app.api.v1.endpoints.cif.base_field import CustomField
-from app.api.v1.schemas.utils import DropdownResponse
+from app.api.v1.schemas.utils import DropdownResponse, OptionalDropdownResponse
 
 
 class CifInformationResponse(BaseSchema):
@@ -63,7 +63,7 @@ class EmployeeResponse(BaseSchema):
 class CifCustomerInformationResponse(BaseSchema):
     customer_id: str = Field(..., description="Mã định danh khách hàng")
     status: StatusResponse = Field(..., description="Trạng thái")
-    cif_number: str = CustomField().CIFNumberField
+    cif_number: Optional[str] = CustomField().OptionalCIFNumberField
     avatar_url: Optional[str] = Field(..., description="Đường dẫn hình ảnh khách hàng")
     customer_classification: DropdownResponse = Field(..., description="Hạng khách hàng")
     full_name: str = Field(..., description="Họ tên tiếng anh")
@@ -77,7 +77,8 @@ class CifCustomerInformationResponse(BaseSchema):
     date_of_birth: date = Field(..., description="Ngày sinh")
     nationality: DropdownResponse = Field(..., description="Quốc tịch")
     marital_status: DropdownResponse = Field(..., description="Tình trạng hôn nhân")
-    customer_type: DropdownResponse = Field(..., description="Loại khách hàng")
+    # TODO: thông tin về loại khách hàng khi tạo CIF chưa có
+    customer_type: OptionalDropdownResponse = Field(None, description="Loại khách hàng")
     # TODO: hạng tín dụng chưa có field trong customer
     credit_rating: Optional[str] = Field(..., description="Hạng tín dụng")
     address: str = Field(..., description="Địa chỉ")
