@@ -18,7 +18,7 @@ class SignatureResponse(BaseSchema):
 
 
 class SignatureListResponse(BaseSchema):
-    cif_number: str = Field(..., description="CIF_NUMBER")
+    cif_number: Optional[str] = Field(..., description="CIF_NUMBER")
     full_name_vn: Optional[str] = Field(..., description="Tên tiếng việt")
 
 
@@ -82,12 +82,12 @@ class AgreementAuthorResponse(BaseSchema):
     id: str = Field(..., description="Mã danh mục thỏa thuận và uỷ quyền")
     code: str = Field(..., description="Code danh mục thỏa thuận và uỷ quyền")
     name: str = Field(..., description="Nội dung của danh mục thỏa thuận và uỷ quyền")
-    active_flag: bool = Field(
+    active_flag: Optional[bool] = Field(
         ...,
         description="Thỏa thuận chữ ký các hồ sơ chứng từ.`True`: Có , `False`: Không",
     )
-    method_sign: int = Field(..., description="Phương thức ký")
-    signature_list: List[SignatureListResponse] = Field(..., description='Danh sách chữ ký')
+    method_sign: Optional[int] = Field(..., description="Phương thức ký")
+    signature_list: Optional[List[SignatureListResponse]] = Field(..., description='Danh sách chữ ký')
 
 
 class AccountHolderSuccessResponse(BaseSchema):
