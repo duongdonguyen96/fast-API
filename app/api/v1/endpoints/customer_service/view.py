@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.get(
-    path="/crm/",
+    path="/",
     name="Kiểm Soát Sau",
     description="Truy suất danh sách hậu kiểm",
     responses=swagger_response(

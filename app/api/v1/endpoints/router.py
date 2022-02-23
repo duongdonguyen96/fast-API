@@ -12,7 +12,7 @@ router.include_router(router=views_user.router, prefix="/users", tags=["User"])
 
 router.include_router(router=views_file.router, prefix="/files", tags=["File"])
 
-router.include_router(router=view_customer_service.router, prefix="/customer-service", tags=["KSS"])
+router.include_router(router=view_customer_service.router, prefix="/post-check", tags=["KSS"])
 
 router.include_router(router=routers_config.router, prefix="/config", tags=["Configs"])
 
