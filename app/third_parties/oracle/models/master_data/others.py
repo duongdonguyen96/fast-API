@@ -428,8 +428,8 @@ class TransactionStage(Base):
                       comment='Mã giai đoạn')
     business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), comment='Tên bước hiện')
     sla_transaction_id = Column(VARCHAR(36), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
-    transaction_stage_phase_code = Column(VARCHAR(10), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
-    transaction_stage_phase_name = Column(VARCHAR(200), comment='Tên bước hiện')
+    transaction_stage_phase_code = Column(VARCHAR(50), comment='Mã bước thực hiện kiểu chữ(vd: IN, DUYET)')
+    transaction_stage_phase_name = Column(VARCHAR(250), comment='Tên bước hiện')
     responsible_flag = Column(NUMBER(1, 0, False), comment='Cờ người chịu trách nhiệm của bước thực hiện')
 
     business_type = relationship('BusinessType')

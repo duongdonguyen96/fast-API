@@ -22,6 +22,11 @@ class TransactionDaily(Base):
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
 
+    is_reject = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "),
+                       comment='Cờ đánh dấu trạng thái TRẢ hồ sơ')
+    is_cancel = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "),
+                       comment='Cờ đánh dấu trạng thái HỦY hồ sơ')
+
     transaction_parent = relationship('TransactionDaily', remote_side=[transaction_id])
     transaction_stage = relationship('TransactionStage')
 
@@ -38,7 +43,12 @@ class TransactionAll(Base):
     description = Column(VARCHAR(256), comment='Mô tả')
     created_at = Column(DateTime, comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày chỉnh sửa')
-    booking_id = Column(ForeignKey('crm_booking.booking_id'))
+    # booking_id = Column(ForeignKey('crm_booking.booking_id'))
+
+    is_reject = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "),
+                       comment='Cờ đánh dấu trạng thái TRẢ hồ sơ')
+    is_cancel = Column(NUMBER(1, 0, False), nullable=False, server_default=text("1 "),
+                       comment='Cờ đánh dấu trạng thái HỦY hồ sơ')
 
     booking = relationship('Booking')
     transaction_parent = relationship('TransactionAll', remote_side=[transaction_id])
