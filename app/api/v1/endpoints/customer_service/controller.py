@@ -22,3 +22,53 @@ class CtrKSS(BaseController):
         list_kss = self.call_repos(await repos_get_list_kss(query_data=query_data))
 
         return self.response(data=list_kss)
+
+    async def ctr_get_statistics(self):
+        statistics = [
+            {
+                "time": "00:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "01:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "02:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "03:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "04:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "05:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "06:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "07:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "08:00",
+                "total": 0,
+                "success": 0
+            }
+        ]
+        return self.response(data=statistics)
