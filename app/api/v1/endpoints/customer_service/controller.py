@@ -22,3 +22,22 @@ class CtrKSS(BaseController):
         list_kss = self.call_repos(await repos_get_list_kss(query_data=query_data))
 
         return self.response(data=list_kss)
+
+    async def ctr_history_post_check(self, postcheck_uuid: str):
+        history_post_check = [
+            {
+                "id": 1,
+                "kss_status": "Không hợp lệ",
+                "kss_status_old": "Chờ hậu kiểm",
+                "create_date_format": "2022-01-07 08:07:13",
+                "approve_status": "Approved",
+                "approve_date_format": "",
+                "status": "4",
+                "status_old": "1",
+                "result": "FAIL",
+                "create_user": "tuan13",
+                "approve_user": ""
+            }
+        ]
+
+        return self.response(data=history_post_check)
