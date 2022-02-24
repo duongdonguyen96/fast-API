@@ -47,3 +47,14 @@ class QueryParamsKSSRequest(BaseSchema):
     end_date: str = Field(None, description='Đến ngày')
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
+
+####################################################################################################
+# thống kê theo tháng
+####################################################################################################
+
+
+class StatisticsMonth(BaseSchema):
+    month: str = Field(..., description='Thống kê theo tháng')
+    total: int = Field(..., description='Thống kê giao dịch của khách hàng')
+    success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
+    refuse: int = Field(..., description='Tổng số giao dịch bị khách hàng từ chối')
