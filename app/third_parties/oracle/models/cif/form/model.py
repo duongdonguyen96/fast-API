@@ -60,7 +60,7 @@ class TransactionReceiver(Base):
     # transaction_id = Column(ForeignKey('crm_transaction_all.transaction_id'),
     #                         ForeignKey('crm_transaction_daily.transaction_id'), primary_key=True,
     #                         comment='Mã giao dịch')
-    transaction_id = Column(VARCHAR(36), comment='Mã transaction_id')
+    transaction_id = Column(VARCHAR(36), primary_key=True, comment='Mã transaction_id')
     user_id = Column(VARCHAR(36), comment='Mã user_id')
     user_name = Column(VARCHAR(100), comment='Tên user_id')
     user_fullname = Column(VARCHAR(100), comment='Tên đầy đủ user_id')
@@ -84,7 +84,7 @@ class TransactionSender(Base):
 
     # transaction_id = Column(ForeignKey('crm_transaction_daily.transaction_id'),
     #                         ForeignKey('crm_transaction_all.transaction_id'), primary_key=True, comment='Mã giao dịch')
-    transaction_id = Column(VARCHAR(36), comment='Mã transaction_id')
+    transaction_id = Column(VARCHAR(36), primary_key=True, comment='Mã transaction_id')
     user_id = Column(VARCHAR(36), comment='Mã user_id')
     user_name = Column(VARCHAR(100), comment='Tên user_id')
     user_fullname = Column(VARCHAR(100), comment='Tên đầy đủ user_id')
