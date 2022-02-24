@@ -47,3 +47,15 @@ class QueryParamsKSSRequest(BaseSchema):
     end_date: str = Field(None, description='Đến ngày')
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
+
+####################################################################################################
+# Thống kê hồ sơ hậu kiểm
+####################################################################################################
+
+
+class StatisticsProfilesResponse(BaseSchema):
+    total: int = Field(..., description="Tổng cộng")
+    success: int = Field(..., description="Thành công")
+    canceled: int = Field(..., description="Hủy bỏ")
+    processing: int = Field(..., description="Chờ hậu kiểm")
+    rejected: int = Field(..., description="Cần xác minh")

@@ -22,3 +22,14 @@ class CtrKSS(BaseController):
         list_kss = self.call_repos(await repos_get_list_kss(query_data=query_data))
 
         return self.response(data=list_kss)
+
+    async def ctr_get_statistics_profiles(self):
+
+        statistics_profiles = {
+            "total": 1,
+            "success": 0,
+            "canceled": 1,
+            "processing": 0,
+            "rejected": 0
+        }
+        return self.response(data=statistics_profiles)
