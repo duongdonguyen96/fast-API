@@ -6,7 +6,7 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
-    KSSResponse, QueryParamsKSSRequest
+    CreatePostCheckRequest, KSSResponse, QueryParamsKSSRequest
 )
 
 router = APIRouter()
@@ -30,3 +30,21 @@ async def view_list_kss(
     )
 
     return ResponseData[KSSResponse](**kss_response)
+
+
+@router.post(
+    path="/",
+    name="Thêm mới hậu kiểm",
+    description="Thêm mới hậu kiểm",
+    responses=swagger_response(
+        response_model=ResponseData[CreatePostCheckRequest],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def create_post_check(
+        post_check_request: CreatePostCheckRequest,
+        current_user = Depends(get_current_user_from_header())  # noqa
+):
+    post_check = await CtrKSS().ctr_create_post_check(post_check_request=post_check_request)
+
+    return ResponseData[CreatePostCheckRequest](**post_check)

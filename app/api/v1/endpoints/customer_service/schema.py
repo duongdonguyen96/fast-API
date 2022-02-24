@@ -47,3 +47,21 @@ class QueryParamsKSSRequest(BaseSchema):
     end_date: str = Field(None, description='Đến ngày')
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
+
+####################################################################################################
+# create post check
+####################################################################################################
+
+
+class PostCheck(BaseSchema):
+    check_list_id: int = Field(..., description='ID của danh mục kiểm tra')
+    check_list_desc: str = Field(..., description='Danh mục kiểm tra')
+    answer: str = Field(..., description='Đánh giá')
+    note: str = Field(..., description='Mô tả')
+
+
+class CreatePostCheckRequest(BaseSchema):
+    customer_id: str = Field(..., description='Id của khách hàng')
+    kss_status: str = Field(..., description='Trạng thái hậu kiểm')
+    username: str = Field(..., description='User hậu kiểm')
+    post_control: List[PostCheck] = Field(...)

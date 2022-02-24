@@ -1,6 +1,8 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import repos_get_list_kss
-from app.api.v1.endpoints.customer_service.schema import QueryParamsKSSRequest
+from app.api.v1.endpoints.customer_service.schema import (
+    CreatePostCheckRequest, QueryParamsKSSRequest
+)
 
 
 class CtrKSS(BaseController):
@@ -22,3 +24,43 @@ class CtrKSS(BaseController):
         list_kss = self.call_repos(await repos_get_list_kss(query_data=query_data))
 
         return self.response(data=list_kss)
+
+    async def ctr_create_post_check(self, post_check_request: CreatePostCheckRequest):
+        post_check_response = {
+            "customer_id": "2988999b-6152-49fa-9d16-dfa79de008d6",
+            "kss_status": "2",
+            "username": "abc123",
+            "post_control": [
+                {
+                    "check_list_id": 1,
+                    "check_list_desc": "Tính toàn vẹn của GTĐD",
+                    "answer": "PASS",
+                    "note": ""
+                },
+                {
+                    "check_list_id": 2,
+                    "check_list_desc": "GTĐD không có dâu hiệu giả mạo/chỉnh sửa",
+                    "answer": "PASS",
+                    "note": ""
+                },
+                {
+                    "check_list_id": 3,
+                    "check_list_desc": "Hình ảnh chân dung",
+                    "answer": "PASS",
+                    "note": ""
+                },
+                {
+                    "check_list_id": 4,
+                    "check_list_desc": "Thông tin OCR so với thông tin trên GTĐD",
+                    "answer": "PASS",
+                    "note": ""
+                },
+                {
+                    "check_list_id": 5,
+                    "check_list_desc": "Yếu tố khác",
+                    "answer": "PASS",
+                    "note": ""
+                }
+            ]
+        }
+        return self.response(data=post_check_response)
