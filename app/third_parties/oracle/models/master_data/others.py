@@ -262,7 +262,7 @@ class Phase(Base):
     business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
                               comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
     code = Column('phase_code', VARCHAR(50), nullable=False, comment='Mã code Giai đoạn xử lý')
-    name = Column('phase_name', VARCHAR(255), nullable=False, comment='Tên Giai đoạn xử lý')
+    name = Column('phase_name', VARCHAR(250), nullable=False, comment='Tên Giai đoạn xử lý')
 
     business_type = relationship('BusinessType')
     stage = relationship('Stage', secondary='crm_stage_phase')
@@ -275,7 +275,7 @@ class Lane(Base):
     business_type_id = Column(ForeignKey('crm_business_type.business_type_id'), nullable=False,
                               comment='ID loại nghiệp vụ (Vd: Mở TK thanh toán, TK Tiết kiệm, EB...)')
     code = Column('lane_code', VARCHAR(50), nullable=False, comment='Mã Luồng xử lý')
-    name = Column('lane_name', VARCHAR(255), nullable=False, comment='Tên Luồng xử lý')
+    name = Column('lane_name', VARCHAR(250), nullable=False, comment='Tên Luồng xử lý')
     created_at = Column(DateTime, nullable=False, server_default=text("sysdate "), comment='Ngày tạo')
     updated_at = Column(DateTime, comment='Ngày cập nhật')
 
@@ -344,8 +344,8 @@ class TransactionStageLane(Base):
 
     id = Column('transaction_stage_lane_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã luồng của bước thực hiện')
-    code = Column('transaction_stage_lane_code', VARCHAR(10), comment=' Mã code phân luồng')
-    name = Column('transaction_stage_lane_name', VARCHAR(200), comment='Tên phân luồng')
+    code = Column('transaction_stage_lane_code', VARCHAR(50), comment=' Mã code phân luồng')
+    name = Column('transaction_stage_lane_name', VARCHAR(250), comment='Tên phân luồng')
     department_id = Column(VARCHAR(36), comment='Mã phòng ban thực hiện')
     branch_id = Column(VARCHAR(36), comment='Mã đơn vị thực hiện')
 
@@ -356,8 +356,8 @@ class TransactionStagePhase(Base):
 
     id = Column('transaction_stage_phase_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID chính')
-    code = Column('transaction_stage_phase_code', VARCHAR(10), comment='Mã code')
-    name = Column('transaction_stage_phase_name', VARCHAR(200), comment='Tên')
+    code = Column('transaction_stage_phase_code', VARCHAR(50), comment='Mã code')
+    name = Column('transaction_stage_phase_name', VARCHAR(250), comment='Tên')
 
 
 class TransactionStageRole(Base):
@@ -367,9 +367,9 @@ class TransactionStageRole(Base):
     id = Column('transaction_stage_role_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã quyền thực hiện bước')
     transaction_stage_id = Column(VARCHAR(36), comment='Mã bước thực hiện')
-    code = Column('transaction_stage_role_code', VARCHAR(10),
+    code = Column('transaction_stage_role_code', VARCHAR(50),
                   comment='Mã quyền thưc hiện bước kiểu text ( vd: NHAP, DUYET)')
-    name = Column('transaction_stage_role_name', VARCHAR(36), comment='Tên quyền thực hiện bước')
+    name = Column('transaction_stage_role_name', VARCHAR(250), comment='Tên quyền thực hiện bước')
 
 
 class TransactionStageStatus(Base):
@@ -378,9 +378,9 @@ class TransactionStageStatus(Base):
 
     id = Column('transaction_stage_status_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='ID trạng thái của bước thực hiện')
-    code = Column('transaction_stage_status_code', VARCHAR(10),
+    code = Column('transaction_stage_status_code', VARCHAR(50),
                   comment='Mã trạng thái của bước thực hiện kiểu chữ (vd: KHOI_TAO) ')
-    name = Column('transaction_stage_status_name', VARCHAR(200), comment='Tên trạng thái của bước thực hiện')
+    name = Column('transaction_stage_status_name', VARCHAR(250), comment='Tên trạng thái của bước thực hiện')
 
 
 class TransactionJob(Base):
@@ -418,6 +418,7 @@ class TransactionStage(Base):
 
     id = Column('transaction_stage_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã bước  giao dịch')
+    name = Column('sub_identity_full_name', VARCHAR(250), nullable=False, comment='Tên họ đầy đủ')
     status_id = Column('transaction_stage_status_id',
                        ForeignKey('crm_transaction_stage_status.transaction_stage_status_id'),
                        comment='Mã trạng thái của  giao dịch')
@@ -460,7 +461,7 @@ class StageLane(Base):
 
     lane_id = Column('lane_id', ForeignKey('crm_lane.lane_id'), comment='Mã luồng xử lý của bước thực hiện', primary_key=True)
     stage_id = Column('stage_id', ForeignKey('crm_stage.stage_id'), comment='Mã bước  thực hiện', primary_key=True)
-    branch_id = Column('branch_id', ForeignKey('crm_branch.branch_id'), comment='ID Chi nhánh', primary_key=True)
+    branch_id = Column('branch_id', VARCHAR(36), ForeignKey('crm_branch.branch_id'), comment='ID Chi nhánh', primary_key=True)
     department_id = Column('department_id', VARCHAR(36), nullable=False, comment='ID Phòng ban')
 
     lane = relationship('Lane')
