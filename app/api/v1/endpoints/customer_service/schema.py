@@ -47,3 +47,12 @@ class QueryParamsKSSRequest(BaseSchema):
     end_date: str = Field(None, description='Đến ngày')
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
+
+####################################################################################################
+# vùng
+####################################################################################################
+
+
+class ZoneRequest(BaseSchema):
+    id: int = Field(..., description='Id vùng')
+    name: str = Field(..., description='Tên vùng')

@@ -13,3 +13,9 @@ async def repos_get_list_kss(
         'total_record': response.get('total_record'),
         'page': response.get('page')
     })
+
+
+async def repos_get_list_zone() -> ReposReturn:
+    is_success, response = await service_ekyc.get_list_zone()
+
+    return ReposReturn(data=response)

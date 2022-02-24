@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
 from starlette import status
 
@@ -6,7 +8,7 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
-    KSSResponse, QueryParamsKSSRequest
+    KSSResponse, QueryParamsKSSRequest, ZoneRequest
 )
 
 router = APIRouter()
@@ -30,3 +32,20 @@ async def view_list_kss(
     )
 
     return ResponseData[KSSResponse](**kss_response)
+
+
+@router.get(
+    path="/zone/",
+    name="Danh sách vùng",
+    description="Truy suất danh sách vùng",
+    responses=swagger_response(
+        response_model=ResponseData[List[ZoneRequest]],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_list_zone(
+        current_user = Depends(get_current_user_from_header())  # noqa
+):
+    zone_response = await CtrKSS().ctr_get_list_zone()
+
+    return ResponseData[List[ZoneRequest]](**zone_response)
