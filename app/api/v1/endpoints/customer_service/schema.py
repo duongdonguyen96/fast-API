@@ -53,7 +53,7 @@ class QueryParamsKSSRequest(BaseSchema):
 ####################################################################################################
 
 
-class ZoneResponse(BaseSchema):
+class BranchResponse(BaseSchema):
     zone_id: int = Field(..., description='Zone id')
     code: str = Field(..., description='code')
     name: str = Field(..., description='name')

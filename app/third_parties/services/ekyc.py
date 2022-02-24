@@ -170,7 +170,7 @@ class ServiceEKYC:
             logger.error(str(ex))
             return False, {"message": str(ex)}
 
-    async def get_list_zone(self, query_param: dict):
+    async def get_list_branch(self, query_param: dict):
         api_url = f"{self.url}api/v1/customer-service/crm/branch"
         try:
             async with self.session.get(url=api_url, headers=self.headers, params=query_param,

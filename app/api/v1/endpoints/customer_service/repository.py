@@ -15,8 +15,8 @@ async def repos_get_list_kss(
     })
 
 
-async def repos_get_list_zone(query_param: dict) -> ReposReturn:
+async def repos_get_list_branch(query_param: dict) -> ReposReturn:
 
-    is_success, response = await service_ekyc.get_list_zone(query_param=query_param)
+    is_success, response = await service_ekyc.get_list_branch(query_param=query_param)
 
     return ReposReturn(data=response)
