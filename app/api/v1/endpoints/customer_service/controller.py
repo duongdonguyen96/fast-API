@@ -22,3 +22,44 @@ class CtrKSS(BaseController):
         list_kss = self.call_repos(await repos_get_list_kss(query_data=query_data))
 
         return self.response(data=list_kss)
+
+    async def ctr_get_post_control(self):
+        # hash cứng data
+        post_control_response = {
+            "kss_status": "Hợp lệ",
+            "status": "2",
+            "approve_status": None,
+            "post_control": [
+                {
+                    "check_list_id": 1,
+                    "check_list_desc": "Tính toàn vẹn của GTĐD",
+                    "answer": "PASS",
+                    "note": None
+                },
+                {
+                    "check_list_id": 2,
+                    "check_list_desc": "GTĐD không có dấu hiệu giả mạo/chỉnh sửa",
+                    "answer": "PASS",
+                    "note": None
+                },
+                {
+                    "check_list_id": 3,
+                    "check_list_desc": "Hình ảnh chân dung",
+                    "answer": "PASS",
+                    "note": None
+                },
+                {
+                    "check_list_id": 4,
+                    "check_list_desc": "Thông tin OCR so với thông tin GTĐD",
+                    "answer": "PASS",
+                    "note": None
+                },
+                {
+                    "check_list_id": 5,
+                    "check_list_desc": "Yếu tố khác",
+                    "answer": "PASS",
+                    "note": None
+                }
+            ]
+        }
+        return self.response(data=post_control_response)
