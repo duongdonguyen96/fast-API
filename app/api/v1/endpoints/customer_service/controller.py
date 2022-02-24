@@ -1,6 +1,8 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import repos_get_list_kss
-from app.api.v1.endpoints.customer_service.schema import QueryParamsKSSRequest
+from app.api.v1.endpoints.customer_service.schema import (
+    QueryParamsKSSRequest, UpdatePostCheckRequest
+)
 
 
 class CtrKSS(BaseController):
@@ -22,3 +24,11 @@ class CtrKSS(BaseController):
         list_kss = self.call_repos(await repos_get_list_kss(query_data=query_data))
 
         return self.response(data=list_kss)
+
+    async def ctr_update_post_check(self, postcheck_update_request: UpdatePostCheckRequest):
+        update_post_check = {
+            "customer_id": "efc22caa-928b-46ff-8fa7-79b0342635b2",
+            "history_post_control_id": 0,
+            "username": "abc123"
+        }
+        return self.response(data=update_post_check)

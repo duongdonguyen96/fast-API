@@ -47,3 +47,13 @@ class QueryParamsKSSRequest(BaseSchema):
     end_date: str = Field(None, description='Đến ngày')
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
+
+####################################################################################################
+# phê duyệt hậu kiểm
+####################################################################################################
+
+
+class UpdatePostCheckRequest(BaseSchema):
+    customer_id: str = Field(..., description='Id của khách hàng')
+    history_post_control_id: int = Field(..., description='ID của lịch sử hậu kiểm')
+    username: str = Field(..., description='User hậu kiểm')
