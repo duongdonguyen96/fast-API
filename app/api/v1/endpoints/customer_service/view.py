@@ -69,7 +69,7 @@ async def view_list_zone(
 ):
     zone_response = await CtrKSS().ctr_get_list_zone()
 
-    return ResponseData[List[ZoneRequest]](**zone_response)
+    return zone_response
 
 
 @router.get(
