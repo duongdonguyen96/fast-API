@@ -8,7 +8,7 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
-    BranchResponse, KSSResponse, QueryParamsKSSRequest
+    BranchResponse, KSSResponse, QueryParamsKSSRequest, ZoneRequest
 )
 
 router = APIRouter()
@@ -43,10 +43,27 @@ async def view_list_kss(
         success_status_code=status.HTTP_200_OK
     )
 )
-async def view_list_zone(
+async def view_list_branch(
     zone_id: int = Query(None, description='Zone ID', nullable=True),
     current_user = Depends(get_current_user_from_header())  # noqa
 ):
     branch_response = await CtrKSS().ctr_get_list_branch(zone_id=zone_id)
 
     return ResponseData[List[BranchResponse]](**branch_response)
+
+
+@router.get(
+    path="/zone/",
+    name="Danh sách vùng",
+    description="Truy suất danh sách vùng",
+    responses=swagger_response(
+        response_model=ResponseData[List[ZoneRequest]],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_list_zone(
+        current_user = Depends(get_current_user_from_header())  # noqa
+):
+    zone_response = await CtrKSS().ctr_get_list_zone()
+
+    return ResponseData[List[ZoneRequest]](**zone_response)

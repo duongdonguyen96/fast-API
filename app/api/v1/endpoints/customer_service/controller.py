@@ -1,6 +1,6 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import (
-    repos_get_list_branch, repos_get_list_kss
+    repos_get_list_branch, repos_get_list_kss, repos_get_list_zone
 )
 from app.api.v1.endpoints.customer_service.schema import QueryParamsKSSRequest
 
@@ -33,3 +33,8 @@ class CtrKSS(BaseController):
         list_branch = self.call_repos(await repos_get_list_branch(query_param=query_param))
 
         return self.response(data=list_branch)
+
+    async def ctr_get_list_zone(self):
+        list_zone = self.call_repos(await repos_get_list_zone())
+
+        return self.response(data=list_zone)

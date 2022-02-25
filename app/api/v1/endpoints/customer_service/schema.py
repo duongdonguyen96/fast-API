@@ -57,3 +57,12 @@ class BranchResponse(BaseSchema):
     zone_id: int = Field(..., description='Zone id')
     code: str = Field(..., description='code')
     name: str = Field(..., description='name')
+
+####################################################################################################
+# vùng
+####################################################################################################
+
+
+class ZoneRequest(BaseSchema):
+    id: int = Field(..., description='Id vùng')
+    name: str = Field(..., description='Tên vùng')
