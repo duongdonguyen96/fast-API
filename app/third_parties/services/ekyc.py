@@ -234,3 +234,26 @@ class ServiceEKYC:
         except Exception as ex:
             logger.error(str(ex))
             return False, {"message": str(ex)}
+
+    async def get_statistics_months(self, months: int):
+        api_url = f"{self.url}/api/v1/customer-service/crm/statisticsbymonth/"
+
+        query = {
+            'month': months
+        }
+        try:
+            async with self.session.get(url=api_url, headers=self.headers, params=query, proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}

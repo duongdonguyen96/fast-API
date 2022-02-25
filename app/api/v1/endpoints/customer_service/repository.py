@@ -32,3 +32,10 @@ async def repos_get_statistics_profiles() -> ReposReturn:
     is_success, response = await service_ekyc.get_statistics_profiles()
 
     return ReposReturn(data=response)
+
+
+async def repos_get_statistics_month(months: int) -> ReposReturn:
+
+    is_success, response = await service_ekyc.get_statistics_months(months=months)
+
+    return ReposReturn(data=response)
