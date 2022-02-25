@@ -91,7 +91,7 @@ async def view_list_post_control(
 
 
 @router.get(
-    path="/zone/{postcheck_uuid}",
+    path="/history/{postcheck_uuid}/",
     name="Lịch sử hậu kiểm",
     description="Lịch sử hậu kiểm",
     responses=swagger_response(
