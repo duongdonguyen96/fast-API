@@ -1,7 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import (
     repos_get_list_branch, repos_get_list_kss, repos_get_list_zone,
-    repos_get_statistics_profiles
+    repos_get_statistics_month, repos_get_statistics_profiles
 )
 from app.api.v1.endpoints.customer_service.schema import (
     CreatePostCheckRequest, QueryParamsKSSRequest, UpdatePostCheckRequest
@@ -108,21 +108,9 @@ class CtrKSS(BaseController):
 
         return self.response(data=history_post_check)
 
-    async def ctr_statistics(self, months: str):
-        statistics_months = [
-            {
-                "month": "2022-01-01T00:00:00+07:00",
-                "total": 46,
-                "success": 14,
-                "refuse": 32
-            },
-            {
-                "month": "2022-02-01T00:00:00+07:00",
-                "total": 95,
-                "success": 30,
-                "refuse": 64
-            }
-        ]
+    async def ctr_statistics_month(self, months: int):
+        statistics_months = self.call_repos(await repos_get_statistics_month(months=months))
+
         return self.response(statistics_months)
 
     async def ctr_get_statistics_profiles(self):

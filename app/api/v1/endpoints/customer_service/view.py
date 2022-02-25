@@ -120,10 +120,10 @@ async def view_list_history_post_check(
     )
 )
 async def view_list_statistics_month(
-        months: str = Query(None, description='Số tháng', nullabe=True),
+        months: int = Query(..., description='Số tháng để thống kê'),
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
-    statistics_month_response = await CtrKSS().ctr_statistics(
+    statistics_month_response = await CtrKSS().ctr_statistics_month(
         months=months
     )
 
