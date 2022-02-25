@@ -34,7 +34,13 @@ class CtrKSS(BaseController):
 
         list_branch = self.call_repos(await repos_get_list_branch(query_param=query_param))
 
-        return self.response(data=list_branch)
+        branchs = [{
+            'id': branch['zone_id'],
+            'code': branch['code'],
+            'name': branch['name']
+        }for branch in list_branch]
+
+        return self.response(data=branchs)
 
     async def ctr_get_list_zone(self):
         list_zone = self.call_repos(await repos_get_list_zone())
