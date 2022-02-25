@@ -19,7 +19,7 @@ class ListKSS(BaseSchema):
                                                           "3: CCCD cũ, "
                                                           "4: CCCD mới (gắn chíp)")
     status: Optional[str] = Field(..., description="Trạng thái")
-    date_status: Optional[str] = Field(..., description="Trạng thái giao dịch")
+    trans_date: Optional[str] = Field(..., description="Trạng thái giao dịch")
     ekyc_step: Optional[str] = Field(..., description="Nghiệp vụ")
     kss_status: Optional[str] = Field(..., description="Trạng thái kiểm soát sau")
     date_kss: Optional[str] = Field(..., description="Ngày kiểm soát sau")
@@ -47,6 +47,25 @@ class QueryParamsKSSRequest(BaseSchema):
     end_date: str = Field(None, description='Đến ngày')
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
+
+####################################################################################################
+# Branch
+####################################################################################################
+
+
+class BranchResponse(BaseSchema):
+    zone_id: int = Field(..., description='Zone id')
+    code: str = Field(..., description='code')
+    name: str = Field(..., description='name')
+
+####################################################################################################
+# vùng
+####################################################################################################
+
+
+class ZoneRequest(BaseSchema):
+    id: int = Field(..., description='Id vùng')
+    name: str = Field(..., description='Tên vùng')
 
 
 ###################################################################################################
