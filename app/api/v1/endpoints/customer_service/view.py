@@ -28,7 +28,7 @@ router = APIRouter()
 )
 async def view_list_kss(
         query_params: QueryParamsKSSRequest = Depends(),
-        current_user = Depends(get_current_user_from_header())  # noqa
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     kss_response = await CtrKSS().ctr_get_list_kss(
         query_params=query_params
@@ -47,8 +47,8 @@ async def view_list_kss(
     )
 )
 async def view_list_branch(
-    zone_id: int = Query(None, description='Zone ID', nullable=True),
-    current_user = Depends(get_current_user_from_header())  # noqa
+        zone_id: int = Query(None, description='Zone ID', nullable=True),
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     branch_response = await CtrKSS().ctr_get_list_branch(zone_id=zone_id)
 
@@ -65,7 +65,7 @@ async def view_list_branch(
     )
 )
 async def view_list_zone(
-        current_user = Depends(get_current_user_from_header())  # noqa
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     zone_response = await CtrKSS().ctr_get_list_zone()
 
@@ -82,7 +82,7 @@ async def view_list_zone(
     )
 )
 async def view_list_post_control(
-        postcheck_uuid: str, # noqa
+        postcheck_uuid: str,  # noqa
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
     post_control_response = await CtrKSS().ctr_get_post_control()
@@ -100,8 +100,8 @@ async def view_list_post_control(
     )
 )
 async def view_list_history_post_check(
-        postcheck_uuid: str, # noqa
-        current_user = Depends(get_current_user_from_header())  # noqa
+        postcheck_uuid: str,  # noqa
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     history_post_check = await CtrKSS().ctr_history_post_check(
         postcheck_uuid=postcheck_uuid
@@ -140,7 +140,10 @@ async def view_list_statistics_month(
     )
 )
 async def view_list_statistics_profiles(
-        current_user = Depends(get_current_user_from_header())  # noqa
+        selected_date: str = Query(None, description='Chọn ngày kết thúc DD/MM/YYYY'),
+        start_date: str = Query(None, description='Chọn ngày'),
+        end_date: str = Query(None, description='Chọn ngày bắt đầu DD/MM/YYYY'),
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     statistics_profiles = await CtrKSS().ctr_get_statistics_profiles()
 
@@ -157,7 +160,7 @@ async def view_list_statistics_profiles(
     )
 )
 async def view_list_statistics(
-        current_user = Depends(get_current_user_from_header())  # noqa
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     statistics = await CtrKSS().ctr_get_statistics()
 
@@ -175,7 +178,7 @@ async def view_list_statistics(
 )
 async def create_post_check(
         post_check_request: CreatePostCheckRequest,
-        current_user = Depends(get_current_user_from_header())  # noqa
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     post_check = await CtrKSS().ctr_create_post_check(post_check_request=post_check_request)
 
@@ -193,7 +196,7 @@ async def create_post_check(
 )
 async def update_post_check(
         postcheck_update_request: UpdatePostCheckRequest,
-        current_user = Depends(get_current_user_from_header())  # noqa
+        current_user=Depends(get_current_user_from_header())  # noqa
 ):
     update_postcheck = await CtrKSS().ctr_update_post_check(postcheck_update_request=postcheck_update_request)
 

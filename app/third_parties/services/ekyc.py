@@ -215,3 +215,22 @@ class ServiceEKYC:
                     "res": str(ex)
                 }),
             }
+
+    async def get_statistics_profiles(self):
+        api_url = f"{self.url}/api/v1/customer-service/crm/profilestatistics"
+        try:
+            async with self.session.get(url=api_url, headers=self.headers, proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}
