@@ -19,7 +19,7 @@ class ListKSS(BaseSchema):
                                                           "3: CCCD cũ, "
                                                           "4: CCCD mới (gắn chíp)")
     status: Optional[str] = Field(..., description="Trạng thái")
-    date_status: Optional[str] = Field(..., description="Trạng thái giao dịch")
+    trans_date: Optional[str] = Field(..., description="Trạng thái giao dịch")
     ekyc_step: Optional[str] = Field(..., description="Nghiệp vụ")
     kss_status: Optional[str] = Field(..., description="Trạng thái kiểm soát sau")
     date_kss: Optional[str] = Field(..., description="Ngày kiểm soát sau")
