@@ -98,3 +98,20 @@ class CtrKSS(BaseController):
         ]
 
         return self.response(data=history_post_check)
+
+    async def ctr_statistics(self, months: str):
+        statistics_months = [
+            {
+                "month": "2022-01-01T00:00:00+07:00",
+                "total": 46,
+                "success": 14,
+                "refuse": 32
+            },
+            {
+                "month": "2022-02-01T00:00:00+07:00",
+                "total": 95,
+                "success": 30,
+                "refuse": 64
+            }
+        ]
+        return self.response(statistics_months)

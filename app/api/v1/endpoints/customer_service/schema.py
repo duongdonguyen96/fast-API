@@ -101,3 +101,14 @@ class HistoryPostCheckResponse(BaseSchema):
     result: str = Field(..., description='Kết quả đánh giá')
     create_user: str = Field(..., description='User create')
     approve_user: str = Field(..., description='User approve')
+
+####################################################################################################
+# thống kê theo tháng
+####################################################################################################
+
+
+class StatisticsMonth(BaseSchema):
+    month: str = Field(..., description='Thống kê theo tháng')
+    total: int = Field(..., description='Thống kê giao dịch của khách hàng')
+    success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
+    refuse: int = Field(..., description='Tổng số giao dịch bị khách hàng từ chối')

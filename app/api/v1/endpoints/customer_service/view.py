@@ -9,7 +9,7 @@ from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
     BranchResponse, HistoryPostCheckResponse, KSSResponse, PostControlResponse,
-    QueryParamsKSSRequest, ZoneRequest
+    QueryParamsKSSRequest, StatisticsMonth, ZoneRequest
 )
 
 router = APIRouter()
@@ -106,3 +106,23 @@ async def view_list_history_post_check(
     )
 
     return ResponseData[List[HistoryPostCheckResponse]](**history_post_check)
+
+
+@router.get(
+    path="/statistics/months/",
+    name="Thống kê theo tháng",
+    description="Thống kê theo tháng",
+    responses=swagger_response(
+        response_model=ResponseData[List[StatisticsMonth]],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_list_statistics_month(
+        months: str = Query(None, description='Số tháng', nullabe=True),
+        current_user=Depends(get_current_user_from_header())  # noqa
+):
+    statistics_month_response = await CtrKSS().ctr_statistics(
+        months=months
+    )
+
+    return ResponseData[List[StatisticsMonth]](**statistics_month_response)
