@@ -13,3 +13,10 @@ async def repos_get_list_kss(
         'total_record': response.get('total_record'),
         'page': response.get('page')
     })
+
+
+async def repos_get_list_branch(query_param: dict) -> ReposReturn:
+
+    is_success, response = await service_ekyc.get_list_branch(query_param=query_param)
+
+    return ReposReturn(data=response)

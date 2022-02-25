@@ -1,5 +1,7 @@
 from app.api.base.controller import BaseController
-from app.api.v1.endpoints.customer_service.repository import repos_get_list_kss
+from app.api.v1.endpoints.customer_service.repository import (
+    repos_get_list_branch, repos_get_list_kss
+)
 from app.api.v1.endpoints.customer_service.schema import QueryParamsKSSRequest
 
 
@@ -22,3 +24,12 @@ class CtrKSS(BaseController):
         list_kss = self.call_repos(await repos_get_list_kss(query_data=query_data))
 
         return self.response(data=list_kss)
+
+    async def ctr_get_list_branch(self, zone_id: int):
+        query_param = {
+            'zone_id': zone_id
+        } if zone_id else None
+
+        list_branch = self.call_repos(await repos_get_list_branch(query_param=query_param))
+
+        return self.response(data=list_branch)
