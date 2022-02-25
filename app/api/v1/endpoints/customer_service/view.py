@@ -10,7 +10,7 @@ from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
     BranchResponse, HistoryPostCheckResponse, KSSResponse, PostControlResponse,
     QueryParamsKSSRequest, StatisticsMonth, StatisticsProfilesResponse,
-    ZoneRequest
+    StatisticsResponse, ZoneRequest
 )
 
 router = APIRouter()
@@ -144,3 +144,20 @@ async def view_list_statistics_profiles(
     statistics_profiles = await CtrKSS().ctr_get_statistics_profiles()
 
     return ResponseData[StatisticsProfilesResponse](**statistics_profiles)
+
+
+@router.get(
+    path="/statistics/",
+    name="Thống kê số liệu API POST",
+    description="Thống kê số liệu API POST",
+    responses=swagger_response(
+        response_model=ResponseData[List[StatisticsResponse]],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_list_statistics(
+        current_user = Depends(get_current_user_from_header())  # noqa
+):
+    statistics = await CtrKSS().ctr_get_statistics()
+
+    return ResponseData[List[StatisticsResponse]](**statistics)

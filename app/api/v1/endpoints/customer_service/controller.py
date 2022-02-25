@@ -126,3 +126,53 @@ class CtrKSS(BaseController):
             "rejected": 0
         }
         return self.response(data=statistics_profiles)
+
+    async def ctr_get_statistics(self):
+        statistics = [
+            {
+                "time": "00:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "01:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "02:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "03:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "04:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "05:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "06:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "07:00",
+                "total": 0,
+                "success": 0
+            },
+            {
+                "time": "08:00",
+                "total": 0,
+                "success": 0
+            }
+        ]
+        return self.response(data=statistics)

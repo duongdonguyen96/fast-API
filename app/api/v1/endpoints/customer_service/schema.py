@@ -124,3 +124,13 @@ class StatisticsProfilesResponse(BaseSchema):
     canceled: int = Field(..., description="Hủy bỏ")
     processing: int = Field(..., description="Chờ hậu kiểm")
     rejected: int = Field(..., description="Cần xác minh")
+
+
+####################################################################################################
+# Thống kê số liệu API POST
+####################################################################################################
+
+class StatisticsResponse(BaseSchema):
+    time: str = Field(..., description='Thống kê theo thời gian')
+    total: int = Field(..., description='Thống kê giao dịch của khách hàng')
+    success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
