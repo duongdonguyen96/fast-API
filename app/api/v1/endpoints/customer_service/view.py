@@ -10,7 +10,8 @@ from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
     BranchResponse, CreatePostCheckRequest, HistoryPostCheckResponse,
     KSSResponse, PostControlResponse, QueryParamsKSSRequest, StatisticsMonth,
-    StatisticsProfilesResponse, StatisticsResponse, ZoneRequest
+    StatisticsProfilesResponse, StatisticsResponse, UpdatePostCheckRequest,
+    ZoneRequest
 )
 
 router = APIRouter()
@@ -179,3 +180,21 @@ async def create_post_check(
     post_check = await CtrKSS().ctr_create_post_check(post_check_request=post_check_request)
 
     return ResponseData[CreatePostCheckRequest](**post_check)
+
+
+@router.put(
+    path="/",
+    name="Phê duyệt hậu kiểm",
+    description="Phê duyệt hậu kiểm",
+    responses=swagger_response(
+        response_model=ResponseData[UpdatePostCheckRequest],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def update_post_check(
+        postcheck_update_request: UpdatePostCheckRequest,
+        current_user = Depends(get_current_user_from_header())  # noqa
+):
+    update_postcheck = await CtrKSS().ctr_update_post_check(postcheck_update_request=postcheck_update_request)
+
+    return ResponseData[UpdatePostCheckRequest](**update_postcheck)
