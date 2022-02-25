@@ -1,6 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import (
-    repos_get_list_branch, repos_get_list_kss, repos_get_list_zone
+    repos_get_list_branch, repos_get_list_kss, repos_get_list_zone,
+    repos_get_statistics_profiles
 )
 from app.api.v1.endpoints.customer_service.schema import (
     CreatePostCheckRequest, QueryParamsKSSRequest, UpdatePostCheckRequest
@@ -126,13 +127,8 @@ class CtrKSS(BaseController):
 
     async def ctr_get_statistics_profiles(self):
 
-        statistics_profiles = {
-            "total": 1,
-            "success": 0,
-            "canceled": 1,
-            "processing": 0,
-            "rejected": 0
-        }
+        statistics_profiles = self.call_repos(await repos_get_statistics_profiles())
+
         return self.response(data=statistics_profiles)
 
     async def ctr_get_statistics(self):

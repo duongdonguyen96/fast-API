@@ -26,3 +26,9 @@ async def repos_get_list_zone() -> ReposReturn:
     is_success, response = await service_ekyc.get_list_zone()
 
     return ReposReturn(data=response)
+
+
+async def repos_get_statistics_profiles() -> ReposReturn:
+    is_success, response = await service_ekyc.get_statistics_profiles()
+
+    return ReposReturn(data=response)
