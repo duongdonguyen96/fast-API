@@ -54,9 +54,9 @@ class QueryParamsKSSRequest(BaseSchema):
 
 
 class BranchResponse(BaseSchema):
-    zone_id: int = Field(..., description='Zone id')
-    code: str = Field(..., description='code')
-    name: str = Field(..., description='name')
+    id: int = Field(..., description='ID của vùng')
+    code: str = Field(..., description='Code đơn vị')
+    name: str = Field(..., description='Tên đơn vị')
 
 ####################################################################################################
 # vùng
