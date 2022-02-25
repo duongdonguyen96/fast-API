@@ -418,7 +418,6 @@ class TransactionStage(Base):
 
     id = Column('transaction_stage_id', VARCHAR(36), primary_key=True, server_default=text("sys_guid() "),
                 comment='Mã bước  giao dịch')
-    name = Column('sub_identity_full_name', VARCHAR(250), nullable=False, comment='Tên họ đầy đủ')
     status_id = Column('transaction_stage_status_id',
                        ForeignKey('crm_transaction_stage_status.transaction_stage_status_id'),
                        comment='Mã trạng thái của  giao dịch')

@@ -207,4 +207,11 @@ class ServiceEKYC:
 
         except Exception as ex:
             logger.error(str(ex))
-            return False, {"message": str(ex)}
+            return False, {
+                "message": str({
+                    "proxy": self.proxy,
+                    "type": type(self.proxy),
+                    "url": api_url,
+                    "res": str(ex)
+                }),
+            }
