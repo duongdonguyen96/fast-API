@@ -83,3 +83,21 @@ class PostControlResponse(BaseSchema):
     status: str = Field(..., description='Trạng thái hậu kiểm')
     approve_status: Optional[str] = Field(..., description="Trạng thái phê duyệt")
     post_control: List[ListPostControlResponse] = Field(...)
+
+#############################################################################################
+# lịch sử hậu kiểm
+#############################################################################################
+
+
+class HistoryPostCheckResponse(BaseSchema):
+    id: int = Field(..., description='ID of History Post-control')
+    kss_status: str = Field(..., description='Status post-control description')
+    kss_status_old: str = Field(..., description='Status old post-control description')
+    create_date_format: str = Field(..., description='Create date')
+    approve_status: str = Field(..., description='Trạng thái phê duyệt')
+    approve_date_format: str = Field(..., description='Ngày phê duyệt')
+    status: str = Field(..., description='Status posst-control')
+    status_old: str = Field(..., description='Status old post-control')
+    result: str = Field(..., description='Kết quả đánh giá')
+    create_user: str = Field(..., description='User create')
+    approve_user: str = Field(..., description='User approve')
