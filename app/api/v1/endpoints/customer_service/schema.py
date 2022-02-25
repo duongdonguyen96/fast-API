@@ -112,3 +112,15 @@ class StatisticsMonth(BaseSchema):
     total: int = Field(..., description='Thống kê giao dịch của khách hàng')
     success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
     refuse: int = Field(..., description='Tổng số giao dịch bị khách hàng từ chối')
+
+####################################################################################################
+# Thống kê hồ sơ hậu kiểm
+####################################################################################################
+
+
+class StatisticsProfilesResponse(BaseSchema):
+    total: int = Field(..., description="Tổng cộng")
+    success: int = Field(..., description="Thành công")
+    canceled: int = Field(..., description="Hủy bỏ")
+    processing: int = Field(..., description="Chờ hậu kiểm")
+    rejected: int = Field(..., description="Cần xác minh")

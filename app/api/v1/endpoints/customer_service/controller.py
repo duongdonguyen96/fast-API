@@ -115,3 +115,14 @@ class CtrKSS(BaseController):
             }
         ]
         return self.response(statistics_months)
+
+    async def ctr_get_statistics_profiles(self):
+
+        statistics_profiles = {
+            "total": 1,
+            "success": 0,
+            "canceled": 1,
+            "processing": 0,
+            "rejected": 0
+        }
+        return self.response(data=statistics_profiles)
