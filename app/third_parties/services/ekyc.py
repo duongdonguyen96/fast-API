@@ -151,7 +151,7 @@ class ServiceEKYC:
             return False, {"errors": {"message": "eKYC error please try again later"}}
 
     async def get_list_kss(self, query_data):
-        api_url = f"{self.url}api/v1/customer-service/crm/"
+        api_url = f"{self.url}/api/v1/customer-service/crm/"
 
         try:
             async with self.session.get(url=api_url, headers=self.headers, params=query_data, proxy=self.proxy) as response:
@@ -171,7 +171,7 @@ class ServiceEKYC:
             return False, {"message": str(ex)}
 
     async def get_list_branch(self, query_param: dict):
-        api_url = f"{self.url}api/v1/customer-service/crm/branch"
+        api_url = f"{self.url}/api/v1/customer-service/crm/branch"
         try:
             async with self.session.get(url=api_url, headers=self.headers, params=query_param,
                                         proxy=self.proxy) as response:
@@ -190,7 +190,7 @@ class ServiceEKYC:
             return False, {"message": str(ex)}
 
     async def get_list_zone(self):
-        api_url = f"{self.url}api/v1/customer-service/crm/zone/"
+        api_url = f"{self.url}/api/v1/customer-service/crm/zone/"
 
         try:
             async with self.session.get(url=api_url, headers=self.headers, proxy=self.proxy) as response:
