@@ -66,3 +66,20 @@ class BranchResponse(BaseSchema):
 class ZoneRequest(BaseSchema):
     id: int = Field(..., description='Id vùng')
     name: str = Field(..., description='Tên vùng')
+
+
+###################################################################################################
+# thông tin hậu kiểm của khách hàng
+###################################################################################################
+class ListPostControlResponse(BaseSchema):
+    check_list_id: int = Field(..., description='ID của danh mục kiểm tra')
+    check_list_desc: str = Field(..., description='Danh mục kiểm tra')
+    answer: str = Field(..., description='Đánh giá')
+    note: Optional[str] = Field(..., description='Mô tả')
+
+
+class PostControlResponse(BaseSchema):
+    kss_status: str = Field(..., description="Trạng thái của KSS")
+    status: str = Field(..., description='Trạng thái hậu kiểm')
+    approve_status: Optional[str] = Field(..., description="Trạng thái phê duyệt")
+    post_control: List[ListPostControlResponse] = Field(...)
