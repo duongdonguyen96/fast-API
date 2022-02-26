@@ -20,6 +20,7 @@ from app.api.v1.endpoints.config.payment_account.co_owner import \
 from app.api.v1.endpoints.config.payment_account.detail import \
     view as view_payment_detail_info
 from app.api.v1.endpoints.config.personal import view as views_personal_info
+from app.api.v1.endpoints.config.post_check import view as view_post_check
 from app.api.v1.endpoints.config.staff import view as views_staff_info
 
 router = APIRouter()
@@ -57,3 +58,5 @@ router.include_router(router=view_co_owner_info.router)
 router.include_router(router=view_payment_detail_info.router)
 
 router.include_router(router=view_contact_type_info.router)
+
+router.include_router(router=view_post_check.router)
