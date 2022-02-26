@@ -162,3 +162,4 @@ class UpdatePostCheckRequest(BaseSchema):
     customer_id: str = Field(..., description='Id của khách hàng')
     history_post_control_id: int = Field(..., description='ID của lịch sử hậu kiểm')
     username: str = Field(..., description='User hậu kiểm')
+    is_approve: bool = Field(..., description='Loại phê duyệt - true : Đã duyệt, false : Từ chối')
