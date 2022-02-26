@@ -1,4 +1,3 @@
-import json
 from typing import List, Optional
 
 from loguru import logger
@@ -26,7 +25,8 @@ from app.third_parties.oracle.models.cif.basic_information.personal.model import
     CustomerIndividualInfo
 )
 from app.third_parties.oracle.models.cif.form.model import (
-    Booking, BookingBusinessForm, BookingCustomer, TransactionDaily
+    Booking, BookingBusinessForm, BookingCustomer, TransactionDaily,
+    TransactionReceiver, TransactionSender
 )
 from app.third_parties.oracle.models.master_data.address import (
     AddressCountry, AddressDistrict, AddressProvince, AddressWard
@@ -36,7 +36,9 @@ from app.third_parties.oracle.models.master_data.identity import (
     CustomerIdentityType, FingerType, HandSide, PassportCode, PassportType,
     PlaceOfIssue
 )
-from app.third_parties.oracle.models.master_data.others import Nation, Religion
+from app.third_parties.oracle.models.master_data.others import (
+    Nation, Religion, TransactionStage, TransactionStageStatus
+)
 from app.utils.constant.cif import (
     ADDRESS_COUNTRY_CODE_VN, BUSINESS_FORM_TTCN_GTDD_GTDD,
     BUSINESS_FORM_TTCN_GTDD_KM, CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_FEMALE,
@@ -363,7 +365,11 @@ async def repos_save_identity(
         saving_customer_contact_address: Optional[dict],  # CMND, CCCD mới có
         saving_customer_compare_image: dict,
         saving_customer_identity_images: List[dict],
-        log_data: json,
+        saving_transaction_stage_status: dict,
+        saving_transaction_stage: dict,
+        saving_transaction_daily: dict,
+        saving_transaction_sender: dict,
+        saving_transaction_receiver: dict,
         session: Session
 ):
     new_first_identity_image_id = generate_uuid()  # ID ảnh mặt trước hoặc ảnh hộ chiếu
@@ -418,24 +424,19 @@ async def repos_save_identity(
                 CustomerAddress(**saving_customer_contact_address)
             )
 
-        new_transaction_id = generate_uuid()
         new_booking_id = generate_uuid()
 
         # create booking & log
         session.add_all([
             # Tạo BOOKING, CRM_TRANSACTION_DAILY -> CRM_BOOKING -> BOOKING_CUSTOMER -> BOOKING_BUSSINESS_FORM
-            TransactionDaily(
-                transaction_id=new_transaction_id,
-                transaction_stage_id='BE_TEST',  # TODO
-                data=log_data,
-                transaction_root_id=new_transaction_id,
-                description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Tạo mới",
-                created_at=now(),
-                updated_at=now()
-            ),
+            TransactionStageStatus(**saving_transaction_stage_status),
+            TransactionStage(**saving_transaction_stage),
+            TransactionDaily(**saving_transaction_daily),
+            TransactionSender(**saving_transaction_sender),
+            TransactionReceiver(**saving_transaction_receiver),
             Booking(
                 id=new_booking_id,
-                transaction_id=new_transaction_id,
+                transaction_id=saving_transaction_daily['transaction_id'],
                 created_at=now(),
                 updated_at=now()
             ),
@@ -516,7 +517,7 @@ async def repos_save_identity(
 
         await write_transaction_log_and_update_booking(
             description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
-            log_data=log_data,
+            log_data=None,
             session=session,
             customer_id=customer_id,
             business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD
