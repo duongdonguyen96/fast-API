@@ -39,3 +39,10 @@ async def repos_get_statistics_month(months: int) -> ReposReturn:
     is_success, response = await service_ekyc.get_statistics_months(months=months)
 
     return ReposReturn(data=response)
+
+
+async def repos_update_post_check(request_data: dict) -> ReposReturn:
+
+    is_success, response = await service_ekyc.update_post_check(request_data=request_data)
+
+    return ReposReturn(data=response)
