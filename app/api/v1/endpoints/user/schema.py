@@ -10,6 +10,7 @@ class UserInfoResponse(BaseSchema):
     username: str = Field(..., description='Tên đăng nhập')
     full_name_vn: str = Field(..., description='Họ và tên người dùng')
     avatar_url: Optional[str] = Field(..., description='Link avatar')
+    email: Optional[str] = Field(None, description='Email')
 
 
 class AuthResponse(BaseSchema):
