@@ -1,8 +1,8 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import (
-    repos_get_list_branch, repos_get_list_kss, repos_get_list_zone,
-    repos_get_statistics_month, repos_get_statistics_profiles,
-    repos_update_post_check
+    repos_get_history_post_post_check, repos_get_list_branch,
+    repos_get_list_kss, repos_get_list_zone, repos_get_statistics_month,
+    repos_get_statistics_profiles, repos_update_post_check
 )
 from app.api.v1.endpoints.customer_service.schema import (
     CreatePostCheckRequest, QueryParamsKSSRequest, UpdatePostCheckRequest
@@ -91,21 +91,7 @@ class CtrKSS(BaseController):
         return self.response(data=post_control_response)
 
     async def ctr_history_post_check(self, postcheck_uuid: str):
-        history_post_check = [
-            {
-                "id": 1,
-                "kss_status": "Không hợp lệ",
-                "kss_status_old": "Chờ hậu kiểm",
-                "create_date_format": "2022-01-07 08:07:13",
-                "approve_status": "Approved",
-                "approve_date_format": "",
-                "status": "4",
-                "status_old": "1",
-                "result": "FAIL",
-                "create_user": "tuan13",
-                "approve_user": ""
-            }
-        ]
+        history_post_check = self.call_repos(await repos_get_history_post_post_check(postcheck_uuid=postcheck_uuid))
 
         return self.response(data=history_post_check)
 

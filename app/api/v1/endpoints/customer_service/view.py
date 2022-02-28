@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Path, Query
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -100,7 +100,7 @@ async def view_list_post_control(
     )
 )
 async def view_list_history_post_check(
-        postcheck_uuid: str,  # noqa
+        postcheck_uuid: str = Path(..., description='Id của khách hàng'),
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
     history_post_check = await CtrKSS().ctr_history_post_check(
