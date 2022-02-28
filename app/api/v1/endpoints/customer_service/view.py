@@ -8,10 +8,10 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
-    BranchResponse, CreatePostCheckRequest, HistoryPostCheckResponse,
-    KSSResponse, PostControlResponse, QueryParamsKSSRequest, StatisticsMonth,
-    StatisticsProfilesResponse, StatisticsResponse, UpdatePostCheckRequest,
-    ZoneRequest
+    BranchResponse, CreatePostCheckRequest, CustomerDetailResponse,
+    HistoryPostCheckResponse, KSSResponse, PostControlResponse,
+    QueryParamsKSSRequest, StatisticsMonth, StatisticsProfilesResponse,
+    StatisticsResponse, UpdatePostCheckRequest, ZoneRequest
 )
 
 router = APIRouter()
@@ -201,3 +201,21 @@ async def update_post_check(
     update_postcheck = await CtrKSS().ctr_update_post_check(postcheck_update_request=postcheck_update_request)
 
     return ResponseData[UpdatePostCheckRequest](**update_postcheck)
+
+
+@router.get(
+    path="/customer/{postcheck_uuid}",
+    name="Chi tiết thông tin khách hàng",
+    description="Chi tiết thông tin khách hàng",
+    responses=swagger_response(
+        response_model=ResponseData[CustomerDetailResponse],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_customer(
+        postcheck_uuid: str = Path(..., description='ID của khách hàng'),
+        current_user=Depends(get_current_user_from_header())  # noqa
+):
+    customer_detail_information = await CtrKSS().ctr_get_customer_detail(postcheck_uuid=postcheck_uuid)
+
+    return ResponseData[CustomerDetailResponse](**customer_detail_information)
