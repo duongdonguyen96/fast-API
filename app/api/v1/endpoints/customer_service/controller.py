@@ -1,8 +1,9 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import (
     repos_get_history_post_post_check, repos_get_list_branch,
-    repos_get_list_kss, repos_get_list_zone, repos_get_statistics_month,
-    repos_get_statistics_profiles, repos_update_post_check
+    repos_get_list_kss, repos_get_list_zone, repos_get_statistics,
+    repos_get_statistics_month, repos_get_statistics_profiles,
+    repos_update_post_check
 )
 from app.api.v1.endpoints.customer_service.schema import (
     CreatePostCheckRequest, QueryParamsKSSRequest, UpdatePostCheckRequest
@@ -40,7 +41,7 @@ class CtrKSS(BaseController):
             'id': branch['zone_id'],
             'code': branch['code'],
             'name': branch['name']
-        }for branch in list_branch]
+        } for branch in list_branch]
 
         return self.response(data=branchs)
 
@@ -101,59 +102,18 @@ class CtrKSS(BaseController):
         return self.response(statistics_months)
 
     async def ctr_get_statistics_profiles(self):
-
         statistics_profiles = self.call_repos(await repos_get_statistics_profiles())
 
         return self.response(data=statistics_profiles)
 
-    async def ctr_get_statistics(self):
-        statistics = [
-            {
-                "time": "00:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "01:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "02:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "03:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "04:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "05:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "06:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "07:00",
-                "total": 0,
-                "success": 0
-            },
-            {
-                "time": "08:00",
-                "total": 0,
-                "success": 0
-            }
-        ]
+    async def ctr_get_statistics(self, search_type: int, selected_date: str):
+        query_param = {}
+
+        query_param.update({'search_type': search_type}) if search_type else None
+        query_param.update({'selected_date': selected_date}) if selected_date else None
+
+        statistics = self.call_repos(await repos_get_statistics(query_param=query_param))
+
         return self.response(data=statistics)
 
     async def ctr_create_post_check(self, post_check_request: CreatePostCheckRequest):
