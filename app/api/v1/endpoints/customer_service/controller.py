@@ -1,9 +1,9 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import (
-    repos_get_history_post_post_check, repos_get_list_branch,
-    repos_get_list_kss, repos_get_list_zone, repos_get_statistics,
-    repos_get_statistics_month, repos_get_statistics_profiles,
-    repos_update_post_check
+    repos_get_customer_detail, repos_get_history_post_post_check,
+    repos_get_list_branch, repos_get_list_kss, repos_get_list_zone,
+    repos_get_statistics, repos_get_statistics_month,
+    repos_get_statistics_profiles, repos_update_post_check
 )
 from app.api.v1.endpoints.customer_service.schema import (
     CreatePostCheckRequest, QueryParamsKSSRequest, UpdatePostCheckRequest
@@ -166,3 +166,9 @@ class CtrKSS(BaseController):
         update_post_check = self.call_repos(await repos_update_post_check(request_data=request_data))
 
         return self.response(data=update_post_check)
+
+    async def ctr_get_customer_detail(self, postcheck_uuid: str):
+
+        customer_detail = self.call_repos(await repos_get_customer_detail(postcheck_uuid=postcheck_uuid))
+
+        return self.response(data=customer_detail)
