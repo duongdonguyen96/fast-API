@@ -71,3 +71,9 @@ async def repos_get_statistics(query_param: dict) -> ReposReturn:
         )
 
     return ReposReturn(data=response)
+
+
+async def repos_get_customer_detail(postcheck_uuid: str) -> ReposReturn:
+
+    is_success, response = await service_ekyc.get_customer_detail(postcheck_uuid=postcheck_uuid)
+    return ReposReturn(data=response)
