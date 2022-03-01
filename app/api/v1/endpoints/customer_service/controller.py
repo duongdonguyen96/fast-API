@@ -2,9 +2,9 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.customer_service.repository import (
     repos_create_post_check, repos_get_customer_detail,
     repos_get_history_post_post_check, repos_get_list_branch,
-    repos_get_list_kss, repos_get_list_zone, repos_get_statistics,
-    repos_get_statistics_month, repos_get_statistics_profiles,
-    repos_update_post_check
+    repos_get_list_kss, repos_get_list_zone, repos_get_post_control,
+    repos_get_statistics, repos_get_statistics_month,
+    repos_get_statistics_profiles, repos_update_post_check
 )
 from app.api.v1.endpoints.customer_service.schema import (
     CreatePostCheckRequest, QueryParamsKSSRequest, UpdatePostCheckRequest
@@ -51,45 +51,9 @@ class CtrKSS(BaseController):
 
         return self.response(data=list_zone)
 
-    async def ctr_get_post_control(self):
-        # hash cứng data
-        post_control_response = {
-            "kss_status": "Hợp lệ",
-            "status": "2",
-            "approve_status": None,
-            "post_control": [
-                {
-                    "check_list_id": 1,
-                    "check_list_desc": "Tính toàn vẹn của GTĐD",
-                    "answer": "PASS",
-                    "note": None
-                },
-                {
-                    "check_list_id": 2,
-                    "check_list_desc": "GTĐD không có dấu hiệu giả mạo/chỉnh sửa",
-                    "answer": "PASS",
-                    "note": None
-                },
-                {
-                    "check_list_id": 3,
-                    "check_list_desc": "Hình ảnh chân dung",
-                    "answer": "PASS",
-                    "note": None
-                },
-                {
-                    "check_list_id": 4,
-                    "check_list_desc": "Thông tin OCR so với thông tin GTĐD",
-                    "answer": "PASS",
-                    "note": None
-                },
-                {
-                    "check_list_id": 5,
-                    "check_list_desc": "Yếu tố khác",
-                    "answer": "PASS",
-                    "note": None
-                }
-            ]
-        }
+    async def ctr_get_post_control(self, postcheck_uuid: str):
+        post_control_response = self.call_repos(await repos_get_post_control(postcheck_uuid=postcheck_uuid))
+
         return self.response(data=post_control_response)
 
     async def ctr_history_post_check(self, postcheck_uuid: str):

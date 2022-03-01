@@ -48,6 +48,7 @@ class QueryParamsKSSRequest(BaseSchema):
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
 
+
 ####################################################################################################
 # Branch
 ####################################################################################################
@@ -57,6 +58,7 @@ class BranchResponse(BaseSchema):
     id: int = Field(..., description='ID của vùng')
     code: str = Field(..., description='Code đơn vị')
     name: str = Field(..., description='Tên đơn vị')
+
 
 ####################################################################################################
 # vùng
@@ -73,9 +75,9 @@ class ZoneRequest(BaseSchema):
 ###################################################################################################
 class ListPostControlResponse(BaseSchema):
     check_list_id: int = Field(..., description='ID của danh mục kiểm tra')
-    check_list_desc: str = Field(..., description='Danh mục kiểm tra')
+    check_list_desc: Optional[str] = Field(None, description='Danh mục kiểm tra')
     answer: str = Field(..., description='Đánh giá')
-    note: Optional[str] = Field(..., description='Mô tả')
+    note: Optional[str] = Field(None, description='Mô tả')
 
 
 class PostControlResponse(BaseSchema):
@@ -83,6 +85,7 @@ class PostControlResponse(BaseSchema):
     status: str = Field(..., description='Trạng thái hậu kiểm')
     approve_status: Optional[str] = Field(..., description="Trạng thái phê duyệt")
     post_control: List[ListPostControlResponse] = Field(...)
+
 
 #############################################################################################
 # lịch sử hậu kiểm
@@ -102,6 +105,7 @@ class HistoryPostCheckResponse(BaseSchema):
     create_user: str = Field(..., description='User create')
     approve_user: str = Field(..., description='User approve')
 
+
 ####################################################################################################
 # thống kê theo tháng
 ####################################################################################################
@@ -112,6 +116,7 @@ class StatisticsMonth(BaseSchema):
     total: int = Field(..., description='Thống kê giao dịch của khách hàng')
     success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
     refuse: int = Field(..., description='Tổng số giao dịch bị khách hàng từ chối')
+
 
 ####################################################################################################
 # Thống kê hồ sơ hậu kiểm
@@ -135,6 +140,7 @@ class StatisticsResponse(BaseSchema):
     total: int = Field(..., description='Thống kê giao dịch của khách hàng')
     success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
 
+
 ####################################################################################################
 # create post check
 ####################################################################################################
@@ -153,6 +159,7 @@ class CreatePostCheckRequest(BaseSchema):
     username: str = Field(..., description='User hậu kiểm')
     post_control: List[PostCheck] = Field(...)
 
+
 ####################################################################################################
 # phê duyệt hậu kiểm
 ####################################################################################################
@@ -163,6 +170,7 @@ class UpdatePostCheckRequest(BaseSchema):
     history_post_control_id: int = Field(..., description='ID của lịch sử hậu kiểm')
     username: str = Field(..., description='User hậu kiểm')
     is_approve: bool = Field(..., description='Loại phê duyệt - true : Đã duyệt, false : Từ chối')
+
 
 ####################################################################################################
 # Chi tiết thông tin khách hàng
@@ -225,7 +233,8 @@ class CustomerDetailResponse(BaseSchema):
     receive_ads: bool = Field(None, description='Nhận thông tin quảng cáo từ SCB')
     open_biometric: bool = Field(..., description='Bất/Tắt sinh trắc học eKYC')
     ocr_data: Optional[dict] = Field(..., description='Dữ liệu trích xuất từ giấy tờ tùy thân')
-    orc_data_errors: dict = Field(None, description='Lỗi kiểm tra giả mạo thông tin được trích xuất từ giấy tờ tùy thân')
+    orc_data_errors: dict = Field(None,
+                                  description='Lỗi kiểm tra giả mạo thông tin được trích xuất từ giấy tờ tùy thân')
     faces_matching_percent: float = Field(
         None,
         description='Tỷ lệ phần trăm giống nhau giữa hình ảnh trên giấy tờ và hình ảnh thật')
