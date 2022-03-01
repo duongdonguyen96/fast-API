@@ -55,6 +55,10 @@ ERROR_NOT_NULL = "ERROR_NOT_NULL"
 
 ERROR_NO_DATA = "ERROR_NO_DATA"
 
+ERROR_BEGIN_STAGE_NOT_EXIST = "ERROR_BEGIN_STAGE_NOT_EXIST"
+ERROR_NEXT_RECEIVER_NOT_EXIST = "ERROR_NEXT_RECEIVER_NOT_EXIST"
+ERROR_STAGE_NOT_EXIST = "ERROR_STAGE_NOT_EXIST"
+
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -109,5 +113,9 @@ MESSAGE_STATUS = {
 
     ERROR_NOT_NULL: " is not null",
 
-    ERROR_NO_DATA: "No data, please create data before get data"
+    ERROR_NO_DATA: "No data, please create data before get data",
+
+    ERROR_BEGIN_STAGE_NOT_EXIST: "Begin State is not existed",
+    ERROR_NEXT_RECEIVER_NOT_EXIST: "Next Receiver is not existed",
+    ERROR_STAGE_NOT_EXIST: "Stage is not existed"
 }

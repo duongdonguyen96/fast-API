@@ -12,9 +12,12 @@ from app.api.v1.endpoints.file.repository import (
     repos_check_is_exist_multi_file, repos_download_multi_file
 )
 from app.api.v1.endpoints.repository import (
-    repos_get_model_object_by_id_or_code, repos_get_model_objects_by_ids
+    repos_get_begin_stage, repos_get_model_object_by_id_or_code,
+    repos_get_model_objects_by_ids, repos_get_next_receiver
 )
 from app.third_parties.oracle.base import Base, SessionLocal
+from app.third_parties.oracle.models.master_data.others import Branch
+from app.utils.functions import generate_uuid
 
 
 class BaseController:
@@ -358,3 +361,115 @@ class BaseController:
                 })
 
         return parent_temp
+
+    async def ctr_create_transaction_daily_and_transaction_stage_for_init_cif(
+            self,
+            business_type_id: str
+    ):
+        """
+        Tạo data TransactionDaily và các TransactionStage khác cho bước mở CIF khi tạo giấy tờ định danh
+        """
+        current_user = self.current_user
+
+        saving_transaction_stage_status_id = generate_uuid()
+        saving_transaction_stage_id = generate_uuid()
+        transaction_daily_id = generate_uuid()
+
+        stage_status, stage = self.call_repos(
+            await repos_get_begin_stage(
+                business_type_id=business_type_id,
+                session=self.oracle_session
+            ))
+
+        saving_transaction_stage_status = dict(
+            id=saving_transaction_stage_status_id,
+            code=stage_status.code,
+            name=stage_status.name
+        )
+
+        saving_transaction_stage = dict(
+            id=saving_transaction_stage_id,
+            status_id=saving_transaction_stage_status_id,
+            lane_id=None,
+            phase_id=None,
+            business_type_id=business_type_id,
+            sla_transaction_id=None,  # TODO
+            transaction_stage_phase_code=stage.code,
+            transaction_stage_phase_name=stage.name,
+        )
+
+        saving_transaction_daily = dict(
+            transaction_id=transaction_daily_id,
+            transaction_stage_id=saving_transaction_stage_id,
+            transaction_parent_id=None,
+            transaction_root_id=transaction_daily_id,
+            is_reject=False,
+            data=None,
+            description="Khởi tạo CIF"
+        )
+
+        # sender_branch = await self.get_model_object_by_id(
+        #     model_id=current_user.branch_id,
+        #     model=Branch,
+        #     loc="stage_lane"
+        # )
+
+        # sender_department = await self.get_model_object_by_id(
+        #     model_id=stage_lane.department_id,
+        #     model=Department,
+        #     loc="stage_lane"
+        # )
+
+        saving_transaction_sender = dict(
+            transaction_id=transaction_daily_id,
+            user_id=current_user.user_id,
+            user_name=current_user.username,
+            user_fullname=current_user.full_name_vn,
+            user_email=current_user.email,
+            branch_id=None,  # TODO
+            branch_code=None,  # TODO
+            branch_name=None,  # TODO
+            department_id=None,  # TODO
+            department_code=None,  # TODO
+            department_name=None,  # TODO
+            position_id=None,  # TODO
+            position_code=None,  # TODO
+            position_name=None  # TODO
+        )
+
+        _, receiver = self.call_repos(await repos_get_next_receiver(
+            business_type_id=business_type_id,
+            stage_id=stage.id,
+            session=self.oracle_session
+        ))
+
+        receiver_branch = await self.get_model_object_by_id(
+            model_id=receiver.branch_id,
+            model=Branch,
+            loc="next_receiver -> branch_id"
+        )
+        # receiver_department = await self.get_model_object_by_id(
+        #     model_id=next_receiver.department_id,
+        #     model=Department,
+        #     loc="next_receiver -> department_id"
+        # )
+
+        saving_transaction_receiver = dict(
+            transaction_id=transaction_daily_id,
+            user_id=current_user.user_id,
+            user_name=current_user.username,
+            user_fullname=current_user.full_name_vn,
+            user_email=current_user.email,
+            branch_id=receiver_branch.id,
+            branch_code=receiver_branch.code,
+            branch_name=receiver_branch.name,
+            department_id=receiver.department_id,
+            department_code=None,  # TODO
+            department_name=None,  # TODO
+            position_id=None,  # TODO
+            position_code=None,  # TODO
+            position_name=None  # TODO
+        )
+
+        return (saving_transaction_stage_status, saving_transaction_stage, saving_transaction_daily, saving_transaction_sender,
+                saving_transaction_receiver)

@@ -38,8 +38,8 @@ from app.third_parties.oracle.models.master_data.customer import (
 from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
-    ADDRESS_COUNTRY_CODE_VN, CHANNEL_AT_THE_COUNTER, CONTACT_ADDRESS_CODE,
-    CRM_GENDER_TYPE_MALE, CUSTOMER_UNCOMPLETED_FLAG,
+    ADDRESS_COUNTRY_CODE_VN, BUSINESS_TYPE_INIT_CIF, CHANNEL_AT_THE_COUNTER,
+    CONTACT_ADDRESS_CODE, CRM_GENDER_TYPE_MALE, CUSTOMER_UNCOMPLETED_FLAG,
     EKYC_DOCUMENT_TYPE_NEW_CITIZEN, EKYC_DOCUMENT_TYPE_NEW_IDENTITY,
     EKYC_DOCUMENT_TYPE_OLD_CITIZEN, EKYC_DOCUMENT_TYPE_OLD_IDENTITY,
     EKYC_DOCUMENT_TYPE_PASSPORT, EKYC_GENDER_TYPE_FEMALE,
@@ -663,6 +663,13 @@ class CtrIdentityDocument(BaseController):
             "maker_at": now()
         }
         ############################################################################################################
+        # Tạo data TransactionDaily và các TransactionStage khác cho bước mở CIF
+        transaction_datas = await self.ctr_create_transaction_daily_and_transaction_stage_for_init_cif(
+            business_type_id=BUSINESS_TYPE_INIT_CIF
+        )
+
+        (saving_transaction_stage_status, saving_transaction_stage, saving_transaction_daily, saving_transaction_sender,
+         saving_transaction_receiver) = transaction_datas
 
         info_save_document = self.call_repos(
             await repos_save_identity(
@@ -676,7 +683,11 @@ class CtrIdentityDocument(BaseController):
                 saving_customer_contact_address=saving_customer_contact_address,
                 saving_customer_compare_image=saving_customer_compare_image,
                 saving_customer_identity_images=saving_customer_identity_images,
-                log_data=identity_document_request.json(),
+                saving_transaction_stage_status=saving_transaction_stage_status,
+                saving_transaction_stage=saving_transaction_stage,
+                saving_transaction_daily=saving_transaction_daily,
+                saving_transaction_sender=saving_transaction_sender,
+                saving_transaction_receiver=saving_transaction_receiver,
                 session=self.oracle_session
             )
         )
