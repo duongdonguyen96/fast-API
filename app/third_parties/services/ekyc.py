@@ -374,3 +374,31 @@ class ServiceEKYC:
         except Exception as ex:
             logger.error(str(ex))
             return False, {"message": str(ex)}
+
+    async def get_post_control(self, postcheck_uuid: str):
+        api_url = f"{self.url}/api/v1/customer-service/crm/postcontrol/"
+
+        query_params = {
+            'customer_id': postcheck_uuid
+        }
+
+        try:
+            async with self.session.get(url=api_url, params=query_params, headers=self.headers,
+                                        proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                elif response.status == status.HTTP_404_NOT_FOUND:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}
