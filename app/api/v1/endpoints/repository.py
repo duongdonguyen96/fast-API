@@ -104,7 +104,7 @@ async def repos_get_data_model_config(session: Session, model: Base, country_id:
                                       province_id: Optional[str] = None, district_id: Optional[str] = None,
                                       region_id: Optional[str] = None, ward_id: Optional[str] = None,
                                       level: Optional[str] = None, parent_id: Optional[str] = None,
-                                      is_special_dropdown: bool = False):
+                                      is_special_dropdown: bool = False, type_id: Optional[str] = None):
     list_data_engine = select(model)
     if hasattr(model, "country_id"):
         list_data_engine = list_data_engine.filter(model.country_id == country_id)
@@ -131,7 +131,7 @@ async def repos_get_data_model_config(session: Session, model: Base, country_id:
         list_data_engine = list_data_engine.filter(model.active_flag == 1)
 
     if hasattr(model, 'type'):
-        list_data_engine = list_data_engine.order_by(model.type)
+        list_data_engine = list_data_engine.filter(model.type == type_id)
 
     if hasattr(model, 'order_no'):
         list_data_engine = list_data_engine.order_by(model.order_no)
