@@ -84,8 +84,10 @@ async def repos_create_post_check(payload_data: dict) -> ReposReturn:
     return ReposReturn(data=response)
 
 
-async def repos_get_post_control(postcheck_uuid: str) -> ReposReturn:
-    is_success, response = await service_ekyc.get_post_control(postcheck_uuid=postcheck_uuid)
+async def repos_get_post_control(query_params) -> ReposReturn:
+    is_success, response = await service_ekyc.get_post_control(
+        query_params=query_params
+    )
 
     if not is_success:
         return ReposReturn(

@@ -83,9 +83,13 @@ async def view_list_zone(
 )
 async def view_list_post_control(
         postcheck_uuid: str = Path(..., description='Id của khách hàng'),
+        post_control_his_id: int = Query(None, description='ID lịch sử hậu kiểm'),
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
-    post_control_response = await CtrKSS().ctr_get_post_control(postcheck_uuid=postcheck_uuid)
+    post_control_response = await CtrKSS().ctr_get_post_control(
+        postcheck_uuid=postcheck_uuid,
+        post_control_his_id=post_control_his_id
+    )
 
     return ResponseData[PostControlResponse](**post_control_response)
 

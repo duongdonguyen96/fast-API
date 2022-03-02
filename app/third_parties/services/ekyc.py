@@ -375,12 +375,8 @@ class ServiceEKYC:
             logger.error(str(ex))
             return False, {"message": str(ex)}
 
-    async def get_post_control(self, postcheck_uuid: str):
+    async def get_post_control(self, query_params):
         api_url = f"{self.url}/api/v1/customer-service/crm/postcontrol/"
-
-        query_params = {
-            'customer_id': postcheck_uuid
-        }
 
         try:
             async with self.session.get(url=api_url, params=query_params, headers=self.headers,
