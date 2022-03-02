@@ -810,6 +810,11 @@ async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session
         model=AddressProvince,
         session=session
     )
+    # ocr trả date_of_birth là 00/00/00
+    if ocr_data.get('date_of_birth') and ocr_data.get('date_of_birth') != '00/00/00':
+        optional_date_of_birth = date_string_to_other_date_string_format(ocr_data.get('date_of_birth'), from_format='%d/%m/%Y')
+    else:
+        optional_date_of_birth = None
 
     passport_info = {
         "passport_information": {
@@ -836,8 +841,7 @@ async def mapping_ekyc_passport_ocr_data(image_url: str, ocr_data: dict, session
                 {
                     "full_name_vn": ocr_data.get('full_name'),
                     "gender": dropdown(optional_gender) if optional_gender else None,
-                    "date_of_birth": date_string_to_other_date_string_format(ocr_data.get('date_of_birth'),
-                                                                             from_format='%d/%m/%Y'),
+                    "date_of_birth": optional_date_of_birth,
                     "nationality": dropdown(optional_nationality) if optional_nationality else None,
                     "place_of_birth": dropdown(optional_place_of_birth) if optional_place_of_birth else None,
                     "identity_card_number": ocr_data.get('id_card_number'),
