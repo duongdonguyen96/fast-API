@@ -6,9 +6,10 @@ from app.third_parties.oracle.models.master_data.e_banking import (
 
 
 class CtrConfigEBanking(BaseController):
-    async def ctr_e_banking_notification_info(self):
+    async def ctr_e_banking_notification_info(self, type_id: str):
         e_banking_notification_info = self.call_repos(
             await repos_get_data_model_config(
+                type_id=type_id,
                 session=self.oracle_session, model=EBankingNotification
             )
         )
