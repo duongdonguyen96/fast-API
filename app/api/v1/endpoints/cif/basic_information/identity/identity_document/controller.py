@@ -278,8 +278,9 @@ class CtrIdentityDocument(BaseController):
         validate_place_of_issue_name = validate_place_of_issue.name
         # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
         # Nên việc validate không hợp lệ, cần phải thay đổi để validate
+        # RULE: Trường hợp đặc biệt: Do data validate gửi xuống EKYC yêu cầu phải là "Tp Hồ Chí Minh"
         if validate_place_of_issue_name == "TPHCM":
-            validate_place_of_issue_name = "TP HCM"
+            validate_place_of_issue_name = "Tp Hồ Chí Minh"
 
         # dict dùng để tạo mới hoặc lưu lại customer_identity
         saving_customer_identity = {
@@ -333,10 +334,10 @@ class CtrIdentityDocument(BaseController):
                                                                     loc='province_id')
         validate_place_of_birth_name = validate_place_of_birth.name
 
-        # RULE: Trường hợp đặc biệt, giá trị "TPHCM" ở core không đúng với chuẩn giá trị GTDD của chính phủ quy định
         # Nên việc validate không hợp lệ, cần phải thay đổi để validate
+        # RULE: Trường hợp đặc biệt: Do data validate gửi xuống EKYC yêu cầu phải là "Tp Hồ Chí Minh"
         if validate_place_of_birth_name == "TPHCM":
-            validate_place_of_birth_name = "TP HCM"
+            validate_place_of_birth_name = "Tp Hồ Chí Minh"
 
         # dict dùng để tạo mới hoặc lưu lại customer_individual_info
         saving_customer_individual_info = {
@@ -374,6 +375,9 @@ class CtrIdentityDocument(BaseController):
                                                                           model=AddressProvince,
                                                                           loc='resident_address -> province -> id')
             resident_address_province_name = resident_address_province.name
+            # RULE: Trường hợp đặc biệt: Do data validate gửi xuống EKYC yêu cầu phải là "Tp Hồ Chí Minh"
+            if resident_address_province_name == "TPHCM":
+                resident_address_province_name = "Tp Hồ Chí Minh"
 
             # check resident_address_district_id
             resident_address_district_id = address_information.resident_address.district.id
