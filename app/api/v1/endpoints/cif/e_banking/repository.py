@@ -35,58 +35,59 @@ from app.utils.functions import dropdown, now
 
 @auto_commit
 async def repos_save_e_banking_data(
-        cif_id: str,
-        insert_data,
-        created_by: str,
         session: Session,
-        log_data: json
-) -> ReposReturn:
-    # clear old data
-    e_banking_info = session.execute(select(
-        EBankingInfo
-    ).filter(
-        EBankingInfo.customer_id == cif_id,
-    )).first()
+        log_data: json,
+        cif_id: str,
+        balance_option,
+        reg_balance,
+        relationship,
+        balance_noti,
+        account_info,
+        auth_method,
+        created_by: str) -> ReposReturn:
+    """
+    1. Customer đã có E-banking => xóa dữ liệu cũ => Tạo dữ liệu mới
+    2. Tạo E-banking
+    """
+    e_banking_info = session.execute(select(EBankingInfo).filter(EBankingInfo.customer_id == cif_id)).first()
 
+    # 1. Xóa dữ liệu cũ
     if e_banking_info:
-
-        session.execute(delete(
-            EBankingInfoAuthentication
-        ).filter(
-            EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id,
-        ))
+        session.execute(delete(EBankingInfoAuthentication).filter(
+            EBankingInfoAuthentication.e_banking_info_id == e_banking_info.EBankingInfo.id))
 
         session.delete(e_banking_info.EBankingInfo)
 
-        e_banking_reg_balance = session.execute(select(
-            EBankingRegisterBalance.id
-        ).filter(
+        e_banking_reg_balance_id = session.execute(select(EBankingRegisterBalance.id).filter(
             EBankingRegisterBalance.customer_id == cif_id,
         )).scalars().all()
 
-        if e_banking_reg_balance:
-            session.execute(delete(
-                EBankingReceiverNotificationRelationship
-            ).filter(
-                EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id.in_(e_banking_reg_balance),
+        if e_banking_reg_balance_id:
+            session.execute(delete(EBankingReceiverNotificationRelationship).filter(
+                EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id.in_
+                (e_banking_reg_balance_id),
             ))
 
-            session.execute(delete(
-                EBankingRegisterBalanceNotification
-            ).filter(
-                EBankingRegisterBalanceNotification.eb_reg_balance_id.in_(e_banking_reg_balance),
+            session.execute(delete(EBankingRegisterBalanceNotification).filter(
+                EBankingRegisterBalanceNotification.eb_reg_balance_id.in_(e_banking_reg_balance_id),
             ))
 
-            session.execute(
-                delete(EBankingRegisterBalance).filter(EBankingRegisterBalance.id.in_(e_banking_reg_balance)))
-
-            session.execute(delete(
-                EBankingRegisterBalanceOption
-            ).filter(
+            session.execute(delete(EBankingRegisterBalanceOption).filter(
                 EBankingRegisterBalanceOption.customer_id == cif_id,
             ))
 
-    session.bulk_save_objects(insert_data)
+            session.execute(
+                delete(EBankingRegisterBalance).filter(EBankingRegisterBalance.id.in_(e_banking_reg_balance_id)))
+
+    session.bulk_save_objects([EBankingRegisterBalanceOption(**item) for item in balance_option])
+    session.bulk_save_objects([EBankingRegisterBalance(**item) for item in reg_balance])
+    session.bulk_save_objects([EBankingReceiverNotificationRelationship(**item) for item in relationship])
+    session.bulk_save_objects([EBankingRegisterBalanceNotification(**item) for item in balance_noti])
+
+    session.add(EBankingInfo(**account_info))
+    session.flush()
+
+    session.bulk_save_objects([EBankingInfoAuthentication(**item) for item in auth_method])
 
     await write_transaction_log_and_update_booking(
         description="Tạo CIF -> e-banking -- Tạo mới",
@@ -321,7 +322,6 @@ async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn
             EBankingInfo.customer_id == cif_id
         )
     ).all()
-
     account_info = {}
     for auth_method in auth_method_query:
         if auth_method.EBankingInfo:

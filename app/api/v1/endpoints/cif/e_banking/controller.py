@@ -8,14 +8,6 @@ from app.api.v1.endpoints.cif.e_banking.schema import (
     EBankingRequest, GetInitialPasswordMethod
 )
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
-from app.third_parties.oracle.models.cif.e_banking.model import (
-    EBankingInfo, EBankingInfoAuthentication,
-    EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
-    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption
-)
-from app.third_parties.oracle.models.cif.payment_account.model import (
-    CasaAccount
-)
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerContactType, CustomerRelationshipType
 )
@@ -26,25 +18,32 @@ from app.third_parties.oracle.models.master_data.others import (
     MethodAuthentication
 )
 from app.utils.constant.cif import (
-    EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACCOUNT_TYPE_SAVING,
-    EBANKING_ACTIVE_PASSWORD_EMAIL, EBANKING_ACTIVE_PASSWORD_SMS,
-    EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
+    EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
+    EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
 )
 from app.utils.functions import generate_uuid, now
 
 
 class CtrEBanking(BaseController):
     async def ctr_save_e_banking(self, cif_id: str, e_banking: EBankingRequest):
+        """
+        func dùng để tạo mới E-banking phần (I, III.A)
+        """
+        data_reg_balance_option = []  # OTT/SMS
+        data_eb_reg_balance = []  # dữ liệu thông tin người nhận thông báo (primary)
+        data_eb_receiver_noti_relationship = []  # dữ liệu thông tin người nhận thông báo (relationship)
+        data_eb_reg_balance_noti = []  # dư liệu tùy chọn thông báo
+        data_account_info = {}  # Thông tin tài khoản
+        auth_method = []  # Hình thức xác thực
         current_customer = self.call_repos(
             await repos_get_initializing_customer(
                 cif_id=cif_id,
                 session=self.oracle_session
             ))
-        insert_data = []
-
+        # I. Thông tin biến động số dư tài khoản thanh toán
         change_of_balance_payment_account = e_banking.change_of_balance_payment_account
         if e_banking.change_of_balance_payment_account.register_flag:
-            # lọc và kiểm tra và lấy hình thức liên lạc được đánh dấu có tồn tại hay không ?
+            # kiểm tra hình thức liên lạc
             contact_types = await self.get_model_objects_by_ids(
                 model=CustomerContactType,
                 model_ids=[contact_type.id for contact_type in change_of_balance_payment_account.customer_contact_types
@@ -54,171 +53,119 @@ class CtrEBanking(BaseController):
 
             register_balance_casas = change_of_balance_payment_account.register_balance_casas
 
-            # kiểm tra tùy chọn thông báo / loại quan hệ / tài khoản ở mục I có tồn tại hay không ?
-            notification_ids, relationship_ids, casa_account_ids = list(), set(), []
+            # kiểm tra tùy chọn thông báo, mối quan hệ
+            notification_ids, relationship_ids, casa_account_ids = [], set(), []
             for register_balance_casa in register_balance_casas:
                 for notification in register_balance_casa.e_banking_notifications:
                     notification_ids.append(notification.id)
                 for relationship in register_balance_casa.notification_casa_relationships:
                     relationship_ids.add(relationship.relationship_type.id)
                 casa_account_ids.append(register_balance_casa.account_id)
-            # kiểm tra tùy chọn thông báo ở mục I có tồn tại hay không ?
+            # kiểm tra tùy chọn thông báo
             await self.get_model_objects_by_ids(
                 model=EBankingNotification,
                 model_ids=notification_ids,
                 loc="change_of_balance_payment_account -> register_balance_casas -> e_banking_notifications"
             )
-            # kiểm tra loại quan hệ ở mục I có tồn tại hay không ?
+            # kiểm tra mối quan hệ
             await self.get_model_objects_by_ids(
                 model=CustomerRelationshipType,
                 model_ids=list(relationship_ids),
                 loc="notification_casa_relationships -> relationship_type -> id"
             )
 
-            # kiểm tra tài khoản ở mục I có tồn tại hay không ?
-            await self.get_model_objects_by_ids(
-                model=CasaAccount,
-                model_ids=casa_account_ids,
-                loc="register_balance_casas -> account_id"
-            )
+            # TODO kiểm tra tài khoản nhận thông báo, hiện tại mới tạo tài khoản thanh toán => chưa có account_id
+            # if register_balance_casas.account_id:
+            #     await self.get_model_objects_by_ids(
+            #         model=CasaAccount,
+            #         model_ids=casa_account_ids,
+            #         loc="register_balance_casas -> account_id"
+            #     )
 
-            # lưu hình thức nhận thông báo taì khoản thanh toàn (TKTT) I -> 1
-            insert_data.extend([EBankingRegisterBalanceOption(
-                customer_id=cif_id,
-                e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
-                customer_contact_type_id=contact_type.id,
-                created_at=now()
-            ) for contact_type in contact_types])
+            # Hình thức nhận thông báo
+            for contact_type in contact_types:
+                data_reg_balance_option.append({
+                    "customer_id": cif_id,
+                    "e_banking_register_account_type": EBANKING_ACCOUNT_TYPE_CHECKING,
+                    "customer_contact_type_id": contact_type.id,
+                    "created_at": now()
+                })
 
             for register_balance_casa in register_balance_casas:
-                # lưu I -> 2 -> b (primary) Thông tin người nhận thông báo
                 eb_reg_balance_id = generate_uuid()
-                insert_data.append(
-                    EBankingRegisterBalance(
-                        id=eb_reg_balance_id,
-                        customer_id=cif_id,
-                        e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_CHECKING,
-                        full_name=current_customer.full_name_vn,
-                        mobile_number=register_balance_casa.primary_phone_number,
-                        account_id=register_balance_casa.account_id,
-                        name=register_balance_casa.account_name,
-                    ))
+                data_eb_reg_balance.append({
+                    "id": eb_reg_balance_id,
+                    "customer_id": cif_id,
+                    "e_banking_register_account_type": EBANKING_ACCOUNT_TYPE_CHECKING,
+                    "full_name": current_customer.full_name_vn,
+                    "mobile_number": register_balance_casa.primary_phone_number,
+                    "account_id": register_balance_casa.account_id,
+                    "name": register_balance_casa.account_name,
 
-                # lưu I -> 2 -> b (relationship) Thông tin người nhận thông báo
-                insert_data.extend([
-                    EBankingReceiverNotificationRelationship(
-                        e_banking_register_balance_casa_id=eb_reg_balance_id,
-                        relationship_type_id=relationship.relationship_type.id,
-                        mobile_number=relationship.mobile_number,
-                        full_name=relationship.full_name_vn
-                    ) for relationship in register_balance_casa.notification_casa_relationships
-                ])
+                })
+                for relationship in register_balance_casa.notification_casa_relationships:
+                    data_eb_receiver_noti_relationship.append({
+                        "e_banking_register_balance_casa_id": eb_reg_balance_id,
+                        "relationship_type_id": relationship.relationship_type.id,
+                        "mobile_number": relationship.mobile_number,
+                        "full_name": relationship.full_name_vn
+                    })
+                for notification in register_balance_casa.e_banking_notifications:
+                    if notification.checked_flag:
+                        data_eb_reg_balance_noti.append({
+                            "eb_notify_id": notification.id,
+                            "eb_reg_balance_id": eb_reg_balance_id
 
-                # lưu I -> 2 -> c Tùy chọn thông báo
-                insert_data.extend([
-                    EBankingRegisterBalanceNotification(
-                        eb_notify_id=notification.id,
-                        eb_reg_balance_id=eb_reg_balance_id
-                    ) for notification in register_balance_casa.e_banking_notifications if notification.checked_flag
-                ])
+                        })
 
-        # Thêm dữ liệu cho mục II. Thông tin biến động tài khoản tiết kiệm
-        change_of_balance_saving_account = e_banking.change_of_balance_saving_account
-        if change_of_balance_saving_account.register_flag:
-
-            # kiểm tra tùy chọn thông báo ở mục II có tồn tại hay không ?
-            await self.get_model_objects_by_ids(
-                model=EBankingNotification,
-                model_ids=list({
-                    notification.id for notification in change_of_balance_saving_account.e_banking_notifications
-                    if notification.checked_flag
-                }),
-                loc="change_of_balance_saving_account -> e_banking_notifications"
-            )
-
-            contact_types = await self.get_model_objects_by_ids(
-                model=CustomerContactType,
-                model_ids=[contact_type.id for contact_type in change_of_balance_payment_account.customer_contact_types
-                           if contact_type.checked_flag],
-                loc="change_of_balance_saving_account -> customer_contact_types"
-            )
-
-            # lưu II -> 1 Loại thông báo biến động số dự tài khoản tiết kiệm
-            insert_data.extend([EBankingRegisterBalanceOption(
-                customer_id=cif_id,
-                e_banking_register_account_type=EBANKING_ACCOUNT_TYPE_SAVING,
-                customer_contact_type_id=contact_type.id,
-                created_at=now()
-            ) for contact_type in contact_types])
-
-            # Mở CIF không xài
-            # lưu II -> 3
-            # for td_account in change_of_balance_saving_account.range.td_accounts:
-            #     if td_account.checked_flag:
-            #         eb_reg_balance_id = generate_uuid()
-            #         insert_data.append(EBankingRegisterBalance(
-            #             id=eb_reg_balance_id,
-            #
-            #             account_id=td_account.id,
-            #             customer_id=cif_id,
-            #         ))
-            #
-            #         # lưu II -> 4 Tùy chọn thông báo
-            #         insert_data.extend([EBankingRegisterBalanceNotification(
-            #             eb_reg_balance_id=eb_reg_balance_id,
-            #             eb_notify_id=notification.id,
-            #         ) for notification in change_of_balance_saving_account.e_banking_notifications if
-            #             notification.checked_flag])
-
-        # Thêm dữ liệu cho mục III. Thông tin e-banking
+        # III. Thông tin e-banking
         # Thông tin tài khoản
         account_information = e_banking.e_banking_information.account_information
-        # Tùy chọn tài khoản
-        # optional_e_banking_account = e_banking.e_banking_information.optional_e_banking_account Mỡ CIF không xài
         if account_information.register_flag:
-            # kiểm tra hình thức xác thực có tồn tại hay không ?
+            # kiểm tra hình thức xác nhận mật khẩu lần đầu
             auth_method_ids = [method.id for method in account_information.method_authentication if method.checked_flag]
             auth_types = await self.get_model_objects_by_ids(
                 model=MethodAuthentication,
                 model_ids=auth_method_ids,
-                loc="method_authentication"
+                loc="method_authentication -> id"
             )
 
-            # Chỉ có hình thức xác thực HARD TOKEN mới tốn phí
+            # Xác thực HARD TOKEN => tốn phí
             has_fee = EBANKING_HAS_FEE if "HARD TOKEN" in [auth_type.name for auth_type in auth_types if
                                                            auth_type.active_flag] else EBANKING_HAS_NO_FEE
 
+            method_active_password_id = EBANKING_ACTIVE_PASSWORD_EMAIL if \
+                account_information.get_initial_password_method == GetInitialPasswordMethod.Email \
+                else EBANKING_ACTIVE_PASSWORD_SMS
+
             e_banking_info_id = generate_uuid()
-            # lưu III
-            insert_data.append(EBankingInfo(
-                # Thông tin tài khoản
-                id=e_banking_info_id,
-                customer_id=cif_id,
-                method_active_password_id=EBANKING_ACTIVE_PASSWORD_EMAIL
-                if account_information.get_initial_password_method == GetInitialPasswordMethod.Email
-                else EBANKING_ACTIVE_PASSWORD_SMS,
-                account_name=account_information.account_name,
-                ib_mb_flag=account_information.register_flag,
-                method_payment_fee_flag=has_fee,
-                # Mở CIF không xài
-                # Tùy chọn tài khoản
-                # active_account_flag=optional_e_banking_account.active_account_flag,
-                # reset_password_flag=optional_e_banking_account.reset_password_flag,
-                # note=optional_e_banking_account.note
-            ))
+            data_account_info = {
+                "id": e_banking_info_id,
+                "customer_id": cif_id,
+                "method_active_password_id": method_active_password_id,
+                "account_name": account_information.account_name,
+                "ib_mb_flag": account_information.register_flag,
+                "method_payment_fee_flag": has_fee
 
-            # lưu III -> 4 Hình thức xác thực
-            insert_data.extend([EBankingInfoAuthentication(
-                e_banking_info_id=e_banking_info_id,
-                method_authentication_id=auth_method_id
-            ) for auth_method_id in auth_method_ids])
+            }
 
+            # Hình thức xác thực
+            for auth_method_id in auth_method_ids:
+                auth_method.append({
+                    "e_banking_info_id": e_banking_info_id,
+                    "method_authentication_id": auth_method_id
+                })
         e_banking_data = self.call_repos(
             await repos_save_e_banking_data(
                 log_data=e_banking.json(),
                 session=self.oracle_session,
                 cif_id=cif_id,
-                insert_data=insert_data,
+                balance_option=data_reg_balance_option,
+                reg_balance=data_eb_reg_balance,
+                relationship=data_eb_receiver_noti_relationship,
+                balance_noti=data_eb_reg_balance_noti,
+                account_info=data_account_info,
+                auth_method=auth_method,
                 created_by=self.current_user.full_name_vn
             )
         )
