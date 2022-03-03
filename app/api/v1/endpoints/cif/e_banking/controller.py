@@ -29,6 +29,7 @@ class CtrEBanking(BaseController):
         """
         func dùng để tạo mới E-banking phần (I, III.A)
         """
+
         data_reg_balance_option = []  # OTT/SMS
         data_eb_reg_balance = []  # dữ liệu thông tin người nhận thông báo (primary)
         data_eb_receiver_noti_relationship = []  # dữ liệu thông tin người nhận thông báo (relationship)
