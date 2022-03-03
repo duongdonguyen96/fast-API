@@ -25,9 +25,16 @@ router = APIRouter()
     )
 )
 async def view_e_banking_notification_info(
+        type_id: str = Query(
+            ...,
+            description="Loại thông báo: "
+                        "<br>`DD` Biến động số dư tài khoản Thanh toán"
+                        "<br>`FD` Biến động số dư tài khoản Tiết kiệm",
+            min_length=1
+        ),
         current_user=Depends(get_current_user_from_header())
 ):
-    e_banking_notification_info = await CtrConfigEBanking(current_user).ctr_e_banking_notification_info()
+    e_banking_notification_info = await CtrConfigEBanking(current_user).ctr_e_banking_notification_info(type_id=type_id)
     return ResponseData[List[DropdownResponse]](**e_banking_notification_info)
 
 

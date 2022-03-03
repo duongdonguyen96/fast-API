@@ -38,7 +38,8 @@ class ServiceEKYC:
         form_data.add_field("type", value=str(identity_type))
 
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers,
+                                         proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
                 if response.status == status.HTTP_200_OK:
                     return True, await response.json()
@@ -63,7 +64,8 @@ class ServiceEKYC:
         form_data.add_field("file", value=file, filename='abc.jpg')
 
         try:
-            async with self.session.post(url=api_url, data=form_data, headers=self.headers, proxy=self.proxy) as response:
+            async with self.session.post(url=api_url, data=form_data, headers=self.headers,
+                                         proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[ADD FACE] {response.status} : {api_url}")
                 if response.status == status.HTTP_201_CREATED:
                     return True, await response.json()
@@ -132,7 +134,8 @@ class ServiceEKYC:
         }
 
         try:
-            async with self.session.post(url=api_url, json=request_body, headers=self.headers, proxy=self.proxy) as response:
+            async with self.session.post(url=api_url, json=request_body, headers=self.headers,
+                                         proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[VALIDATE] {response.status} : {api_url}")
                 if response.status != status.HTTP_200_OK:
                     return False, {
@@ -154,7 +157,8 @@ class ServiceEKYC:
         api_url = f"{self.url}/api/v1/customer-service/crm/"
 
         try:
-            async with self.session.get(url=api_url, headers=self.headers, params=query_data, proxy=self.proxy) as response:
+            async with self.session.get(url=api_url, headers=self.headers, params=query_data,
+                                        proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
                 if response.status == status.HTTP_200_OK:
                     return True, await response.json()
@@ -258,11 +262,35 @@ class ServiceEKYC:
             logger.error(str(ex))
             return False, {"message": str(ex)}
 
+    async def get_history_post_check(self, postcheck_uuid: str):
+        api_url = f"{self.url}/api/v1/customer-service/crm/postcontrolhistory/"
+
+        query = {
+            'customer_id': postcheck_uuid
+        }
+        try:
+            async with self.session.get(url=api_url, headers=self.headers, params=query, proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}
+
     async def update_post_check(self, request_data):
         api_url = f"{self.url}/api/v1/customer-service/crm/postcontrol/"
 
         try:
-            async with self.session.put(url=api_url, json=request_data, headers=self.headers, proxy=self.proxy) as response:
+            async with self.session.put(url=api_url, json=request_data, headers=self.headers,
+                                        proxy=self.proxy) as response:
                 logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
                 if response.status == status.HTTP_200_OK:
                     return True, await response.json()
@@ -274,6 +302,97 @@ class ServiceEKYC:
                     return False, {
                         "message": ERROR_CALL_SERVICE_EKYC,
                         "detail": "STATUS " + str(response.status)
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}
+
+    async def get_statistics(self, query_param: dict):
+        api_url = f"{self.url}/api/v1/customer-service/crm/statistics/"
+
+        try:
+            async with self.session.get(url=api_url, headers=self.headers, params=query_param,
+                                        proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}
+
+    async def get_customer_detail(self, postcheck_uuid: str):
+        api_url = f"{self.url}/api/v1/customer-service/crm/{postcheck_uuid}/"
+
+        try:
+            async with self.session.get(url=api_url, headers=self.headers, proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                elif response.status == status.HTTP_404_NOT_FOUND:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}
+
+    async def create_post_check(self, payload_data: dict):
+        api_url = f"{self.url}/api/v1/customer-service/crm/postcontrol/"
+
+        try:
+            async with self.session.post(url=api_url, headers=self.headers, json=payload_data,
+                                         proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_201_CREATED:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                elif response.status == status.HTTP_404_NOT_FOUND:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+
+                    }
+
+        except Exception as ex:
+            logger.error(str(ex))
+            return False, {"message": str(ex)}
+
+    async def get_post_control(self, query_params):
+        api_url = f"{self.url}/api/v1/customer-service/crm/postcontrol/"
+
+        try:
+            async with self.session.get(url=api_url, params=query_params, headers=self.headers,
+                                        proxy=self.proxy) as response:
+                logger.log("SERVICE", f"[CARD] {response.status} : {api_url}")
+                if response.status == status.HTTP_200_OK:
+                    return True, await response.json()
+                elif response.status == status.HTTP_400_BAD_REQUEST:
+                    return False, await response.json()
+                elif response.status == status.HTTP_404_NOT_FOUND:
+                    return False, await response.json()
+                else:
+                    return False, {
+                        "message": ERROR_CALL_SERVICE_EKYC,
+                        "detail": "STATUS " + str(response.status)
+
                     }
 
         except Exception as ex:

@@ -48,6 +48,7 @@ class QueryParamsKSSRequest(BaseSchema):
     page_num: int = Field(None, description='Số trang')
     record_per_page: int = Field(None, description='Số record')
 
+
 ####################################################################################################
 # Branch
 ####################################################################################################
@@ -57,6 +58,7 @@ class BranchResponse(BaseSchema):
     id: int = Field(..., description='ID của vùng')
     code: str = Field(..., description='Code đơn vị')
     name: str = Field(..., description='Tên đơn vị')
+
 
 ####################################################################################################
 # vùng
@@ -73,9 +75,9 @@ class ZoneRequest(BaseSchema):
 ###################################################################################################
 class ListPostControlResponse(BaseSchema):
     check_list_id: int = Field(..., description='ID của danh mục kiểm tra')
-    check_list_desc: str = Field(..., description='Danh mục kiểm tra')
+    check_list_desc: Optional[str] = Field(None, description='Danh mục kiểm tra')
     answer: str = Field(..., description='Đánh giá')
-    note: Optional[str] = Field(..., description='Mô tả')
+    note: Optional[str] = Field(None, description='Mô tả')
 
 
 class PostControlResponse(BaseSchema):
@@ -83,6 +85,7 @@ class PostControlResponse(BaseSchema):
     status: str = Field(..., description='Trạng thái hậu kiểm')
     approve_status: Optional[str] = Field(..., description="Trạng thái phê duyệt")
     post_control: List[ListPostControlResponse] = Field(...)
+
 
 #############################################################################################
 # lịch sử hậu kiểm
@@ -102,6 +105,7 @@ class HistoryPostCheckResponse(BaseSchema):
     create_user: str = Field(..., description='User create')
     approve_user: str = Field(..., description='User approve')
 
+
 ####################################################################################################
 # thống kê theo tháng
 ####################################################################################################
@@ -112,6 +116,7 @@ class StatisticsMonth(BaseSchema):
     total: int = Field(..., description='Thống kê giao dịch của khách hàng')
     success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
     refuse: int = Field(..., description='Tổng số giao dịch bị khách hàng từ chối')
+
 
 ####################################################################################################
 # Thống kê hồ sơ hậu kiểm
@@ -135,6 +140,7 @@ class StatisticsResponse(BaseSchema):
     total: int = Field(..., description='Thống kê giao dịch của khách hàng')
     success: int = Field(..., description='Tổng hợp giao dịch thành công của khách hàng.')
 
+
 ####################################################################################################
 # create post check
 ####################################################################################################
@@ -153,6 +159,7 @@ class CreatePostCheckRequest(BaseSchema):
     username: str = Field(..., description='User hậu kiểm')
     post_control: List[PostCheck] = Field(...)
 
+
 ####################################################################################################
 # phê duyệt hậu kiểm
 ####################################################################################################
@@ -163,3 +170,72 @@ class UpdatePostCheckRequest(BaseSchema):
     history_post_control_id: int = Field(..., description='ID của lịch sử hậu kiểm')
     username: str = Field(..., description='User hậu kiểm')
     is_approve: bool = Field(..., description='Loại phê duyệt - true : Đã duyệt, false : Từ chối')
+
+
+####################################################################################################
+# Chi tiết thông tin khách hàng
+####################################################################################################
+
+
+class AttachmentInfoResponse(BaseSchema):
+    uuid: str = Field(None, description='`uuid` của tệp đính kèm')
+    attachment_file_name: str = Field(None, description='`name` của tệp đính kèm')
+    attachment_type: str = Field(None, description='`type` của tệp đính kèm')
+
+
+class PermanentAddressResponse(BaseSchema):
+    province: str = Field(..., description='Tên tỉnh/thành phố')
+    province_value: str = Field(..., description='Mã tỉnh/thành phố')
+    district: str = Field(..., description='Tên quận/huyện')
+    district_value: str = Field(..., description='Mã quận/huyện')
+    ward: str = Field(..., description='Tên phường/xã')
+    ward_value: str = Field(..., description='Mã phường/xã')
+    street: str = Field(..., description='Số nhà, tên đường')
+
+
+class CustomerDetailResponse(BaseSchema):
+    attachment_info: List[AttachmentInfoResponse] = Field(None, description='Thông tin tập tin đính kèm')
+    transaction_id: str = Field(..., description='Mã giao dịch')
+    document_id: str = Field(..., description='Số CMND/căn cước công dân/hộ chiếu')
+    document_type: int = Field(..., description="""Mã giao dịch,
+        `0`: Hộ chiếu,
+        `1`: CMND cũ (9 số),
+        `2`: CMND mới (12 số),
+        `3`: CCCD cũ,
+        `4`: CCCD mới (gắn chíp),
+    """)
+    date_of_issue: str = Field(..., description='Ngày cấp, phải theo định dạng `DD/MM/YYYY`')
+    date_of_expiry: Optional[str] = Field(
+        None,
+        description='Ngày hết hạn, nếu không phải `không thời hạn` thì phải theo định dạng `DD/MM/YYYY`')
+    place_of_issue: str = Field(..., description='Nơi cấp')
+    qr_code_data: Optional[str] = Field(
+        None,
+        description='Dữ liệu có được bằng việc quét mã QR code (đối với CCCD gắn chíp)')
+    finger_ids: List = Field(None, description='Danh sách các ID của hình chụp vân tay khách hàng trong hệ thống')
+    full_name: str = Field(..., description='Họ và tên')
+    date_of_birth: str = Field(..., description='Ngày sinh, phải theo định dạng `DD/MM/YYYY`')
+    gender: str = Field(None, description='Giới tính')
+    place_of_residence: str = Field(None, description='Nơi DKHK thường trú')
+    place_of_origin: str = Field(..., description='Nguyên quán (nơi sinh, nếu là hộ chiếu)')
+    nationality: str = Field(None, description='Quốc tịch')
+    permanent_address: PermanentAddressResponse = Field(..., description='Địa chỉ thường trú của khách hàng')
+    phone_number: str = Field(..., description='Số điện thoại')
+    longitude: float = Field(None, description='Kinh độ')
+    latitude: float = Field(None, description='Vĩ độ')
+    job_title: str = Field(None, description='Nghề nghiệp')
+    organization: str = Field(None, description='Cơ quan')
+    organization_address: str = Field(None, description='Địa chỉ cơ quan')
+    organization_phone_number: str = Field(None, description='Điện thoại cơ quan')
+    position: str = Field(None, description='Chức vụ')
+    salary_range: str = Field(None, description='Thu nhập bình quân 3 tháng')
+    tax_number: str = Field(None, description='Mã số thuế')
+    receive_ads: bool = Field(None, description='Nhận thông tin quảng cáo từ SCB')
+    open_biometric: bool = Field(..., description='Bất/Tắt sinh trắc học eKYC')
+    ocr_data: Optional[dict] = Field(..., description='Dữ liệu trích xuất từ giấy tờ tùy thân')
+    orc_data_errors: dict = Field(None,
+                                  description='Lỗi kiểm tra giả mạo thông tin được trích xuất từ giấy tờ tùy thân')
+    faces_matching_percent: float = Field(
+        None,
+        description='Tỷ lệ phần trăm giống nhau giữa hình ảnh trên giấy tờ và hình ảnh thật')
+    extra_info: dict = Field(None, description='Thông tin khác')

@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Path, Query
 from starlette import status
 
 from app.api.base.schema import ResponseData
@@ -8,10 +8,10 @@ from app.api.base.swagger import swagger_response
 from app.api.v1.dependencies.authenticate import get_current_user_from_header
 from app.api.v1.endpoints.customer_service.controller import CtrKSS
 from app.api.v1.endpoints.customer_service.schema import (
-    BranchResponse, CreatePostCheckRequest, HistoryPostCheckResponse,
-    KSSResponse, PostControlResponse, QueryParamsKSSRequest, StatisticsMonth,
-    StatisticsProfilesResponse, StatisticsResponse, UpdatePostCheckRequest,
-    ZoneRequest
+    BranchResponse, CreatePostCheckRequest, CustomerDetailResponse,
+    HistoryPostCheckResponse, KSSResponse, PostControlResponse,
+    QueryParamsKSSRequest, StatisticsMonth, StatisticsProfilesResponse,
+    StatisticsResponse, UpdatePostCheckRequest, ZoneRequest
 )
 
 router = APIRouter()
@@ -82,10 +82,14 @@ async def view_list_zone(
     )
 )
 async def view_list_post_control(
-        postcheck_uuid: str,  # noqa
+        postcheck_uuid: str = Path(..., description='Id của khách hàng'),
+        post_control_his_id: int = Query(None, description='ID lịch sử hậu kiểm'),
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
-    post_control_response = await CtrKSS().ctr_get_post_control()
+    post_control_response = await CtrKSS().ctr_get_post_control(
+        postcheck_uuid=postcheck_uuid,
+        post_control_his_id=post_control_his_id
+    )
 
     return ResponseData[PostControlResponse](**post_control_response)
 
@@ -100,7 +104,7 @@ async def view_list_post_control(
     )
 )
 async def view_list_history_post_check(
-        postcheck_uuid: str,  # noqa
+        postcheck_uuid: str = Path(..., description='Id của khách hàng'),
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
     history_post_check = await CtrKSS().ctr_history_post_check(
@@ -160,9 +164,16 @@ async def view_list_statistics_profiles(
     )
 )
 async def view_list_statistics(
+        search_type: int = Query(None, description="""Loại tìm kiếm
+            \n `search_type` = 1, hiển thị theo ngày
+            \n `search_type` = 2, hiển thị theo tuần
+            \n `search_type` = 3, hiển thị theo tháng
+            \n `search_type` = 4, hiển thị theo năm
+            """),
+        selected_date: str = Query(None, description='Chọn ngày `DD/MM/YYYY`'),
         current_user=Depends(get_current_user_from_header())  # noqa
 ):
-    statistics = await CtrKSS().ctr_get_statistics()
+    statistics = await CtrKSS().ctr_get_statistics(search_type=search_type, selected_date=selected_date)
 
     return ResponseData[List[StatisticsResponse]](**statistics)
 
@@ -201,3 +212,21 @@ async def update_post_check(
     update_postcheck = await CtrKSS().ctr_update_post_check(postcheck_update_request=postcheck_update_request)
 
     return ResponseData[UpdatePostCheckRequest](**update_postcheck)
+
+
+@router.get(
+    path="/customer/{postcheck_uuid}",
+    name="Chi tiết thông tin khách hàng",
+    description="Chi tiết thông tin khách hàng",
+    responses=swagger_response(
+        response_model=ResponseData[CustomerDetailResponse],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_customer(
+        postcheck_uuid: str = Path(..., description='ID của khách hàng'),
+        current_user=Depends(get_current_user_from_header())  # noqa
+):
+    customer_detail_information = await CtrKSS().ctr_get_customer_detail(postcheck_uuid=postcheck_uuid)
+
+    return ResponseData[CustomerDetailResponse](**customer_detail_information)
