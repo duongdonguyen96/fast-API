@@ -32,7 +32,8 @@ class MainAndSubCardNumberResponse(BaseSchema):
 
 class IssueDebitCardResponse(BaseSchema):
     register_flag: bool = Field(..., description="Đăng kí thẻ ghi nợ, `True`: đăng kí, `False`: không đăng kí ")
-    physical_card_type: List[DropdownResponse] = Field(None, description="TÍnh vật lý: thẻ vật lý, thẻ phi vật lý", nullable=True)
+    physical_card_type: List[DropdownResponse] = Field(None, description="TÍnh vật lý: thẻ vật lý, thẻ phi vật lý",
+                                                       nullable=True)
     physical_issuance_type: DropdownResponse = Field(None, description="Hình thức phát hành")
     customer_type: DropdownResponse = Field(None, description="Nhóm khách hàng")
     payment_online_flag: bool = Field(None, description="Mở chức năng thanh toán online, `True`: có, `False`: không")
@@ -49,6 +50,9 @@ class InformationDebitCardResponse(BaseSchema):
 
 
 class CardDeliveryAddressResponse(BaseSchema):
+    delivery_address_flag: bool = Field(..., description="Địa chỉ nhận tại SCB. "
+                                                         "`Fasle`: tại SCB, "
+                                                         "`True`:địa chỉ khác")
     scb_branch: Optional[DropdownResponse] = Field(None, description=" chi nhánh scb nhận thẻ")
     delivery_address: Optional[OptionalAddressResponse] = Field(None, descripion="Địa chỉ nhân thẻ")
     note: Optional[str] = Field(None, description="ghi chú")
@@ -62,7 +66,6 @@ class SubDebitCardResponse(BaseSchema):
     card_issuance_type: DropdownResponse = Field(..., description="Hình thức phát hành")
     payment_online_flag: bool = Field(..., description="Mở chức năng thanh toán online, `True`: có, `False`: không")
     card_delivery_address: CardDeliveryAddressResponse = Field(None, description="Địa chỉ giao nhận thẻ")
-    sub_card_number: MainAndSubCardNumberResponse = Field(None, description="Số thẻ phụ")
     card_image_url: str = Field(..., description="Url hình ảnh thẻ ")
 
 
@@ -80,7 +83,7 @@ class DebitCardResponse(BaseSchema):
 
 # ######################### request schema ###################################
 class NameOnCardRequest(BaseSchema):
-    middle_name_on_card: str = Field(..., description="tên lót")
+    middle_name_on_card: str = Field(None, description="tên lót")
 
 
 class IssueDebitRequest(BaseSchema):
@@ -96,9 +99,9 @@ class IssueDebitRequest(BaseSchema):
 
 
 class CardDeliveryAddressRequest(BaseSchema):
-    scb_delivery_address_flag: bool = Field(..., description="Địa chỉ nhận tại SCB. "
-                                                             "`True`: tại SCB, "
-                                                             "`Fasle`:địa chỉ khác")
+    delivery_address_flag: bool = Field(..., description="Địa chỉ nhận tại SCB. "
+                                                         "`Fasle`: tại SCB, "
+                                                         "`True`:địa chỉ khác")
     scb_branch: Optional[DropdownRequest] = Field(None, description=" chi nhánh scb nhận thẻ")
     delivery_address: Optional[AddressRequest] = Field(None, descripion="Địa chỉ nhân thẻ")
     note: str = Field(None, description="ghi chú")

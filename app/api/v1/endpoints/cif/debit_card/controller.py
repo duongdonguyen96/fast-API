@@ -12,6 +12,7 @@ from app.third_parties.oracle.models.master_data.card import (
 )
 from app.third_parties.oracle.models.master_data.customer import CustomerType
 from app.third_parties.oracle.models.master_data.others import Branch
+from app.utils.error_messages import VALIDATE_ERROR
 from app.utils.functions import generate_uuid, now
 from app.utils.vietnamese_converter import convert_to_unsigned_vietnamese
 
@@ -27,6 +28,10 @@ class CtrDebitCard(BaseController):
             cif_id: str,
             debt_card_req: DebitCardRequest
     ):
+        # check register_flag == False thì ko insert data
+        if not debt_card_req.issue_debit_card.register_flag:
+            return self.response({"cif_id": cif_id})
+
         # check, get current user
         current_user = self.call_repos(
             await repos_get_initializing_customer(
@@ -41,139 +46,216 @@ class CtrDebitCard(BaseController):
         first_name = convert_to_unsigned_vietnamese(
             current_user.first_name
         )
+
+        """
+            I. validate physical_card_type
+                 1. check Constant
+                 2. check số lượng nhỏ hơn 2
+                 3. check trùng loạis
+
+        """
         card_type = []
         for debt_card_type in debt_card_req.issue_debit_card.physical_card_type:
             card_type.append(debt_card_type.id)
+        if len(card_type) > 2:
+            return self.response_exception(
+                msg=VALIDATE_ERROR,
+                detail="Too many physical_card_type",
+                loc="issue_debit_card -> physical_card_type"
+            )
+        if len(card_type) < 1:
+            return self.response_exception(
+                msg=VALIDATE_ERROR,
+                detail="physical_card_type is null",
+                loc="issue_debit_card -> physical_card_type"
+            )
+        if len(card_type) == 2 and card_type[0] == card_type[1]:
+            return self.response_exception(
+                msg=VALIDATE_ERROR,
+                detail="Data is duplicate",
+                loc="issue_debit_card -> physical_card_type -> 1"
+            )
+
         # check CardType exist
         await self.get_model_objects_by_ids(
             model=CardType,
             model_ids=list(card_type),
-            loc="Card Type",
+            loc="issue_debit_card -> physical_issuance_type -> id",
         )
-        if debt_card_req.card_delivery_address.scb_branch.id is not None:
-            # check Branch exist
-            await self.get_model_object_by_id(
-                model=Branch,
-                model_id=debt_card_req.card_delivery_address.scb_branch.id,
-                loc="Branch",
-            )
-        # check physical_issuance_type exist
+
+        """Kiểm tra physical_issuance_type exist"""
         await self.get_model_object_by_id(
             model=CardIssuanceType,
             model_id=debt_card_req.issue_debit_card.physical_issuance_type.id,
-            loc="physical_issuance_type ",
+            loc="issue_debit_card -> physical_issuance_type -> id",
         )
 
-        # check customer_type
+        """Kiểm tra customer_type"""
         await self.get_model_object_by_id(
             model=CustomerType,
             model_id=debt_card_req.issue_debit_card.customer_type.id,
-            loc="customer_type",
+            loc="issue_debit_card -> customer_type -> id",
         )
 
-        # check branch_of_card
+        """Kiểm tra branch_of_card"""
         await self.get_model_object_by_id(
             model=BrandOfCard,
             model_id=debt_card_req.issue_debit_card.branch_of_card.id,
-            loc="branch_of_card",
+            loc="issue_debit_card -> branch_of_card -> id",
         )
 
-        # check issuance fee
+        """Kiểm tra issuance_fee"""
         await self.get_model_object_by_id(
             model=CardIssuanceFee,
             model_id=debt_card_req.issue_debit_card.issuance_fee.id,
-            loc="issuance fee",
+            loc="issue_debit_card -> issuance fee -> id",
         )
-        if debt_card_req.card_delivery_address.delivery_address is not None:
+
+        """Validate tên dập nổi không quá 21 kí tự"""
+        lenght_name = len(first_name) + len(last_name)
+        if debt_card_req.information_debit_card.name_on_card.middle_name_on_card:
+            lenght_name = lenght_name + len(debt_card_req.information_debit_card.name_on_card.middle_name_on_card)
+
+        if lenght_name > 21:
+            return self.response_exception(
+                msg=VALIDATE_ERROR,
+                detail="Name on card is too long",
+                loc="issue_debit_card -> information_debit_card -> name_on_card -> middle_name_on_card"
+            )
+
+        """Validate địa chỉ nhận thẻ"""
+        if not debt_card_req.card_delivery_address.delivery_address_flag:
+            # check Branch exist
+            if not debt_card_req.card_delivery_address.scb_branch:
+                return self.response_exception(
+                    msg=VALIDATE_ERROR,
+                    detail="scb_branch is null",
+                    loc="card_delivery_address -> scb_branch"
+                )
+            await self.get_model_object_by_id(
+                model=Branch,
+                model_id=debt_card_req.card_delivery_address.scb_branch.id,
+                loc="card_delivery_address -> scb_branch -> id",
+            )
+        else:
+            if not debt_card_req.card_delivery_address.delivery_address:
+                return self.response_exception(
+                    msg=VALIDATE_ERROR,
+                    detail="delivery_address is null",
+                    loc="card_delivery_address -> delivery_address"
+                )
             # check province
             await self.get_model_object_by_id(
                 model=AddressProvince,
                 model_id=debt_card_req.card_delivery_address.delivery_address.province.id,
-                loc="province",
+                loc="card_delivery_address -> delivery_address -> province -> id",
             )
-        if debt_card_req.card_delivery_address.delivery_address:
             # check district
             await self.get_model_object_by_id(
                 model=AddressDistrict,
                 model_id=debt_card_req.card_delivery_address.delivery_address.district.id,
-                loc="district",
+                loc="card_delivery_address -> delivery_address -> district -> id",
             )
-        if debt_card_req.card_delivery_address.delivery_address:
             # check ward
             await self.get_model_object_by_id(
                 model=AddressWard,
                 model_id=debt_card_req.card_delivery_address.delivery_address.ward.id,
-                loc="ward",
+                loc="card_delivery_address -> delivery_address -> ward -> id",
             )
-        sub_card_physical_ids = []
-        sub_card_issuance_ids = []
-        sub_card_branch_ids = []
-        sub_card_delivery_province_ids = []
-        sub_card_delivery_district_ids = []
-        sub_card_delivery_ward_ids = []
+
+            if not debt_card_req.card_delivery_address.delivery_address.number_and_street:
+                return self.response_exception(
+                    msg=VALIDATE_ERROR,
+                    detail="number_and_street is null",
+                    loc="card_delivery_address -> delivery_address -> number_and_street"
+                )
+
         id_primary_card = generate_uuid()
         list_sub_delivery_address = []
         list_sub_debit_card = []
         list_sub_debit_card_type = []
-        # check information sub debit card
-        if debt_card_req.information_sub_debit_card is not None:
-            for sub_card in debt_card_req.information_sub_debit_card.sub_debit_cards:
-                for _ in sub_card.physical_card_type:
-                    sub_card_physical_ids.append(_.id)
-                sub_card_issuance_ids.append(sub_card.card_issuance_type.id)
-                if sub_card.card_delivery_address.scb_branch is not None:
-                    sub_card_branch_ids.append(sub_card.card_delivery_address.scb_branch.id)
-                if sub_card.card_delivery_address.delivery_address is not None:
-                    sub_card_delivery_province_ids.append(sub_card.card_delivery_address.delivery_address.province.id)
-                    sub_card_delivery_district_ids.append(sub_card.card_delivery_address.delivery_address.district.id)
-                    sub_card_delivery_ward_ids.append(sub_card.card_delivery_address.delivery_address.ward.id)
 
-            # check sub cardType exist
-            await self.get_model_objects_by_ids(
-                model_ids=list(sub_card_physical_ids),
-                model=CardType,
-                loc="sub card type",
-            )
-            # check physical_issuance_type exist
-            await self.get_model_objects_by_ids(
-                model=CardIssuanceType,
-                model_ids=sub_card_issuance_ids,
-                loc="sub physical_issuance_type ",
-            )
-            if sub_card_branch_ids is not None:
-                # check sub branch exist
-                await self.get_model_objects_by_ids(
-                    model=Branch,
-                    model_ids=sub_card_branch_ids,
-                    loc="sub card branch"
+        """Kiểm tra validate thông tin thẻ phụ"""
+        if debt_card_req.information_sub_debit_card is not None:
+            for index, sub_card in enumerate(debt_card_req.information_sub_debit_card.sub_debit_cards):
+
+                """Kiểm tra sub physical_card_type (Tính vật lý) tồn tại"""
+                sub_card_type = []
+                for item_card_type in sub_card.physical_card_type:
+                    sub_card_type.append(item_card_type.id)
+                if len(sub_card_type) > 2 or len(sub_card_type) < 1:
+                    return self.response_exception(
+                        msg=VALIDATE_ERROR,
+                        detail="Too many physical_card_type",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type"
+                    )
+                if len(sub_card_type) == 2 and sub_card_type[0] == sub_card_type[1]:
+                    return self.response_exception(
+                        msg=VALIDATE_ERROR,
+                        detail="Data physical_card_type is duplicate",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type -> 1"
+                    )
+
+                for idx, _ in enumerate(sub_card.physical_card_type):
+                    await self.get_model_object_by_id(
+                        model_id=_.id,
+                        model=CardType,
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type -> {idx} -> id",
+                    )
+
+                """Kiểm tra physical_issuance_type (Hình thức phát hành thẻ) exist"""
+                await self.get_model_object_by_id(
+                    model=CardIssuanceType,
+                    model_id=sub_card.card_issuance_type.id,
+                    loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_issuance_type -> id",
                 )
-            if sub_card_delivery_province_ids is not None:
-                # check sub province
-                await self.get_model_objects_by_ids(
-                    model=AddressProvince,
-                    model_ids=sub_card_delivery_province_ids,
-                    loc=" sub province",
-                )
-            if sub_card_delivery_district_ids is not None:
-                # check sub district
-                await self.get_model_objects_by_ids(
-                    model=AddressDistrict,
-                    model_ids=sub_card_delivery_district_ids,
-                    loc="sub district",
-                )
-            if sub_card_delivery_ward_ids is not None:
-                # check sub ward
-                await self.get_model_objects_by_ids(
-                    model=AddressWard,
-                    model_ids=sub_card_delivery_ward_ids,
-                    loc=" sub ward",
-                )
+
+                """Validate địa chỉ nhận thẻ"""
+                if not sub_card.card_delivery_address.delivery_address_flag:
+                    # Kiểm tra Branch exist
+                    if not sub_card.card_delivery_address.scb_branch:
+                        return self.response_exception(
+                            msg=VALIDATE_ERROR,
+                            detail="scb_branch is null",
+                            loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> scb_branch"
+                        )
+                    await self.get_model_object_by_id(
+                        model=Branch,
+                        model_id=sub_card.card_delivery_address.scb_branch.id,
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> scb_branch -> id",
+                    )
+                else:
+                    if not sub_card.card_delivery_address.delivery_address:
+                        return self.response_exception(
+                            msg=VALIDATE_ERROR,
+                            detail="delivery_address is null",
+                            loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> delivery_address"
+                        )
+                    # check province
+                    await self.get_model_object_by_id(
+                        model=AddressProvince,
+                        model_id=sub_card.card_delivery_address.delivery_address.province.id,
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> province -> id",
+                    )
+                    # check district
+                    await self.get_model_object_by_id(
+                        model=AddressDistrict,
+                        model_id=sub_card.card_delivery_address.delivery_address.district.id,
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> district -> id",
+                    )
+                    # check ward
+                    await self.get_model_object_by_id(
+                        model=AddressWard,
+                        model_id=sub_card.card_delivery_address.delivery_address.ward.id,
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> ward -> id",
+                    )
+
             list_data_sub_debit_card = debt_card_req.information_sub_debit_card.sub_debit_cards
 
             for sub_debit_card in list_data_sub_debit_card:
                 sub_uuid = generate_uuid()
                 # neu scb_delivery_address_flag la True thi dia chi nhan la SCB
-                if sub_debit_card.card_delivery_address.scb_delivery_address_flag is True:
+                if sub_debit_card.card_delivery_address.delivery_address_flag is False:
                     # dia chi nhan (the phu)
                     sub_delivery_add = {
                         "id": sub_uuid,
@@ -200,7 +282,7 @@ class CtrDebitCard(BaseController):
                 sub_data_debit_card = {
                     "id": generate_uuid(),
                     "customer_id": cif_id,
-                    "card_issuance_type_id": debt_card_req.issue_debit_card.physical_issuance_type.id,
+                    "card_issuance_type_id": sub_debit_card.card_issuance_type.id,
                     "customer_type_id": debt_card_req.issue_debit_card.customer_type.id,
                     "brand_of_card_id": debt_card_req.issue_debit_card.branch_of_card.id,
                     "card_issuance_fee_id": debt_card_req.issue_debit_card.issuance_fee.id,
@@ -209,12 +291,15 @@ class CtrDebitCard(BaseController):
                     "card_registration_flag": debt_card_req.issue_debit_card.register_flag,
                     "payment_online_flag": sub_debit_card.payment_online_flag,
                     "first_name_on_card": first_name.upper(),  # uppercase first name
-                    "middle_name_on_card": sub_debit_card.name_on_card.middle_name_on_card.upper(),
                     "last_name_on_card": last_name.upper(),  # uppercase last name
-                    "card_delivery_address_flag": debt_card_req.card_delivery_address.scb_delivery_address_flag,
+                    "card_delivery_address_flag": sub_debit_card.card_delivery_address.delivery_address_flag,
                     "created_at": now(),
                     "active_flag": 1
                 }
+                if sub_debit_card.name_on_card.middle_name_on_card:
+                    sub_data_debit_card.update({
+                        "middle_name_on_card": sub_debit_card.name_on_card.middle_name_on_card.upper()
+                    })
                 list_sub_debit_card.append(sub_data_debit_card)
                 # loai the (the phu)
                 for card_type in sub_debit_card.physical_card_type:
@@ -223,10 +308,12 @@ class CtrDebitCard(BaseController):
                         "card_type_id": card_type.id,
                     }
                     list_sub_debit_card_type.append(data_sub_debit_card_type)
+
+        """ Insert data thẻ chính """
         uuid = generate_uuid()
-        # dia chi nhan the chinh
-        # neu scb_delivery_address_flag la True thi dia chi nhan la SCB
-        if debt_card_req.card_delivery_address.scb_delivery_address_flag is True:
+        # Địa chỉ nhận thẻ chính
+        # neu scb_delivery_address_flag la False thi dia chi nhan la SCB
+        if not debt_card_req.card_delivery_address.delivery_address_flag:
             data_card_delivery_address = {
                 "id": uuid,
                 "branch_id": debt_card_req.card_delivery_address.scb_branch.id,
@@ -236,7 +323,7 @@ class CtrDebitCard(BaseController):
                 "card_delivery_address_address": None,
                 "card_delivery_address_note": None,
             }
-        else:  # neu scb_delivery_address_flag la False thi dia chi nhan la dia chi khac
+        else:  # neu scb_delivery_address_flag la True thi dia chi nhan la dia chi khac
             data_card_delivery_address = {
                 "id": uuid,
                 "branch_id": None,
@@ -259,12 +346,16 @@ class CtrDebitCard(BaseController):
             "card_registration_flag": debt_card_req.issue_debit_card.register_flag,
             "payment_online_flag": debt_card_req.issue_debit_card.payment_online_flag,
             "first_name_on_card": first_name.upper(),  # uppercase first name
-            "middle_name_on_card": debt_card_req.information_debit_card.name_on_card.middle_name_on_card.upper(),
             "last_name_on_card": last_name.upper(),  # uppercase last name
-            "card_delivery_address_flag": debt_card_req.card_delivery_address.scb_delivery_address_flag,
+            "card_delivery_address_flag": debt_card_req.card_delivery_address.delivery_address_flag,
             "created_at": now(),
             "active_flag": 1,
         }
+        if debt_card_req.information_debit_card.name_on_card.middle_name_on_card:
+            data_debit_card.update({
+                "middle_name_on_card": debt_card_req.information_debit_card.name_on_card.middle_name_on_card.upper()
+            })
+
         # loai the (the chinh)
         list_debit_card_type = []
         for debit_card_type_data in debt_card_req.issue_debit_card.physical_card_type:
