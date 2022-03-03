@@ -296,10 +296,11 @@ class CtrIdentityDocument(BaseController):
         }
 
         gender_id = basic_information.gender.id
-        if is_create or (customer_individual_info.gender_id != gender_id):
-            validate_gender = await self.get_model_object_by_id(model_id=gender_id, model=CustomerGender,
-                                                                loc='gender_id')
-            validate_gender_code = validate_gender.code
+        # RULE: Trường hợp đặc biệt: dù tạo mới, cập nhật hay không cũng phải dùng để validate field bên EKYC
+        # if is_create or (customer_individual_info.gender_id != gender_id):
+        validate_gender = await self.get_model_object_by_id(model_id=gender_id, model=CustomerGender,
+                                                            loc='gender_id')
+        validate_gender_code = validate_gender.code
 
         religion_id = None
         ethnic_id = None
