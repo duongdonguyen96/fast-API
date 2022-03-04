@@ -609,7 +609,6 @@ async def create_customer_identity_image_and_customer_compare_image(
         ])
     # create new CustomerCompareImage
     compare_transaction_parent_id = None
-    saving_customer_compare_image['id'] = generate_uuid()
     saving_customer_compare_image['identity_id'] = identity_id
     saving_customer_compare_image['identity_image_id'] = new_first_identity_image_id
     # Nếu cập nhật giấy tờ định danh, hình ảnh đối chiếu cập nhật lại
