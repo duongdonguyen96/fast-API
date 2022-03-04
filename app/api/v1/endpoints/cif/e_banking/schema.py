@@ -32,12 +32,12 @@ class EBankingNotificationResponse(DropdownResponse):
 
 
 class RegisterBalanceCasa(BaseSchema):
-    account_id: str = Field(..., description='Số tài khoản')
+    account_id: Optional[str] = Field(..., description='Số tài khoản')
     # EBankingRegisterBalance.name (Tên Đăng ký Biến động số dư các loại tài khoản)
     checking_account_name: str = Field(..., description='Tên tài khoản')
     primary_phone_number: str = Field(..., description='Số điện thoại')
     full_name_vn: str = Field(..., description='Tên tiếng việt ')
-    primary_mobile_number: DropdownResponse = Field(..., description='Loại SĐT')
+    primary_mobile_number: DropdownResponse = Field(None, description='Loại SĐT')
     notification_casa_relationships: List[NotificationCasaRelationshipResponse] = Field(..., description='Mối quan hê')
     e_banking_notifications: List[EBankingNotificationResponse] = Field(..., description='Hình thức nhận thông báo')
 
@@ -63,11 +63,12 @@ class TdAccountResponse(BaseSchema):
 
 
 class BalanceSavingAccountResponse(BaseSchema):
-    register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
-    customer_contact_types: List[ContactTypeResponse] = Field(..., description='Hình thức nhận thông báo')
-    mobile_number: str = Field(..., description='Số điện thoại')
-    range: TdAccountResponse = Field(..., description='Phạm vi áp dụng')
-    e_banking_notifications: List[EBankingNotificationResponse] = Field(..., description='Hình thức nhận thông báo')
+    register_flag: Optional[bool] = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
+    customer_contact_types: Optional[List[ContactTypeResponse]] = Field(..., description='Hình thức nhận thông báo')
+    mobile_number: Optional[str] = Field(..., description='Số điện thoại')
+    range: Optional[TdAccountResponse] = Field(..., description='Phạm vi áp dụng')
+    e_banking_notifications: Optional[List[EBankingNotificationResponse]] = Field(...,
+                                                                                  description='Hình thức nhận thông báo')
 
 
 class GetInitialPasswordMethod(str, Enum):
@@ -113,7 +114,8 @@ class AccountInformationResponse(BaseSchema):
 
 class EBankingResponse(BaseSchema):
     change_of_balance_payment_account: BalancePaymentAccountResponse = Field(..., description='Tài khoản thanh toán')
-    change_of_balance_saving_account: BalanceSavingAccountResponse = Field(..., description='Tài khoản tiết kiệm')
+    change_of_balance_saving_account: Optional[BalanceSavingAccountResponse] = Field(None,
+                                                                                     description='Tài khoản tiết kiệm')
     e_banking_information: AccountInformationResponse = Field(..., description='Thông tin E-Banking')
 
 
@@ -244,8 +246,8 @@ class ContactTypeRequest(DropdownRequest):
 
 
 class NotificationCasaRelationshipRequest(BaseSchema):
-    mobile_number: str = Field(..., description='Số điện thoại')
-    full_name_vn: str = Field(..., description='Tên tiếng việt')
+    mobile_number: str = Field(..., description='Số điện thoại', min_length=9, max_length=10)
+    full_name_vn: str = Field(..., description='Tên tiếng việt', max_length=100)
     relationship_type: DropdownRequest = Field(..., description='Mối quan hệ')
 
 
@@ -256,8 +258,8 @@ class EBankingNotificationRequest(DropdownRequest):
 class RegisterBalanceCasaRequest(BaseSchema):
     account_id: str = Field(..., description='Số tài khoản')
     # EBankingRegisterBalance.name (Tên Đăng ký Biến động số dư các loại tài khoản)
-    account_name: str = Field(..., description='Tên tài khoản')
-    primary_phone_number: str = Field(..., description='Số điện thoại')
+    account_name: str = Field(..., description='Tên tài khoản', max_length=100)
+    primary_phone_number: str = Field(..., description='Số điện thoại', min_length=9, max_length=10)
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
     e_banking_notifications: List[EBankingNotificationRequest] = Field(
         ...,
@@ -326,7 +328,8 @@ class AccountInformationEBankingRequest(BaseSchema):
 
 class EBankingRequest(BaseSchema):
     change_of_balance_payment_account: BalancePaymentAccountRequest = Field(..., description='Tài khoản thanh toán')
-    change_of_balance_saving_account: BalanceSavingAccountRequest = Field(..., description='Tài khoản tiết kiệm')
+    change_of_balance_saving_account: BalanceSavingAccountRequest = Field(None,
+                                                                          description='Tài khoản tiết kiệm')
     e_banking_information: AccountInformationEBankingRequest = Field(..., description='Thông tin E-Banking')
 
 
