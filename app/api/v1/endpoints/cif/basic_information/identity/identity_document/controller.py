@@ -662,6 +662,7 @@ class CtrIdentityDocument(BaseController):
 
         # dict dùng để tạo mới hoặc lưu lại CustomerCompareImage
         saving_customer_compare_image = {
+            "id": compare_face_uuid_ekyc,
             "compare_image_url": face_compare_image_url,
             "similar_percent": similar_percent,  # gọi qua eKYC để check
             "maker_id": self.current_user.user_id,
