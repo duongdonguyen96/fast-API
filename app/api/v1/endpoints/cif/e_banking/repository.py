@@ -3,7 +3,6 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
-from app.api.v1.endpoints.cif.e_banking.schema import GetInitialPasswordMethod
 from app.api.v1.endpoints.repository import (
     write_transaction_log_and_update_booking
 )
@@ -25,12 +24,9 @@ from app.third_parties.oracle.models.master_data.e_banking import (
 from app.third_parties.oracle.models.master_data.others import (
     MethodAuthentication
 )
-from app.utils.constant.cif import (
-    BUSINESS_FORM_EB, CIF_ID_TEST, EBANKING_ACCOUNT_TYPE_CHECKING,
-    EBANKING_ACCOUNT_TYPE_SAVING
-)
+from app.utils.constant.cif import BUSINESS_FORM_EB, CIF_ID_TEST
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
-from app.utils.functions import dropdown, now
+from app.utils.functions import now
 
 
 @auto_commit
@@ -101,6 +97,78 @@ async def repos_save_e_banking_data(
         "cif_id": cif_id,
         "created_at": now(),
         "created_by": created_by
+    })
+
+
+async def repos_check_e_banking(cif_id: str, session: Session):
+    e_banking_info = session.execute(select(EBankingInfo).filter(EBankingInfo.customer_id == cif_id)).first()
+    return e_banking_info
+
+
+async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn:
+    """
+    Lấy data E-banking
+    1. SMS-OTT
+    2. Thông tin nhận thông báo
+    3. Thông tin E-banking
+    """
+
+    # 1. SMS-OTT
+    contact_types = session.execute(
+        select(
+            EBankingRegisterBalanceOption,
+            CustomerContactType,
+        ).outerjoin(
+            EBankingRegisterBalanceOption,
+            CustomerContactType.id == EBankingRegisterBalanceOption.customer_contact_type_id
+        ).filter(
+            EBankingRegisterBalanceOption.customer_id == cif_id
+        )
+    ).all()
+
+    # 2. Thông tin nhận thông báo
+    data_e_banking = session.execute(select(
+        EBankingRegisterBalance,
+        EBankingRegisterBalanceNotification,
+        EBankingNotification,
+        EBankingReceiverNotificationRelationship,
+        CustomerRelationshipType
+    ).join(
+        EBankingRegisterBalanceNotification,
+        EBankingRegisterBalance.id == EBankingRegisterBalanceNotification.eb_reg_balance_id
+    ).join(
+        EBankingReceiverNotificationRelationship,
+        EBankingRegisterBalance.id == EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id
+    ).join(
+        CustomerRelationshipType,
+        EBankingReceiverNotificationRelationship.relationship_type_id == CustomerRelationshipType.id
+    ).join(
+        EBankingNotification, EBankingRegisterBalanceNotification.eb_notify_id == EBankingNotification.id
+    ).filter(
+        EBankingRegisterBalance.customer_id == cif_id,
+    )).all()
+
+    # Thông tin E-banking
+    e_bank_info = session.execute(
+        select(
+            EBankingInfo,
+            EBankingInfoAuthentication,
+            MethodAuthentication
+        ).outerjoin(
+            EBankingInfoAuthentication,
+            MethodAuthentication.id == EBankingInfoAuthentication.method_authentication_id
+        ).join(
+            EBankingInfo,
+            EBankingInfoAuthentication.e_banking_info_id == EBankingInfo.id
+        ).filter(
+            EBankingInfo.customer_id == cif_id
+        )
+    ).all()
+    return ReposReturn(data={
+        "contact_types": contact_types,
+        "data_e_banking": data_e_banking,
+        "e_bank_info": e_bank_info
+
     })
 
 
@@ -233,184 +301,6 @@ DETAIL_RESET_PASSWORD_E_BANKING_DATA = {
         "note": "Trả lời đầy đủ các câu hỏi"
     }
 }
-
-
-async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn:
-    e_banking_register_balance = session.execute(select(
-        EBankingRegisterBalance,
-        EBankingRegisterBalanceNotification,
-        EBankingNotification,
-        EBankingReceiverNotificationRelationship,
-        CustomerRelationshipType
-    ).join(
-        EBankingRegisterBalanceNotification,
-        EBankingRegisterBalance.id == EBankingRegisterBalanceNotification.eb_reg_balance_id
-    ).join(
-        EBankingReceiverNotificationRelationship,
-        EBankingRegisterBalance.id == EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id
-    ).join(
-        CustomerRelationshipType,
-        EBankingReceiverNotificationRelationship.relationship_type_id == CustomerRelationshipType.id
-    ).join(
-        EBankingNotification, EBankingRegisterBalanceNotification.eb_notify_id == EBankingNotification.id
-    ).filter(
-        EBankingRegisterBalance.customer_id == cif_id,
-    )).all()
-
-    checking_registration_info, saving_registration_info = {}, {}
-    for register in e_banking_register_balance:
-        if register.EBankingRegisterBalance.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING:
-            if not checking_registration_info.get(register.EBankingRegisterBalance.account_id):
-                checking_registration_info[
-                    register.EBankingRegisterBalance.account_id] = register.EBankingRegisterBalance.__dict__
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"] = [
-                    register.EBankingNotification]
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"] = [{
-                    "info": register.EBankingReceiverNotificationRelationship,
-                    "relation_type": register.CustomerRelationshipType
-                }]
-            else:
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"].append(
-                    register.EBankingNotification)
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"].append({
-                    "info": register.EBankingReceiverNotificationRelationship,
-                    "relation_type": register.CustomerRelationshipType
-                })
-        else:
-            if not saving_registration_info.get(register.EBankingRegisterBalance.account_id):
-                saving_registration_info[
-                    register.EBankingRegisterBalance.account_id] = register.EBankingRegisterBalance.__dict__
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"] = [
-                    register.EBankingNotification]
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"] = [{
-                    "info": register.EBankingReceiverNotificationRelationship,
-                    "relation_type": register.CustomerRelationshipType
-                }]
-            else:
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"].append(
-                    register.EBankingNotification)
-                checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"].append({
-                    "info": register.EBankingReceiverNotificationRelationship,
-                    "relation_type": register.CustomerRelationshipType
-                })
-
-    contact_types = session.execute(
-        select(
-            EBankingRegisterBalanceOption,
-            CustomerContactType,
-        ).outerjoin(
-            EBankingRegisterBalanceOption,
-            CustomerContactType.id == EBankingRegisterBalanceOption.customer_contact_type_id
-        ).filter(
-            EBankingRegisterBalanceOption.customer_id == cif_id
-        )
-    ).all()
-
-    # Get e-banking information
-    auth_method_query = session.execute(
-        select(
-            EBankingInfo,
-            EBankingInfoAuthentication,
-            MethodAuthentication
-        ).outerjoin(
-            EBankingInfoAuthentication,
-            MethodAuthentication.id == EBankingInfoAuthentication.method_authentication_id
-        ).join(
-            EBankingInfo,
-            EBankingInfoAuthentication.e_banking_info_id == EBankingInfo.id
-        ).filter(
-            EBankingInfo.customer_id == cif_id
-        )
-    ).all()
-    account_info = {}
-    for auth_method in auth_method_query:
-        if auth_method.EBankingInfo:
-            account_info["register_flag"] = True
-            account_info["account_name"] = auth_method.EBankingInfo.account_name
-            account_info["charged_account"] = auth_method.EBankingInfo.account_payment_fee
-            account_info["get_initial_password_method"] = GetInitialPasswordMethod(
-                auth_method.EBankingInfo.method_active_password_id)
-            break
-
-    return ReposReturn(data={
-        "change_of_balance_payment_account": {
-            "register_flag": True if checking_registration_info else False,
-            # TODO: hỏi lại chỗ này có trả danh sách các loại contact luôn không?
-            "customer_contact_types": [
-                {
-                    "id": contact_type.CustomerContactType.id,
-                    "name": contact_type.CustomerContactType.name,
-                    "group": contact_type.CustomerContactType.group,
-                    "description": contact_type.CustomerContactType.description,
-                    "checked_flag": True if contact_type.EBankingRegisterBalanceOption else False
-                } for contact_type in contact_types if
-                contact_type.EBankingRegisterBalanceOption.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING
-            ],
-            "register_balance_casas": [
-                {
-                    "account_id": registration_info['account_id'],
-                    "checking_account_name": registration_info['name'],
-                    "primary_phone_number": registration_info['mobile_number'],
-                    "full_name_vn": registration_info['full_name'],
-                    "notification_casa_relationships": [
-                        {
-                            "id": relationship["info"].id,
-                            "mobile_number": relationship["info"].mobile_number,
-                            "full_name_vn": relationship["info"].full_name,
-                            "relationship_type": dropdown(relationship["relation_type"])
-                        } for relationship in registration_info['relationships']
-                    ],
-                    "e_banking_notifications": [
-                        {
-                            **dropdown(notification),
-                            "checked_flag": True
-                        } for notification in registration_info['notifications']
-                    ]
-                } for registration_info in checking_registration_info.values()
-            ]
-        },
-        # Mở CIF nên không có tài khoản tiết kiệm
-        "change_of_balance_saving_account": {
-            "register_flag": False,
-            "customer_contact_types": [
-                {
-                    "id": contact_type.CustomerContactType.id,
-                    "name": contact_type.CustomerContactType.name,
-                    "group": contact_type.CustomerContactType.group,
-                    "description": contact_type.CustomerContactType.description,
-                    "checked_flag": True if contact_type.EBankingRegisterBalanceOption else False
-                } for contact_type in contact_types if
-                contact_type.EBankingRegisterBalanceOption.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_SAVING
-            ],
-            "mobile_number": "2541365822",
-            "range": {
-                "td_accounts": [],
-                "page": 0,
-                "limit": 6,
-                "total_page": 0
-            },
-            "e_banking_notifications": []
-        },
-        "e_banking_information": {
-            "account_information": {
-                **account_info,
-                "method_authentication": [
-                    {
-                        **dropdown(method.MethodAuthentication),
-                        "checked_flag": True if method.EBankingInfo else False
-                    } for method in auth_method_query
-                ],
-            },
-            # Mở CIF không có phần này
-            # "optional_e_banking_account": {
-            #     "reset_password_flag": None,
-            #     "active_account_flag": None,
-            #     "note": None,
-            #     "updated_by": None,
-            #     "updated_at": None
-            # }
-        }
-    })
 
 
 async def repos_get_list_balance_payment_account(cif_id: str, session: Session) -> ReposReturn:

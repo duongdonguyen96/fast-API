@@ -1,8 +1,9 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.e_banking.repository import (
-    repos_balance_saving_account_data, repos_get_detail_reset_password,
-    repos_get_detail_reset_password_teller, repos_get_e_banking_data,
-    repos_get_list_balance_payment_account, repos_save_e_banking_data
+    repos_balance_saving_account_data, repos_check_e_banking,
+    repos_get_detail_reset_password, repos_get_detail_reset_password_teller,
+    repos_get_e_banking_data, repos_get_list_balance_payment_account,
+    repos_save_e_banking_data
 )
 from app.api.v1.endpoints.cif.e_banking.schema import (
     EBankingRequest, GetInitialPasswordMethod
@@ -21,7 +22,7 @@ from app.utils.constant.cif import (
     EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
     EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
 )
-from app.utils.functions import generate_uuid, now
+from app.utils.functions import dropdown, generate_uuid, now
 
 
 class CtrEBanking(BaseController):
@@ -40,8 +41,10 @@ class CtrEBanking(BaseController):
                 cif_id=cif_id,
                 session=self.oracle_session
             ))
+
         # I. Thông tin biến động số dư tài khoản thanh toán
         change_of_balance_payment_account = e_banking.change_of_balance_payment_account
+
         if e_banking.change_of_balance_payment_account.register_flag:
             # kiểm tra hình thức liên lạc
             contact_types = await self.get_model_objects_by_ids(
@@ -61,12 +64,14 @@ class CtrEBanking(BaseController):
                 for relationship in register_balance_casa.notification_casa_relationships:
                     relationship_ids.add(relationship.relationship_type.id)
                 casa_account_ids.append(register_balance_casa.account_id)
+
             # kiểm tra tùy chọn thông báo
             await self.get_model_objects_by_ids(
                 model=EBankingNotification,
                 model_ids=notification_ids,
                 loc="change_of_balance_payment_account -> register_balance_casas -> e_banking_notifications"
             )
+
             # kiểm tra mối quan hệ
             await self.get_model_objects_by_ids(
                 model=CustomerRelationshipType,
@@ -91,6 +96,7 @@ class CtrEBanking(BaseController):
                     "created_at": now()
                 })
 
+            # Thông tin nhận thông báo
             for register_balance_casa in register_balance_casas:
                 eb_reg_balance_id = generate_uuid()
                 data_eb_reg_balance.append({
@@ -110,6 +116,7 @@ class CtrEBanking(BaseController):
                         "mobile_number": relationship.mobile_number,
                         "full_name": relationship.full_name_vn
                     })
+                # Tùy chọn nhận thông báo
                 for notification in register_balance_casa.e_banking_notifications:
                     if notification.checked_flag:
                         data_eb_reg_balance_noti.append({
@@ -130,7 +137,7 @@ class CtrEBanking(BaseController):
                 loc="method_authentication -> id"
             )
 
-            # Xác thực HARD TOKEN => tốn phí
+            # List xác thực có HARD TOKEN => tốn phí
             has_fee = EBANKING_HAS_FEE if "HARD TOKEN" in [auth_type.name for auth_type in auth_types if
                                                            auth_type.active_flag] else EBANKING_HAS_NO_FEE
 
@@ -172,14 +179,134 @@ class CtrEBanking(BaseController):
 
         return self.response(data=e_banking_data)
 
-    async def ctr_e_banking(self, cif_id: str):
-        e_banking_data = self.call_repos(
+    async def ctr_get_e_banking(self, cif_id: str):
+        """
+        1. Kiểm tra tồn tại của cif_id
+        2. Kiểm tra cif_id đã có E-banking chưa
+        3. Trả data E-banking
+        """
+
+        # 1. Kiểm tra tồn tại của cif_id
+        _ = self.call_repos(
+            await repos_get_initializing_customer(
+                cif_id=cif_id,
+                session=self.oracle_session))
+
+        # 2. Kiểm tra cif_id đã có E-banking chưa
+        data_e_banking = await repos_check_e_banking(cif_id=cif_id, session=self.oracle_session)
+        if not data_e_banking:
+            return self.response_exception(
+                msg='ERROR_E-BANKING',
+                loc='cif_id not have E-Banking',
+                detail=f'E-Banking -> cif_id -> {cif_id}'
+            )
+
+        # 3. Trả data E-banking
+        data = self.call_repos(
             await repos_get_e_banking_data(
                 cif_id=cif_id,
-                session=self.oracle_session
-            ))
+                session=self.oracle_session))
 
-        return self.response(data=e_banking_data)
+        contact_types = data['contact_types']
+        data_e_banking = data['data_e_banking']
+        e_bank_info = data['e_bank_info']
+
+        checking_registration_info, saving_registration_info = {}, {}
+        for register in data_e_banking:
+            if register.EBankingRegisterBalance.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING:
+                if not checking_registration_info.get(register.EBankingRegisterBalance.account_id):
+                    checking_registration_info[
+                        register.EBankingRegisterBalance.account_id] = register.EBankingRegisterBalance.__dict__
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"] = [
+                        register.EBankingNotification]
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"] = [{
+                        "info": register.EBankingReceiverNotificationRelationship,
+                        "relation_type": register.CustomerRelationshipType
+                    }]
+                else:
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"].append(
+                        register.EBankingNotification)
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"].append({
+                        "info": register.EBankingReceiverNotificationRelationship,
+                        "relation_type": register.CustomerRelationshipType
+                    })
+            else:
+                if not saving_registration_info.get(register.EBankingRegisterBalance.account_id):
+                    saving_registration_info[
+                        register.EBankingRegisterBalance.account_id] = register.EBankingRegisterBalance.__dict__
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"] = [
+                        register.EBankingNotification]
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"] = [{
+                        "info": register.EBankingReceiverNotificationRelationship,
+                        "relation_type": register.CustomerRelationshipType
+                    }]
+                else:
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["notifications"].append(
+                        register.EBankingNotification)
+                    checking_registration_info[register.EBankingRegisterBalance.account_id]["relationships"].append({
+                        "info": register.EBankingReceiverNotificationRelationship,
+                        "relation_type": register.CustomerRelationshipType
+                    })
+
+        account_info = {}
+        for auth_method in e_bank_info:
+            if auth_method.EBankingInfo:
+                account_info["register_flag"] = auth_method.EBankingInfo.ib_mb_flag
+                account_info["account_name"] = auth_method.EBankingInfo.account_name
+                account_info["charged_account"] = auth_method.EBankingInfo.account_payment_fee
+                account_info["get_initial_password_method"] = GetInitialPasswordMethod(
+                    auth_method.EBankingInfo.method_active_password_id)
+                break
+        data = {
+            "change_of_balance_payment_account": {
+                "register_flag": True if checking_registration_info else False,
+                "customer_contact_types": [
+                    {
+                        "id": contact_type.CustomerContactType.id,
+                        "name": contact_type.CustomerContactType.name,
+                        "group": contact_type.CustomerContactType.group,
+                        "description": contact_type.CustomerContactType.description,
+                        "checked_flag": True if contact_type.EBankingRegisterBalanceOption else False
+                    } for contact_type in contact_types if
+                    contact_type.EBankingRegisterBalanceOption.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING
+                ],
+                "register_balance_casas": [
+                    {
+                        "account_id": registration_info['account_id'],
+                        "checking_account_name": registration_info['name'],
+                        "primary_phone_number": registration_info.get('mobile_number'),
+                        "full_name_vn": registration_info['full_name'],
+                        "notification_casa_relationships": [
+                            {
+                                "id": relationship["info"].id,
+                                "mobile_number": relationship["info"].mobile_number,
+                                "full_name_vn": relationship["info"].full_name,
+                                "relationship_type": dropdown(relationship["relation_type"])
+                            } for relationship in registration_info['relationships']
+                        ],
+                        "e_banking_notifications": [
+                            {
+                                **dropdown(notification),
+                                "checked_flag": True
+                            } for notification in registration_info['notifications']
+                        ]
+                    } for registration_info in checking_registration_info.values()
+                ]
+            },
+            "e_banking_information": {
+                "account_information": {
+                    **account_info,
+                    "method_authentication": [
+                        {
+                            **dropdown(method.MethodAuthentication),
+                            "checked_flag": True if method.EBankingInfo else False
+                        } for method in e_bank_info
+                    ],
+                },
+            }
+        }
+
+        return self.response(data=data)
 
     async def ctr_balance_payment_account(self, cif_id: str):
         is_success, payment_account = self.call_repos(
