@@ -32,7 +32,7 @@ class MainAndSubCardNumberResponse(BaseSchema):
 
 class IssueDebitCardResponse(BaseSchema):
     register_flag: bool = Field(..., description="Đăng kí thẻ ghi nợ, `True`: đăng kí, `False`: không đăng kí ")
-    physical_card_type: List[DropdownResponse] = Field(None, description="TÍnh vật lý: thẻ vật lý, thẻ phi vật lý",
+    physical_card_type: List[DropdownResponse] = Field(..., description="TÍnh vật lý: thẻ vật lý, thẻ phi vật lý",
                                                        nullable=True)
     physical_issuance_type: DropdownResponse = Field(None, description="Hình thức phát hành")
     customer_type: DropdownResponse = Field(None, description="Nhóm khách hàng")

@@ -13,7 +13,7 @@ from app.third_parties.oracle.models.master_data.card import (
 )
 from app.third_parties.oracle.models.master_data.customer import CustomerType
 from app.third_parties.oracle.models.master_data.others import Branch
-from app.utils.error_messages import VALIDATE_ERROR
+from app.utils.error_messages import ERROR_NOT_REGISTER, VALIDATE_ERROR
 from app.utils.functions import generate_uuid, now
 from app.utils.vietnamese_converter import convert_to_unsigned_vietnamese
 
@@ -36,7 +36,7 @@ class CtrDebitCard(BaseController):
     ):
         # check register_flag == False thì ko insert data
         if not debt_card_req.issue_debit_card.register_flag:
-            return self.response({"cif_id": cif_id})
+            return self.response_exception(msg=ERROR_NOT_REGISTER, loc="debt_card_req -> issue_debit_card -> register_flag")
 
         # check, get current user
         current_user = self.call_repos(
@@ -63,23 +63,17 @@ class CtrDebitCard(BaseController):
         card_type = []
         for debt_card_type in debt_card_req.issue_debit_card.physical_card_type:
             card_type.append(debt_card_type.id)
-        if len(card_type) > 2:
+        if len(card_type) > 2 or len(card_type) < 1:
             return self.response_exception(
                 msg=VALIDATE_ERROR,
-                detail="Too many physical_card_type",
+                detail="Number physical_card_type must be greater than 1 and less than 2",
                 loc="issue_debit_card -> physical_card_type"
             )
-        if len(card_type) < 1:
-            return self.response_exception(
-                msg=VALIDATE_ERROR,
-                detail="physical_card_type is null",
-                loc="issue_debit_card -> physical_card_type"
-            )
-        if len(card_type) == 2 and card_type[0] == card_type[1]:
+        if len(card_type) != len(set(card_type)):
             return self.response_exception(
                 msg=VALIDATE_ERROR,
                 detail="Data is duplicate",
-                loc="issue_debit_card -> physical_card_type -> 1"
+                loc="issue_debit_card -> physical_card_type"
             )
 
         # check CardType exist
@@ -118,7 +112,7 @@ class CtrDebitCard(BaseController):
         )
 
         """Validate tên dập nổi không quá 21 kí tự"""
-        lenght_name = len(first_name) + len(last_name)
+        lenght_name = len(first_name + last_name)
         if first_name.upper() != debt_card_req.information_debit_card.name_on_card.first_name_on_card.upper():
             return self.response_exception(
                 msg=VALIDATE_ERROR,
@@ -425,7 +419,7 @@ class CtrDebitCard(BaseController):
                 session=self.oracle_session,
             )
         )
-        return self.response(add_debit_card)
+        return self.response(data=add_debit_card)
 
     async def ctr_list_debit_card_type(self, cif_id: str,
                                        branch_of_card_id: str,
