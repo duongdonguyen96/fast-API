@@ -21,7 +21,7 @@ from app.third_parties.oracle.models.master_data.others import (
 from app.utils.constant.cif import (
     EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
     EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_NOT_PAYMENT_FEE,
-    EBANKING_PAYMENT_FEE, HARD_TOKEN
+    EBANKING_PAYMENT_FEE, METHOD_TYPE_HARD_TOKEN
 )
 from app.utils.error_messages import ERROR_E_BANKING
 from app.utils.functions import dropdown, generate_uuid, now
@@ -148,7 +148,7 @@ class CtrEBanking(BaseController):
                 if auth_type.active_flag:
                     list_data.append(auth_type.id)
 
-            if HARD_TOKEN in list_data:
+            if METHOD_TYPE_HARD_TOKEN in list_data:
                 if not account_information.payment_fee:
                     return self.response_exception(
                         msg=ERROR_E_BANKING,
