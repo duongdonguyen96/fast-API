@@ -379,14 +379,14 @@ async def repos_save_identity(
     new_first_identity_image_id = generate_uuid()  # ID ảnh mặt trước hoặc ảnh hộ chiếu
     new_second_identity_image_id = generate_uuid()  # ID ảnh mặt sau
 
-    # Kiểm tra uuid khuôn mặt đã post vào trong DB chưa
+    # Kiểm tra uuid khuôn mặt đã tồn tại trong DB chưa
     customer_compare_image = session.execute(
         select(
             CustomerCompareImage
         )
         .filter(CustomerCompareImage.id == saving_customer_compare_image['id'])
     ).scalar()
-    if customer_compare_image.id:
+    if customer_compare_image:
         return ReposReturn(is_error=True, msg=ERROR_COMPARE_IMAGE_EXIST, loc="face_uuid_ekyc")
 
     # Tạo mới

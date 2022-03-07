@@ -113,7 +113,7 @@ MESSAGE_STATUS = {
     ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST: "Identity Document Type Type is not exist",
     ERROR_WRONG_TYPE_IDENTITY: "Identity Document Type Type is wrong",
 
-    ERROR_NOT_NULL: " is not null",
+    ERROR_NOT_NULL: "is not null",
 
     ERROR_NO_DATA: "No data, please create data before get data",
 
