@@ -59,6 +59,8 @@ ERROR_BEGIN_STAGE_NOT_EXIST = "ERROR_BEGIN_STAGE_NOT_EXIST"
 ERROR_NEXT_RECEIVER_NOT_EXIST = "ERROR_NEXT_RECEIVER_NOT_EXIST"
 ERROR_STAGE_NOT_EXIST = "ERROR_STAGE_NOT_EXIST"
 
+ERROR_COMPARE_IMAGE_EXIST = "ERROR_STAGE_NOT_EXIST"
+
 MESSAGE_STATUS = {
     # general error
     PAGING_ERROR: "Can not found page!",
@@ -117,5 +119,7 @@ MESSAGE_STATUS = {
 
     ERROR_BEGIN_STAGE_NOT_EXIST: "Begin State is not existed",
     ERROR_NEXT_RECEIVER_NOT_EXIST: "Next Receiver is not existed",
-    ERROR_STAGE_NOT_EXIST: "Stage is not existed"
+    ERROR_STAGE_NOT_EXIST: "Stage is not existed",
+
+    ERROR_COMPARE_IMAGE_EXIST: "Compare Image is existed, please upload new compare image"
 }
