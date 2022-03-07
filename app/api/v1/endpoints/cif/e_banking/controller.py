@@ -1,5 +1,3 @@
-
-
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.e_banking.repository import (
     repos_balance_saving_account_data, repos_check_e_banking,
@@ -23,8 +21,9 @@ from app.third_parties.oracle.models.master_data.others import (
 from app.utils.constant.cif import (
     EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
     EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_NOT_PAYMENT_FEE,
-    EBANKING_PAYMENT_FEE
+    EBANKING_PAYMENT_FEE, HARD_TOKEN
 )
+from app.utils.error_messages import ERROR_E_BANKING
 from app.utils.functions import dropdown, generate_uuid, now
 
 
@@ -141,26 +140,23 @@ class CtrEBanking(BaseController):
                 model_ids=auth_method_ids,
                 loc="method_authentication -> id"
             )
-            flag = None
+            flag = EBANKING_NOT_PAYMENT_FEE
             account = None
 
             list_data = []
             for auth_type in auth_types:
                 if auth_type.active_flag:
-                    list_data.append(auth_type.name)
+                    list_data.append(auth_type.id)
 
-            if "Hard token" in list_data:
+            if HARD_TOKEN in list_data:
                 if not account_information.payment_fee:
                     return self.response_exception(
-                        msg='ERROR_E-BANKING',
-                        loc='account_info -> payment_fee',
-
+                        msg=ERROR_E_BANKING,
+                        loc='account_info -> payment_fee'
                     )
+                flag = EBANKING_PAYMENT_FEE
                 if account_information.payment_fee.flag:
-                    flag = EBANKING_PAYMENT_FEE
                     account = account_information.payment_fee.account
-                else:
-                    flag = EBANKING_NOT_PAYMENT_FEE
 
             method_active_password_id = EBANKING_ACTIVE_PASSWORD_EMAIL if \
                 account_information.get_initial_password_method == GetInitialPasswordMethod.Email \
