@@ -152,7 +152,8 @@ class CtrEBanking(BaseController):
                 if not account_information.payment_fee:
                     return self.response_exception(
                         msg=ERROR_E_BANKING,
-                        loc='account_info -> payment_fee'
+                        detail='payment_fee must be value {}',
+                        loc='account_information -> payment_fee'
                     )
                 flag = EBANKING_PAYMENT_FEE
                 if account_information.payment_fee.flag:
