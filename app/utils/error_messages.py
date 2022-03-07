@@ -59,6 +59,8 @@ ERROR_BEGIN_STAGE_NOT_EXIST = "ERROR_BEGIN_STAGE_NOT_EXIST"
 ERROR_NEXT_RECEIVER_NOT_EXIST = "ERROR_NEXT_RECEIVER_NOT_EXIST"
 ERROR_STAGE_NOT_EXIST = "ERROR_STAGE_NOT_EXIST"
 
+ERROR_COMPARE_IMAGE_EXIST = "ERROR_STAGE_NOT_EXIST"
+
 ERROR_E_BANKING = "ERROR_E-BANKING"
 
 MESSAGE_STATUS = {
@@ -113,11 +115,13 @@ MESSAGE_STATUS = {
     ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST: "Identity Document Type Type is not exist",
     ERROR_WRONG_TYPE_IDENTITY: "Identity Document Type Type is wrong",
 
-    ERROR_NOT_NULL: " is not null",
+    ERROR_NOT_NULL: "is not null",
 
     ERROR_NO_DATA: "No data, please create data before get data",
 
     ERROR_BEGIN_STAGE_NOT_EXIST: "Begin State is not existed",
     ERROR_NEXT_RECEIVER_NOT_EXIST: "Next Receiver is not existed",
-    ERROR_STAGE_NOT_EXIST: "Stage is not existed"
+    ERROR_STAGE_NOT_EXIST: "Stage is not existed",
+
+    ERROR_COMPARE_IMAGE_EXIST: "Compare Image is existed, please upload new compare image"
 }
