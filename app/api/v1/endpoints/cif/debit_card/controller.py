@@ -1,7 +1,6 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.debit_card.repository import (
-    get_customer_by_cif_number, repos_add_debit_card, repos_debit_card,
-    repos_get_list_debit_card
+    repos_add_debit_card, repos_debit_card, repos_get_list_debit_card
 )
 from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
@@ -24,11 +23,6 @@ class CtrDebitCard(BaseController):
         debit_card = self.call_repos(await repos_debit_card(cif_id, self.oracle_session))
         return self.response(debit_card)
 
-    async def ctr_get_cus_by_cif_number(self, cif_num: str):
-
-        cus_data = self.call_repos(await get_customer_by_cif_number(cif_num, self.oracle_session))
-        return self.response(cus_data)
-
     async def ctr_add_debit_card(
             self,
             cif_id: str,
@@ -36,7 +30,8 @@ class CtrDebitCard(BaseController):
     ):
         # check register_flag == False thì ko insert data
         if not debt_card_req.issue_debit_card.register_flag:
-            return self.response_exception(msg=ERROR_NOT_REGISTER, loc="debt_card_req -> issue_debit_card -> register_flag")
+            return self.response_exception(msg=ERROR_NOT_REGISTER,
+                                           loc="debt_card_req -> issue_debit_card -> register_flag")
 
         # check, get current user
         current_user = self.call_repos(
@@ -191,37 +186,7 @@ class CtrDebitCard(BaseController):
         if debt_card_req.information_sub_debit_card is not None:
             for index, sub_card in enumerate(debt_card_req.information_sub_debit_card.sub_debit_cards):
 
-                """ Check CIF_NUM """
-                data_sub_cus = self.call_repos(
-                    await get_customer_by_cif_number(sub_card.cif_number, self.oracle_session))
-
-                """Validate tên dập nổi không quá 21 kí tự"""
-                sub_last_name = data_sub_cus["last_name"]
-                sub_first_name = data_sub_cus["first_name"]
-                sub_cus_id = data_sub_cus["cus_id"]
-
-                sub_lenght_name = len(sub_first_name + sub_last_name)
-                if sub_last_name.upper() != sub_card.name_on_card.last_name_on_card.upper():
-                    return self.response_exception(
-                        msg=VALIDATE_ERROR,
-                        detail="last_name_on_card is wrong",
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> name_on_card -> last_name_on_card"
-                    )
-                if sub_first_name.upper() != sub_card.name_on_card.first_name_on_card.upper():
-                    return self.response_exception(
-                        msg=VALIDATE_ERROR,
-                        detail="first_name_on_card is wrong",
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> name_on_card -> first_name_on_card"
-                    )
-                if sub_card.name_on_card.middle_name_on_card:
-                    sub_lenght_name = sub_lenght_name + len(sub_card.name_on_card.middle_name_on_card)
-
-                if sub_lenght_name > 21:
-                    return self.response_exception(
-                        msg=VALIDATE_ERROR,
-                        detail="Name on card is too long",
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> name_on_card -> middle_name_on_card"
-                    )
+                """ Check CIF_NUM """  # TODO
 
                 """Kiểm tra sub physical_card_type (Tính vật lý) tồn tại"""
                 sub_card_type = []
@@ -244,7 +209,8 @@ class CtrDebitCard(BaseController):
                     await self.get_model_object_by_id(
                         model_id=_.id,
                         model=CardType,
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type -> {idx} -> id",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type"
+                            f" -> {idx} -> id",
                     )
 
                 """Kiểm tra physical_issuance_type (Hình thức phát hành thẻ) exist"""
@@ -261,37 +227,43 @@ class CtrDebitCard(BaseController):
                         return self.response_exception(
                             msg=VALIDATE_ERROR,
                             detail="scb_branch is null",
-                            loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> scb_branch"
+                            loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address "
+                                f"-> scb_branch "
                         )
                     await self.get_model_object_by_id(
                         model=Branch,
                         model_id=sub_card.card_delivery_address.scb_branch.id,
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> scb_branch -> id",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> "
+                            f"scb_branch -> id",
                     )
                 else:
                     if not sub_card.card_delivery_address.delivery_address:
                         return self.response_exception(
                             msg=VALIDATE_ERROR,
                             detail="delivery_address is null",
-                            loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> delivery_address"
+                            loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address "
+                                f"-> delivery_address "
                         )
                     # check province
                     await self.get_model_object_by_id(
                         model=AddressProvince,
                         model_id=sub_card.card_delivery_address.delivery_address.province.id,
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> province -> id",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> "
+                            f"province -> id",
                     )
                     # check district
                     await self.get_model_object_by_id(
                         model=AddressDistrict,
                         model_id=sub_card.card_delivery_address.delivery_address.district.id,
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> district -> id",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> "
+                            f"district -> id",
                     )
                     # check ward
                     await self.get_model_object_by_id(
                         model=AddressWard,
                         model_id=sub_card.card_delivery_address.delivery_address.ward.id,
-                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> ward -> id",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> "
+                            f"ward -> id",
                     )
 
                 sub_uuid = generate_uuid()
@@ -322,7 +294,7 @@ class CtrDebitCard(BaseController):
                 # thong tin (the phu)
                 sub_data_debit_card = {
                     "id": generate_uuid(),
-                    "customer_id": sub_cus_id,
+                    "customer_id": cif_id,  # TODO
                     "card_issuance_type_id": sub_card.card_issuance_type.id,
                     "customer_type_id": debt_card_req.issue_debit_card.customer_type.id,
                     "brand_of_card_id": debt_card_req.issue_debit_card.branch_of_card.id,

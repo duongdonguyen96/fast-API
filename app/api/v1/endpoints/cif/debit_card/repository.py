@@ -1,7 +1,6 @@
 import json
 from typing import List
 
-import loguru
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -24,9 +23,7 @@ from app.third_parties.oracle.models.master_data.card import (
 from app.third_parties.oracle.models.master_data.customer import CustomerType
 from app.third_parties.oracle.models.master_data.others import Branch
 from app.utils.constant.cif import BUSINESS_FORM_TGN, CIF_ID_TEST
-from app.utils.error_messages import (
-    ERROR_CIF_ID_NOT_EXIST, ERROR_CIF_NUMBER_NOT_EXIST
-)
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
 
@@ -256,24 +253,3 @@ async def repos_get_list_debit_card(
         )
     else:
         ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
-
-
-async def get_customer_by_cif_number(cif_num: str, session: Session) -> ReposReturn:
-
-    try:
-        data = session.execute(
-            select(Customer).filter(
-                Customer.cif_number == cif_num
-            )
-        ).one()
-    except Exception as ex:
-        loguru.logger.error(ex)
-        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_NOT_EXIST, loc="cif_num")
-    if not data:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_NUMBER_NOT_EXIST, loc="cif_num")
-
-    return ReposReturn(data={
-        "last_name": data[0].last_name,
-        "first_name": data[0].first_name,
-        "cus_id": data[0].id
-    })
