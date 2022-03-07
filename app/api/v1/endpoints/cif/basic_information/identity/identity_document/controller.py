@@ -406,7 +406,7 @@ class CtrIdentityDocument(BaseController):
             if not resident_address_number_and_street:
                 return self.response_exception(
                     msg=ERROR_NOT_NULL,
-                    detail="number_and_street" + MESSAGE_STATUS[ERROR_NOT_NULL],
+                    detail="number_and_street " + MESSAGE_STATUS[ERROR_NOT_NULL],
                     loc="resident_address -> number_and_street"
                 )
 
@@ -449,7 +449,7 @@ class CtrIdentityDocument(BaseController):
             if not contact_address_number_and_street:
                 return self.response_exception(
                     msg=ERROR_NOT_NULL,
-                    detail="number_and_street" + MESSAGE_STATUS[ERROR_NOT_NULL],
+                    detail="number_and_street " + MESSAGE_STATUS[ERROR_NOT_NULL],
                     loc="contact_address -> number_and_street"
                 )
 
