@@ -94,6 +94,11 @@ class OptionalEBankingAccountResponse(BaseSchema):
                                  example='2021-15-12 06:07:08')
 
 
+class PaymentFee(BaseSchema):
+    flag: bool = Field(..., description='Trạng thái. `False`: Tiền mặt. `True`: Trích từ tài khoản')
+    account: str = Field(None, description='Số tài khoản trích từ tài khoản', allow_null=True)
+
+
 class AccountInformation(BaseSchema):
     register_flag: bool = Field(..., description='Trạng thái. `False`: Không. `True`: Có')
     account_name: str = Field(..., description='Tên đăng nhập')
@@ -101,6 +106,7 @@ class AccountInformation(BaseSchema):
                                                                   description='Hình thức nhận  mật khẩu kích hoạt')
     method_authentication: List[MethodAuthentication] = Field(..., description='Hình thức xác thực')
     charged_account: Optional[str] = Field(None, description='Tài khoản thanh toán phí', nullable=True)
+    payment_fee: Optional[PaymentFee] = Field(None, description='Thanh toán phí', nullable=True)
 
 
 class AccountInformationResponse(BaseSchema):

@@ -86,7 +86,6 @@ async def repos_save_e_banking_data(
     session.bulk_save_objects([EBankingInfoAuthentication(**item) for item in auth_method])
 
     await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> e-banking -- Tạo mới",
         log_data=log_data,
         session=session,
         customer_id=cif_id,
