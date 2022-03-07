@@ -18,9 +18,9 @@ class CardTypeResponse(BaseSchema):
 
 
 class NameOnCardResponse(BaseSchema):
-    last_name_on_card: str = Field(..., description="Họ")
-    middle_name_on_card: str = Field(..., description="tên lót")
-    first_name_on_card: str = Field(..., description="tên")
+    last_name_on_card: str = Field(..., description="Tên")
+    middle_name_on_card: str = Field(None, description="tên lót")
+    first_name_on_card: str = Field(..., description="Họ")
 
 
 class MainAndSubCardNumberResponse(BaseSchema):
@@ -83,7 +83,9 @@ class DebitCardResponse(BaseSchema):
 
 # ######################### request schema ###################################
 class NameOnCardRequest(BaseSchema):
+    last_name_on_card: str = Field(..., description="Tên")
     middle_name_on_card: str = Field(None, description="tên lót")
+    first_name_on_card: str = Field(..., description="Họ")
 
 
 class IssueDebitRequest(BaseSchema):
@@ -137,3 +139,8 @@ class ListCardTypeResponse(BaseSchema):
     name: str = Field(..., description="Tên loại thẻ")
     source_code: str = Field(..., description="Mã source")
     promo_code: str = Field(..., description="Mã promo")
+
+
+class SubCusResponse(BaseSchema):
+    first_name: str = Field(..., description="Họ")
+    last_name: str = Field(..., description="Tên")

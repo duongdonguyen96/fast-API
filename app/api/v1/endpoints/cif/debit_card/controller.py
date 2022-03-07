@@ -1,6 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.debit_card.repository import (
-    repos_add_debit_card, repos_debit_card, repos_get_list_debit_card
+    get_customer_by_cif_number, repos_add_debit_card, repos_debit_card,
+    repos_get_list_debit_card
 )
 from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
@@ -22,6 +23,11 @@ class CtrDebitCard(BaseController):
 
         debit_card = self.call_repos(await repos_debit_card(cif_id, self.oracle_session))
         return self.response(debit_card)
+
+    async def ctr_get_cus_by_cif_number(self, cif_num: str):
+
+        cus_data = self.call_repos(await get_customer_by_cif_number(cif_num, self.oracle_session))
+        return self.response(cus_data)
 
     async def ctr_add_debit_card(
             self,
@@ -113,6 +119,18 @@ class CtrDebitCard(BaseController):
 
         """Validate tên dập nổi không quá 21 kí tự"""
         lenght_name = len(first_name) + len(last_name)
+        if first_name.upper() != debt_card_req.information_debit_card.name_on_card.first_name_on_card.upper():
+            return self.response_exception(
+                msg=VALIDATE_ERROR,
+                detail="first_name_on_card is wrong",
+                loc="issue_debit_card -> information_debit_card -> name_on_card -> first_name_on_card"
+            )
+        if last_name.upper() != debt_card_req.information_debit_card.name_on_card.last_name_on_card.upper():
+            return self.response_exception(
+                msg=VALIDATE_ERROR,
+                detail="last_name_on_card is wrong",
+                loc="issue_debit_card -> information_debit_card -> name_on_card -> last_name_on_card"
+            )
         if debt_card_req.information_debit_card.name_on_card.middle_name_on_card:
             lenght_name = lenght_name + len(debt_card_req.information_debit_card.name_on_card.middle_name_on_card)
 
@@ -178,6 +196,38 @@ class CtrDebitCard(BaseController):
         """Kiểm tra validate thông tin thẻ phụ"""
         if debt_card_req.information_sub_debit_card is not None:
             for index, sub_card in enumerate(debt_card_req.information_sub_debit_card.sub_debit_cards):
+
+                """ Check CIF_NUM """
+                data_sub_cus = self.call_repos(
+                    await get_customer_by_cif_number(sub_card.cif_number, self.oracle_session))
+
+                """Validate tên dập nổi không quá 21 kí tự"""
+                sub_last_name = data_sub_cus["last_name"]
+                sub_first_name = data_sub_cus["first_name"]
+                sub_cus_id = data_sub_cus["cus_id"]
+
+                sub_lenght_name = len(sub_first_name) + len(sub_last_name)
+                if sub_last_name.upper() != sub_card.name_on_card.last_name_on_card.upper():
+                    return self.response_exception(
+                        msg=VALIDATE_ERROR,
+                        detail="last_name_on_card is wrong",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> name_on_card -> last_name_on_card"
+                    )
+                if sub_first_name.upper() != sub_card.name_on_card.first_name_on_card.upper():
+                    return self.response_exception(
+                        msg=VALIDATE_ERROR,
+                        detail="first_name_on_card is wrong",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> name_on_card -> first_name_on_card"
+                    )
+                if sub_card.name_on_card.middle_name_on_card:
+                    sub_lenght_name = sub_lenght_name + len(sub_card.name_on_card.middle_name_on_card)
+
+                if sub_lenght_name > 21:
+                    return self.response_exception(
+                        msg=VALIDATE_ERROR,
+                        detail="Name on card is too long",
+                        loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> name_on_card -> middle_name_on_card"
+                    )
 
                 """Kiểm tra sub physical_card_type (Tính vật lý) tồn tại"""
                 sub_card_type = []
@@ -250,16 +300,13 @@ class CtrDebitCard(BaseController):
                         loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> card_delivery_address -> ward -> id",
                     )
 
-            list_data_sub_debit_card = debt_card_req.information_sub_debit_card.sub_debit_cards
-
-            for sub_debit_card in list_data_sub_debit_card:
                 sub_uuid = generate_uuid()
                 # neu scb_delivery_address_flag la True thi dia chi nhan la SCB
-                if sub_debit_card.card_delivery_address.delivery_address_flag is False:
+                if sub_card.card_delivery_address.delivery_address_flag is False:
                     # dia chi nhan (the phu)
                     sub_delivery_add = {
                         "id": sub_uuid,
-                        "branch_id": sub_debit_card.card_delivery_address.scb_branch.id,
+                        "branch_id": sub_card.card_delivery_address.scb_branch.id,
                         "province_id": None,
                         "district_id": None,
                         "ward_id": None,
@@ -271,38 +318,38 @@ class CtrDebitCard(BaseController):
                     sub_delivery_add = {
                         "id": sub_uuid,
                         "branch_id": None,
-                        "province_id": sub_debit_card.card_delivery_address.delivery_address.province.id,
-                        "district_id": sub_debit_card.card_delivery_address.delivery_address.district.id,
-                        "ward_id": sub_debit_card.card_delivery_address.delivery_address.ward.id,
-                        "card_delivery_address_address": sub_debit_card.card_delivery_address.delivery_address.number_and_street,
-                        "card_delivery_address_note": sub_debit_card.card_delivery_address.note,
+                        "province_id": sub_card.card_delivery_address.delivery_address.province.id,
+                        "district_id": sub_card.card_delivery_address.delivery_address.district.id,
+                        "ward_id": sub_card.card_delivery_address.delivery_address.ward.id,
+                        "card_delivery_address_address": sub_card.card_delivery_address.delivery_address.number_and_street,
+                        "card_delivery_address_note": sub_card.card_delivery_address.note,
                     }
                     list_sub_delivery_address.append(sub_delivery_add)
                 # thong tin (the phu)
                 sub_data_debit_card = {
                     "id": generate_uuid(),
-                    "customer_id": cif_id,
-                    "card_issuance_type_id": sub_debit_card.card_issuance_type.id,
+                    "customer_id": sub_cus_id,
+                    "card_issuance_type_id": sub_card.card_issuance_type.id,
                     "customer_type_id": debt_card_req.issue_debit_card.customer_type.id,
                     "brand_of_card_id": debt_card_req.issue_debit_card.branch_of_card.id,
                     "card_issuance_fee_id": debt_card_req.issue_debit_card.issuance_fee.id,
                     "card_delivery_address_id": sub_uuid,
                     "parent_card_id": id_primary_card,
                     "card_registration_flag": debt_card_req.issue_debit_card.register_flag,
-                    "payment_online_flag": sub_debit_card.payment_online_flag,
+                    "payment_online_flag": sub_card.payment_online_flag,
                     "first_name_on_card": first_name.upper(),  # uppercase first name
                     "last_name_on_card": last_name.upper(),  # uppercase last name
-                    "card_delivery_address_flag": sub_debit_card.card_delivery_address.delivery_address_flag,
+                    "card_delivery_address_flag": sub_card.card_delivery_address.delivery_address_flag,
                     "created_at": now(),
                     "active_flag": 1
                 }
-                if sub_debit_card.name_on_card.middle_name_on_card:
+                if sub_card.name_on_card.middle_name_on_card:
                     sub_data_debit_card.update({
-                        "middle_name_on_card": sub_debit_card.name_on_card.middle_name_on_card.upper()
+                        "middle_name_on_card": sub_card.name_on_card.middle_name_on_card.upper()
                     })
                 list_sub_debit_card.append(sub_data_debit_card)
                 # loai the (the phu)
-                for card_type in sub_debit_card.physical_card_type:
+                for card_type in sub_card.physical_card_type:
                     data_sub_debit_card_type = {
                         "card_id": sub_data_debit_card["id"],
                         "card_type_id": card_type.id,
