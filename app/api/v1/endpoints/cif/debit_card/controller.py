@@ -200,7 +200,7 @@ class CtrDebitCard(BaseController):
                 sub_first_name = data_sub_cus["first_name"]
                 sub_cus_id = data_sub_cus["cus_id"]
 
-                sub_lenght_name = len(sub_first_name) + len(sub_last_name)
+                sub_lenght_name = len(sub_first_name + sub_last_name)
                 if sub_last_name.upper() != sub_card.name_on_card.last_name_on_card.upper():
                     return self.response_exception(
                         msg=VALIDATE_ERROR,
@@ -230,13 +230,13 @@ class CtrDebitCard(BaseController):
                 if len(sub_card_type) > 2 or len(sub_card_type) < 1:
                     return self.response_exception(
                         msg=VALIDATE_ERROR,
-                        detail="Too many physical_card_type",
+                        detail="Number physical_card_type must be greater than 1 and less than 2",
                         loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type"
                     )
-                if len(sub_card_type) == 2 and sub_card_type[0] == sub_card_type[1]:
+                if len(sub_card_type) != len(set(sub_card_type)):
                     return self.response_exception(
                         msg=VALIDATE_ERROR,
-                        detail="Data physical_card_type is duplicate",
+                        detail="Data is duplicate",
                         loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type -> 1"
                     )
 
