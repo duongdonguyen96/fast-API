@@ -864,14 +864,12 @@ async def parse_identity_model_to_dict(
                 "father_full_name_vn": str(request_ocr_result_basic_information.father_full_name_vn),
                 "mother_full_name_vn": str(request_ocr_result_basic_information.mother_full_name_vn)
             })
-            return request_data
         else:
             request_data['ocr_result']['identity_document'].update({
                 "mrz_content": str(request_ocr_result_identity_document.mrz_content),
                 "qr_code_content": str(request_ocr_result_identity_document.qr_code_content),
                 "signer": request_ocr_result_identity_document.signer
             })
-            return request_data
     else:
 
         request_data['ocr_result']['identity_document'].update({
@@ -893,4 +891,4 @@ async def parse_identity_model_to_dict(
                 "face_uuid_ekyc": request_passport_information.face_uuid_ekyc
             }
         })
-        return request_data
+    return request_data
