@@ -35,7 +35,9 @@ from app.third_parties.oracle.models.master_data.address import (
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerClassification, CustomerEconomicProfession, CustomerGender
 )
-from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
+from app.third_parties.oracle.models.master_data.identity import (
+    PassportCode, PassportType, PlaceOfIssue
+)
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     ADDRESS_COUNTRY_CODE_VN, BUSINESS_TYPE_INIT_CIF, CHANNEL_AT_THE_COUNTER,
@@ -570,6 +572,20 @@ class CtrIdentityDocument(BaseController):
             saving_customer_resident_address = None
             saving_customer_contact_address = None
             identity_number_in_passport = identity_document_request.ocr_result.basic_information.identity_card_number
+            # check passport_type
+            await self.get_model_object_by_id(
+                model_id=identity_document_request.ocr_result.identity_document.passport_type.id,
+                model=PassportType,
+                loc="passport_type"
+            )
+
+            # check passport_code
+            await self.get_model_object_by_id(
+                model_id=identity_document_request.ocr_result.identity_document.passport_code.id,
+                model=PassportCode,
+                loc="passport_code"
+            )
+
             saving_customer_identity.update({
                 "passport_type_id": identity_document_request.ocr_result.identity_document.passport_type.id,
                 "passport_code_id": identity_document_request.ocr_result.identity_document.passport_code.id,
