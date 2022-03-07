@@ -54,7 +54,7 @@ from app.utils.constant.cif import (
 from app.utils.error_messages import (  # noqa
     ERROR_CALL_SERVICE_EKYC, ERROR_IDENTITY_DOCUMENT_NOT_EXIST,
     ERROR_IDENTITY_DOCUMENT_TYPE_TYPE_NOT_EXIST, ERROR_INVALID_URL,
-    ERROR_NO_DATA, ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
+    ERROR_NO_DATA, ERROR_NOT_NULL, ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
 )
 from app.utils.functions import (  # noqa
     calculate_age, date_to_string, dropdown, now, parse_file_uuid
@@ -401,6 +401,15 @@ class CtrIdentityDocument(BaseController):
             )
             resident_address_ward_name = resident_address_ward.name
 
+            # check resident_address_number_and_street
+            resident_address_number_and_street = address_information.resident_address.number_and_street
+            if not resident_address_number_and_street:
+                return self.response_exception(
+                    msg=ERROR_NOT_NULL,
+                    detail="number_and_street" + MESSAGE_STATUS[ERROR_NOT_NULL],
+                    loc="resident_address -> number_and_street"
+                )
+
             # dict dùng để tạo mới hoặc lưu lại customer_resident_address
             saving_customer_resident_address = {
                 "address_type_id": resident_address.id,
@@ -408,7 +417,7 @@ class CtrIdentityDocument(BaseController):
                 "address_province_id": resident_address_province_id,
                 "address_district_id": resident_address_district_id,
                 "address_ward_id": resident_address_ward_id,
-                "address": address_information.resident_address.number_and_street,
+                "address": resident_address_number_and_street,
                 "address_domestic_flag": True if nationality_id == ADDRESS_COUNTRY_CODE_VN else False
             }
             ###########################################################################################################
@@ -435,6 +444,15 @@ class CtrIdentityDocument(BaseController):
                 await self.get_model_object_by_id(model_id=contact_address_ward_id, model=AddressWard,
                                                   loc='contact_address -> ward -> id')
 
+            # check contact_address_number_and_street
+            contact_address_number_and_street = address_information.contact_address.number_and_street
+            if not contact_address_number_and_street:
+                return self.response_exception(
+                    msg=ERROR_NOT_NULL,
+                    detail="number_and_street" + MESSAGE_STATUS[ERROR_NOT_NULL],
+                    loc="contact_address -> number_and_street"
+                )
+
             # dict dùng để tạo mới hoặc lưu lại customer_contact_address
             saving_customer_contact_address = {
                 "address_type_id": contact_address.id,
@@ -442,7 +460,7 @@ class CtrIdentityDocument(BaseController):
                 "address_province_id": contact_address_province_id,
                 "address_district_id": contact_address_district_id,
                 "address_ward_id": contact_address_ward_id,
-                "address": address_information.contact_address.number_and_street,
+                "address": contact_address_number_and_street,
                 "address_domestic_flag": True,  # Địa chỉ liên lạc đối với CMND/CCCD là địa chỉ trong nước
             }
             ############################################################################################################
@@ -517,7 +535,7 @@ class CtrIdentityDocument(BaseController):
                 }
             ]
 
-            place_of_residence = f"{address_information.resident_address.number_and_street}, " \
+            place_of_residence = f"{resident_address_number_and_street}, " \
                                  f"{resident_address_ward_name}, " \
                                  f"{resident_address_district_name}, " \
                                  f"{resident_address_province_name}"
