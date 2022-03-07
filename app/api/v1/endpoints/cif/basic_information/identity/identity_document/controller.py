@@ -464,7 +464,8 @@ class CtrIdentityDocument(BaseController):
             front_side_information_identity_image_uuid = parse_file_uuid(
                 url=identity_document_request.front_side_information.identity_image_url
             )
-            face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
+            face_compare_image_url = parse_file_uuid(
+                identity_document_request.front_side_information.face_compare_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
                     msg=ERROR_INVALID_URL,
@@ -540,7 +541,8 @@ class CtrIdentityDocument(BaseController):
                     ekyc_request_data.update(
                         father_name=father_full_name_vn,
                         mother_name=mother_full_name_vn,
-                        date_of_expiry=date_to_string(identity_document.expired_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                        date_of_expiry=date_to_string(identity_document.expired_date,
+                                                      _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
                         gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
                     )
             # VALIDATE: EKYC CCCD
@@ -599,7 +601,8 @@ class CtrIdentityDocument(BaseController):
             ############################################################################################################
 
             compare_face_uuid_ekyc = identity_document_request.passport_information.face_uuid_ekyc
-            face_compare_image_url = parse_file_uuid(identity_document_request.passport_information.face_compare_image_url)
+            face_compare_image_url = parse_file_uuid(
+                identity_document_request.passport_information.face_compare_image_url)
             identity_image_uuid = parse_file_uuid(identity_document_request.passport_information.identity_image_url)
             if not identity_image_uuid:
                 return self.response_exception(
@@ -645,7 +648,8 @@ class CtrIdentityDocument(BaseController):
                 detail=f"{IDENTITY_DOCUMENT_TYPE_TYPE}",
                 loc="identity_document_type -> type_id"
             )
-        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
+        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data,
+                                                                  document_type=ekyc_document_type_request)
         if not is_valid:
             errors = validate_response['errors']
             return_errors = []
@@ -818,39 +822,32 @@ async def parse_identity_model_to_dict(
             },
             "back_side_information": {
                 "identity_image_url": request_back_side_information.identity_image_url
-            },
-            "ocr_result": {
-                "address_information": {
-                    "resident_address": {
-                        "province": {
-                            "id": request_address_information_resident_address.province.id
-                        },
-                        "district": {
-                            "id": request_address_information_resident_address.district.id
-                        },
-                        "ward": {
-                            "id": request_address_information_resident_address.ward.id
-                        },
-                        "number_and_street": request_address_information_resident_address.number_and_street
-                    },
-                    "contact_address": {
-                        "province": {
-                            "id": request_address_information_contact_address.province.id
-                        },
-                        "district": {
-                            "id": request_address_information_contact_address.district.id
-                        },
-                        "ward": {
-                            "id": request_address_information_contact_address.ward.id
-                        },
-                        "number_and_street": request_address_information_contact_address.number_and_street
-                    }
-                }
             }
         })
-        request_data["ocr_result"].update(
-
-        )
+        request_data["ocr_result"].update(dict(address_information={
+            "resident_address": {
+                "province": {
+                    "id": request_address_information_resident_address.province.id
+                },
+                "district": {
+                    "id": request_address_information_resident_address.district.id
+                },
+                "ward": {
+                    "id": request_address_information_resident_address.ward.id
+                },
+                "number_and_street": request_address_information_resident_address.number_and_street
+            },
+            "contact_address": {
+                "province": dict(id=request_address_information_contact_address.province.id),
+                "district": {
+                    "id": request_address_information_contact_address.district.id
+                },
+                "ward": {
+                    "id": request_address_information_contact_address.ward.id
+                },
+                "number_and_street": request_address_information_contact_address.number_and_street
+            }
+        }))
         request_data["ocr_result"]['basic_information'].update({
             "province": {
                 "id": request_ocr_result_basic_information.province.id
