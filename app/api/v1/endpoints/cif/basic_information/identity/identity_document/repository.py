@@ -202,6 +202,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
                     "identity_image_url": row.CustomerIdentityImage.image_url,
                     "face_compare_image_url": row.CustomerCompareImage.compare_image_url,
                     "identity_avatar_image_uuid": row.CustomerIdentityImage.avatar_image_uuid,
+                    "face_uuid_ekyc": row.CustomerCompareImage.id,
                     "similar_percent": row.CustomerCompareImage.similar_percent
                 }
                 break
@@ -299,6 +300,7 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
             "identity_image_url": first_row.CustomerIdentityImage.image_url,
             "face_compare_image_url": first_row.CustomerCompareImage.compare_image_url,
             "identity_avatar_image_uuid": first_row.CustomerIdentityImage.avatar_image_uuid,
+            "face_uuid_ekyc": first_row.CustomerCompareImage.id,
             "similar_percent": first_row.CustomerCompareImage.similar_percent,
             "fingerprint": fingerprints,
         }
@@ -370,6 +372,7 @@ async def repos_save_identity(
         saving_transaction_daily: dict,
         saving_transaction_sender: dict,
         saving_transaction_receiver: dict,
+        request_data: dict,
         session: Session
 ):
     new_first_identity_image_id = generate_uuid()  # ID ảnh mặt trước hoặc ảnh hộ chiếu
@@ -448,6 +451,7 @@ async def repos_save_identity(
                 booking_id=new_booking_id,
                 business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD,
                 save_flag=True,  # Save_flag đổi lại thành True do Business Form giờ là những Tab nhỏ nhiều cấp
+                form_data=str(request_data),
                 created_at=now(),
                 updated_at=now()
             ),
@@ -457,6 +461,7 @@ async def repos_save_identity(
                 booking_id=new_booking_id,
                 business_form_id=BUSINESS_FORM_TTCN_GTDD_KM,
                 save_flag=True,
+                form_data=str(request_data),
                 created_at=now(),
                 updated_at=now()
             )
@@ -516,8 +521,7 @@ async def repos_save_identity(
             return ReposReturn(is_error=True, msg=message)
 
         await write_transaction_log_and_update_booking(
-            description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
-            log_data=None,
+            log_data=str(request_data),
             session=session,
             customer_id=customer_id,
             business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD
@@ -609,7 +613,6 @@ async def create_customer_identity_image_and_customer_compare_image(
         ])
     # create new CustomerCompareImage
     compare_transaction_parent_id = None
-    saving_customer_compare_image['id'] = generate_uuid()
     saving_customer_compare_image['identity_id'] = identity_id
     saving_customer_compare_image['identity_image_id'] = new_first_identity_image_id
     # Nếu cập nhật giấy tờ định danh, hình ảnh đối chiếu cập nhật lại

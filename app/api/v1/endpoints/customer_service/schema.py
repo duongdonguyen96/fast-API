@@ -96,9 +96,9 @@ class HistoryPostCheckResponse(BaseSchema):
     id: int = Field(..., description='ID of History Post-control')
     kss_status: str = Field(..., description='Status post-control description')
     kss_status_old: str = Field(..., description='Status old post-control description')
-    create_date_format: str = Field(..., description='Create date')
+    create_date_format: Optional[str] = Field(..., description='Create date')
     approve_status: str = Field(..., description='Trạng thái phê duyệt')
-    approve_date_format: str = Field(..., description='Ngày phê duyệt')
+    approve_date_format: Optional[str] = Field(..., description='Ngày phê duyệt')
     status: str = Field(..., description='Status posst-control')
     status_old: str = Field(..., description='Status old post-control')
     result: str = Field(..., description='Kết quả đánh giá')
@@ -179,6 +179,7 @@ class UpdatePostCheckRequest(BaseSchema):
 
 class AttachmentInfoResponse(BaseSchema):
     uuid: str = Field(None, description='`uuid` của tệp đính kèm')
+    url: str = Field(..., description='`URL` của tệp đính kèm')
     attachment_file_name: str = Field(None, description='`name` của tệp đính kèm')
     attachment_type: str = Field(None, description='`type` của tệp đính kèm')
 
@@ -195,6 +196,7 @@ class PermanentAddressResponse(BaseSchema):
 
 class CustomerDetailResponse(BaseSchema):
     attachment_info: List[AttachmentInfoResponse] = Field(None, description='Thông tin tập tin đính kèm')
+    avatar_image_url: str = Field(None, description='Url của hình avatar')
     transaction_id: str = Field(..., description='Mã giao dịch')
     document_id: str = Field(..., description='Số CMND/căn cước công dân/hộ chiếu')
     document_type: int = Field(..., description="""Mã giao dịch,

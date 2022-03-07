@@ -1,14 +1,13 @@
 import json
 from typing import List, Optional, Tuple
 
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.base import Base
 from app.third_parties.oracle.models.cif.form.model import (
-    Booking, BookingAccount, BookingBusinessForm, BookingCustomer,
-    TransactionAll, TransactionDaily
+    Booking, BookingAccount, BookingBusinessForm, BookingCustomer
 )
 from app.third_parties.oracle.models.master_data.account import (
     AccountStructureType
@@ -21,7 +20,7 @@ from app.utils.error_messages import (
     ERROR_BEGIN_STAGE_NOT_EXIST, ERROR_ID_NOT_EXIST,
     ERROR_NEXT_RECEIVER_NOT_EXIST
 )
-from app.utils.functions import dropdown, generate_uuid, now, special_dropdown
+from app.utils.functions import dropdown, now, special_dropdown
 
 
 async def repos_get_model_object_by_id_or_code(model_id: Optional[str], model_code: Optional[str], model: Base,
@@ -152,13 +151,11 @@ async def repos_get_data_model_config(session: Session, model: Base, country_id:
     ])
 
 
-async def write_transaction_log_and_update_booking(description: str,
-                                                   log_data: json,
+async def write_transaction_log_and_update_booking(log_data: json,
                                                    session: Session,
                                                    business_form_id: str,
                                                    customer_id: Optional[str] = None,
                                                    account_id: Optional[str] = None,
-                                                   transaction_stage_id: str = 'BE_TEST'  # TODO: đợi dữ liệu danh mục
                                                    ) -> Tuple[bool, Optional[str]]:
     if customer_id:
         booking = session.execute(
@@ -190,49 +187,17 @@ async def write_transaction_log_and_update_booking(description: str,
     if not booking:
         return False, 'Can not found booking'
 
-    previous_transaction = session.execute(
-        select(
-            TransactionDaily
-        ).filter(TransactionDaily.transaction_id == booking.transaction_id)
+    booking_business_form = session.execute(
+        select(BookingBusinessForm).filter(and_(
+            BookingBusinessForm.booking_id == booking.id,
+            BookingBusinessForm.business_form_id == business_form_id
+        ))
     ).scalar()
-    if not previous_transaction:
-        # TransactionDaily sau một ngày sẽ bị đẩy vào TransactionAll
-        previous_transaction = session.execute(
-            select(
-                TransactionAll
-            ).filter(TransactionAll.transaction_id == booking.transaction_id)
-        ).scalar()
 
-    if not previous_transaction:
-        return False, 'Can not found transaction'
-
-    # lưu log trong CRM_TRANSACTION_DAILY
-    transaction_id = generate_uuid()
-    session.add(
-        TransactionDaily(
-            transaction_id=transaction_id,
-            transaction_stage_id=transaction_stage_id,
-            data=str(log_data),  # Vì data type NCLOB là dạng string nên phải parse list thành string
-            transaction_parent_id=booking.transaction_id,
-            transaction_root_id=previous_transaction.transaction_root_id,
-            description=description,
-            created_at=now(),
-            updated_at=now()
-        )
-    )
+    if not booking_business_form:
+        return False, 'Can not found Booking Business Form'
 
     session.flush()
-
-    # Cập nhật lại transaction_id trong Booking
-    session.execute(
-        update(
-            Booking
-        ).filter(
-            Booking.id == booking.id
-        ).values(
-            transaction_id=transaction_id
-        )
-    )
 
     booking_business_form = session.execute(
         select(
@@ -243,15 +208,10 @@ async def write_transaction_log_and_update_booking(description: str,
         ))
     ).scalar()
 
-    # Cập nhật đã hoàn thành Tab này
-    if not booking_business_form:
-        session.add(BookingBusinessForm(
-            booking_id=booking.id,
-            business_form_id=business_form_id,
-            save_flag=True,
-            created_at=now(),
-            updated_at=now()
-        ))
+    # Cập nhật đã hoàn thành Tab này]
+    booking_business_form.form_data = str(log_data)
+    booking_business_form.update_at = now()
+    session.commit()
 
     return True, None
 

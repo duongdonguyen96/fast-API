@@ -56,7 +56,7 @@ async def view_retrieve_e_banking(
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
-    e_banking_data = await CtrEBanking(current_user).ctr_e_banking(cif_id)
+    e_banking_data = await CtrEBanking(current_user).ctr_get_e_banking(cif_id)
     return ResponseData[EBankingResponse](**e_banking_data)
 
 
