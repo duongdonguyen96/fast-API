@@ -1,3 +1,5 @@
+
+
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.e_banking.repository import (
     repos_balance_saving_account_data, repos_check_e_banking,
@@ -20,7 +22,8 @@ from app.third_parties.oracle.models.master_data.others import (
 )
 from app.utils.constant.cif import (
     EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
-    EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
+    EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_NOT_PAYMENT_FEE,
+    EBANKING_PAYMENT_FEE
 )
 from app.utils.functions import dropdown, generate_uuid, now
 
@@ -129,6 +132,7 @@ class CtrEBanking(BaseController):
         # III. Thông tin e-banking
         # Thông tin tài khoản
         account_information = e_banking.e_banking_information.account_information
+
         if account_information.register_flag:
             # kiểm tra hình thức xác nhận mật khẩu lần đầu
             auth_method_ids = [method.id for method in account_information.method_authentication if method.checked_flag]
@@ -137,10 +141,26 @@ class CtrEBanking(BaseController):
                 model_ids=auth_method_ids,
                 loc="method_authentication -> id"
             )
+            flag = None
+            account = None
 
-            # List xác thực có HARD TOKEN => tốn phí
-            has_fee = EBANKING_HAS_FEE if "HARD TOKEN" in [auth_type.name for auth_type in auth_types if
-                                                           auth_type.active_flag] else EBANKING_HAS_NO_FEE
+            list_data = []
+            for auth_type in auth_types:
+                if auth_type.active_flag:
+                    list_data.append(auth_type.name)
+
+            if "Hard token" in list_data:
+                if not account_information.payment_fee:
+                    return self.response_exception(
+                        msg='ERROR_E-BANKING',
+                        loc='account_info -> payment_fee',
+
+                    )
+                if account_information.payment_fee.flag:
+                    flag = EBANKING_PAYMENT_FEE
+                    account = account_information.payment_fee.account
+                else:
+                    flag = EBANKING_NOT_PAYMENT_FEE
 
             method_active_password_id = EBANKING_ACTIVE_PASSWORD_EMAIL if \
                 account_information.get_initial_password_method == GetInitialPasswordMethod.Email \
@@ -153,8 +173,8 @@ class CtrEBanking(BaseController):
                 "method_active_password_id": method_active_password_id,
                 "account_name": account_information.account_name,
                 "ib_mb_flag": account_information.register_flag,
-                "method_payment_fee_flag": has_fee
-
+                "method_payment_fee_flag": flag,
+                "account_payment_fee": account
             }
 
             # Hình thức xác thực
@@ -252,9 +272,14 @@ class CtrEBanking(BaseController):
         account_info = {}
         for auth_method in e_bank_info:
             if auth_method.EBankingInfo:
+                payment_fee = {
+                    "flag": auth_method.EBankingInfo.method_payment_fee_flag,
+                    "account": auth_method.EBankingInfo.account_payment_fee
+                }
+
                 account_info["register_flag"] = auth_method.EBankingInfo.ib_mb_flag
                 account_info["account_name"] = auth_method.EBankingInfo.account_name
-                account_info["charged_account"] = auth_method.EBankingInfo.account_payment_fee
+                account_info["payment_fee"] = payment_fee
                 account_info["get_initial_password_method"] = GetInitialPasswordMethod(
                     auth_method.EBankingInfo.method_active_password_id)
                 break
