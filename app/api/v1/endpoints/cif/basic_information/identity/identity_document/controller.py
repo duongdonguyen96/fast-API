@@ -35,7 +35,9 @@ from app.third_parties.oracle.models.master_data.address import (
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerClassification, CustomerEconomicProfession, CustomerGender
 )
-from app.third_parties.oracle.models.master_data.identity import PlaceOfIssue
+from app.third_parties.oracle.models.master_data.identity import (
+    PassportCode, PassportType, PlaceOfIssue
+)
 from app.third_parties.oracle.models.master_data.others import Nation, Religion
 from app.utils.constant.cif import (
     ADDRESS_COUNTRY_CODE_VN, BUSINESS_TYPE_INIT_CIF, CHANNEL_AT_THE_COUNTER,
@@ -55,7 +57,7 @@ from app.utils.error_messages import (  # noqa
     ERROR_NO_DATA, ERROR_WRONG_TYPE_IDENTITY, MESSAGE_STATUS
 )
 from app.utils.functions import (  # noqa
-    calculate_age, date_to_string, now, parse_file_uuid
+    calculate_age, date_to_string, dropdown, now, parse_file_uuid
 )
 from app.utils.vietnamese_converter import (
     convert_to_unsigned_vietnamese, make_short_name, split_name
@@ -151,7 +153,6 @@ class CtrIdentityDocument(BaseController):
         # Dữ liệu validate chung
         validate_religion_name = None
         validate_ethnic_name = None
-        validate_gender_code = None
         ekyc_document_type_request = None
 
         if identity_document_request.identity_document_type.id not in IDENTITY_DOCUMENT_TYPE:
@@ -463,7 +464,8 @@ class CtrIdentityDocument(BaseController):
             front_side_information_identity_image_uuid = parse_file_uuid(
                 url=identity_document_request.front_side_information.identity_image_url
             )
-            face_compare_image_url = parse_file_uuid(identity_document_request.front_side_information.face_compare_image_url)
+            face_compare_image_url = parse_file_uuid(
+                identity_document_request.front_side_information.face_compare_image_url)
             if not front_side_information_identity_image_uuid:
                 return self.response_exception(
                     msg=ERROR_INVALID_URL,
@@ -539,7 +541,8 @@ class CtrIdentityDocument(BaseController):
                     ekyc_request_data.update(
                         father_name=father_full_name_vn,
                         mother_name=mother_full_name_vn,
-                        date_of_expiry=date_to_string(identity_document.expired_date, _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
+                        date_of_expiry=date_to_string(identity_document.expired_date,
+                                                      _format=DATE_INPUT_OUTPUT_EKYC_FORMAT),
                         gender=EKYC_GENDER_TYPE_MALE if validate_gender_code == CRM_GENDER_TYPE_MALE else EKYC_GENDER_TYPE_FEMALE,
                     )
             # VALIDATE: EKYC CCCD
@@ -575,6 +578,20 @@ class CtrIdentityDocument(BaseController):
             saving_customer_resident_address = None
             saving_customer_contact_address = None
             identity_number_in_passport = identity_document_request.ocr_result.basic_information.identity_card_number
+            # check passport_type
+            await self.get_model_object_by_id(
+                model_id=identity_document_request.ocr_result.identity_document.passport_type.id,
+                model=PassportType,
+                loc="passport_type"
+            )
+
+            # check passport_code
+            await self.get_model_object_by_id(
+                model_id=identity_document_request.ocr_result.identity_document.passport_code.id,
+                model=PassportCode,
+                loc="passport_code"
+            )
+
             saving_customer_identity.update({
                 "passport_type_id": identity_document_request.ocr_result.identity_document.passport_type.id,
                 "passport_code_id": identity_document_request.ocr_result.identity_document.passport_code.id,
@@ -584,7 +601,8 @@ class CtrIdentityDocument(BaseController):
             ############################################################################################################
 
             compare_face_uuid_ekyc = identity_document_request.passport_information.face_uuid_ekyc
-            face_compare_image_url = parse_file_uuid(identity_document_request.passport_information.face_compare_image_url)
+            face_compare_image_url = parse_file_uuid(
+                identity_document_request.passport_information.face_compare_image_url)
             identity_image_uuid = parse_file_uuid(identity_document_request.passport_information.identity_image_url)
             if not identity_image_uuid:
                 return self.response_exception(
@@ -630,7 +648,8 @@ class CtrIdentityDocument(BaseController):
                 detail=f"{IDENTITY_DOCUMENT_TYPE_TYPE}",
                 loc="identity_document_type -> type_id"
             )
-        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data, document_type=ekyc_document_type_request)
+        is_valid, validate_response = await service_ekyc.validate(data=ekyc_request_data,
+                                                                  document_type=ekyc_document_type_request)
         if not is_valid:
             errors = validate_response['errors']
             return_errors = []
@@ -677,6 +696,10 @@ class CtrIdentityDocument(BaseController):
         (saving_transaction_stage_status, saving_transaction_stage, saving_transaction_daily, saving_transaction_sender,
          saving_transaction_receiver) = transaction_datas
 
+        request_data = await parse_identity_model_to_dict(
+            request=identity_document_request,
+            identity_document_type_id=identity_document_type_id
+        )
         info_save_document = self.call_repos(
             await repos_save_identity(
                 identity_document_type_id=identity_document_type_id,
@@ -694,6 +717,7 @@ class CtrIdentityDocument(BaseController):
                 saving_transaction_daily=saving_transaction_daily,
                 saving_transaction_sender=saving_transaction_sender,
                 saving_transaction_receiver=saving_transaction_receiver,
+                request_data=request_data,
                 session=self.oracle_session
             )
         )
@@ -734,3 +758,139 @@ class CtrIdentityDocument(BaseController):
         )
 
         return self.response(data=face_compare_info)
+
+
+async def parse_identity_model_to_dict(
+        identity_document_type_id,
+        request
+):
+    request_cif_information = request.cif_information
+    request_identity_document_type = request.identity_document_type
+
+    request_ocr_result_identity_document = request.ocr_result.identity_document
+    request_ocr_result_basic_information = request.ocr_result.basic_information
+
+    request_data = {
+        "cif_id": str(request.cif_id),
+        "cif_information": {
+            "self_selected_cif_flag": str(request_cif_information.self_selected_cif_flag),
+            "cif_number": str(request_cif_information.cif_number),
+            "customer_classification": {
+                "id": str(request_cif_information.customer_classification.id)
+            },
+            "customer_economic_profession": {
+                "id": str(request_cif_information.customer_economic_profession.id)
+            }
+        },
+        "identity_document_type": {
+            "id": request_identity_document_type.id,
+            "type_id": request_identity_document_type.type_id
+        },
+        "ocr_result": {
+            "identity_document": {
+                "identity_number": request_ocr_result_identity_document.identity_number,
+                "issued_date": date_to_string(request_ocr_result_identity_document.issued_date),
+                "place_of_issue": {
+                    "id": request_ocr_result_identity_document.place_of_issue.id,
+                },
+                "expired_date": date_to_string(request_ocr_result_identity_document.expired_date)
+            },
+            "basic_information": {
+                "full_name_vn": request_ocr_result_basic_information.full_name_vn,
+                "gender": {
+                    "id": request_ocr_result_basic_information.gender.id
+                },
+                "date_of_birth": date_to_string(request_ocr_result_basic_information.date_of_birth),
+                "nationality": {
+                    "id": request_ocr_result_basic_information.nationality.id
+                }
+            }
+        }
+    }
+
+    if identity_document_type_id != IDENTITY_DOCUMENT_TYPE_PASSPORT:
+        request_front_side_information = request.front_side_information
+        request_back_side_information = request.back_side_information
+        request_address_information_resident_address = request.ocr_result.address_information.resident_address
+        request_address_information_contact_address = request.ocr_result.address_information.contact_address
+        request_data.update({
+            "front_side_information": {
+                "identity_image_url": request_front_side_information.identity_image_url,
+                "identity_avatar_image_uuid": request_front_side_information.identity_avatar_image_uuid,
+                "face_compare_image_url": request_front_side_information.face_compare_image_url,
+                "face_uuid_ekyc": request_front_side_information.face_uuid_ekyc
+            },
+            "back_side_information": {
+                "identity_image_url": request_back_side_information.identity_image_url
+            }
+        })
+        request_data["ocr_result"].update(dict(address_information={
+            "resident_address": {
+                "province": {
+                    "id": request_address_information_resident_address.province.id
+                },
+                "district": {
+                    "id": request_address_information_resident_address.district.id
+                },
+                "ward": {
+                    "id": request_address_information_resident_address.ward.id
+                },
+                "number_and_street": request_address_information_resident_address.number_and_street
+            },
+            "contact_address": {
+                "province": dict(id=request_address_information_contact_address.province.id),
+                "district": {
+                    "id": request_address_information_contact_address.district.id
+                },
+                "ward": {
+                    "id": request_address_information_contact_address.ward.id
+                },
+                "number_and_street": request_address_information_contact_address.number_and_street
+            }
+        }))
+        request_data["ocr_result"]['basic_information'].update({
+            "province": {
+                "id": request_ocr_result_basic_information.province.id
+            },
+            "identity_characteristic": str(request_ocr_result_basic_information.identity_characteristic),
+        })
+
+        if identity_document_type_id == IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD:
+            request_data['ocr_result']['basic_information'].update({
+                "ethnic": {
+                    "id": str(request_ocr_result_basic_information.ethnic.id)
+                },
+                "religion": {
+                    "id": str(request_ocr_result_basic_information.religion.id)
+                },
+                "father_full_name_vn": str(request_ocr_result_basic_information.father_full_name_vn),
+                "mother_full_name_vn": str(request_ocr_result_basic_information.mother_full_name_vn)
+            })
+        else:
+            request_data['ocr_result']['identity_document'].update({
+                "mrz_content": str(request_ocr_result_identity_document.mrz_content),
+                "qr_code_content": str(request_ocr_result_identity_document.qr_code_content),
+                "signer": request_ocr_result_identity_document.signer
+            })
+    else:
+
+        request_data['ocr_result']['identity_document'].update({
+            "passport_type": {
+                "id": request_ocr_result_identity_document.passport_type.id
+            },
+            "passport_code": {
+                "id": request_ocr_result_identity_document.passport_code.id
+            },
+            "identity_card_number": request_ocr_result_basic_information.identity_card_number,
+            "mrz_content": str(request_ocr_result_basic_information.mrz_content)
+        })
+        request_passport_information = request.passport_information
+        request_data.update({
+            "passport_information": {
+                "identity_image_url": request_passport_information.identity_image_url,
+                "identity_avatar_image_uuid": request_passport_information.identity_avatar_image_uuid,
+                "face_compare_image_url": request_passport_information.face_compare_image_url,
+                "face_uuid_ekyc": request_passport_information.face_uuid_ekyc
+            }
+        })
+    return request_data

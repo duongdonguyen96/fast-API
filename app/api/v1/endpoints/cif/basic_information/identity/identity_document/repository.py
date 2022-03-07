@@ -372,6 +372,7 @@ async def repos_save_identity(
         saving_transaction_daily: dict,
         saving_transaction_sender: dict,
         saving_transaction_receiver: dict,
+        request_data: dict,
         session: Session
 ):
     new_first_identity_image_id = generate_uuid()  # ID ảnh mặt trước hoặc ảnh hộ chiếu
@@ -450,6 +451,7 @@ async def repos_save_identity(
                 booking_id=new_booking_id,
                 business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD,
                 save_flag=True,  # Save_flag đổi lại thành True do Business Form giờ là những Tab nhỏ nhiều cấp
+                form_data=str(request_data),
                 created_at=now(),
                 updated_at=now()
             ),
@@ -459,6 +461,7 @@ async def repos_save_identity(
                 booking_id=new_booking_id,
                 business_form_id=BUSINESS_FORM_TTCN_GTDD_KM,
                 save_flag=True,
+                form_data=str(request_data),
                 created_at=now(),
                 updated_at=now()
             )
@@ -518,8 +521,7 @@ async def repos_save_identity(
             return ReposReturn(is_error=True, msg=message)
 
         await write_transaction_log_and_update_booking(
-            description="Tạo CIF -> Thông tin cá nhân -> GTĐD -- Cập nhật",
-            log_data=None,
+            log_data=str(request_data),
             session=session,
             customer_id=customer_id,
             business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD
