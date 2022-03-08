@@ -364,26 +364,26 @@ class CtrEBanking(BaseController):
         return self.response(data=detail_reset_password_data)
 
     async def ctr_balance_saving_account(self, cif_id: str):
-        is_success, balance_saving_account = self.call_repos(
+        balance_saving_account = self.call_repos(
             await repos_balance_saving_account_data(
                 cif_id=cif_id,
                 session=self.oracle_session
             )
         )
 
-        response_data = []
-        if balance_saving_account:
-            balance_saving_accounts = balance_saving_account['selectDepositAccountFromCIF_out']['accountInfo']
-            for account in balance_saving_accounts:
-                response_data.append({
-                    "id": account['customerInfo']['rowOrder'],
-                    "account_number": account['accountNum'],
-                    "name": account['customerInfo']['fullname'],
-                })
+        # response_data = []
+        # if balance_saving_account:
+        #     balance_saving_accounts = balance_saving_account['selectDepositAccountFromCIF_out']['accountInfo']
+        #     for account in balance_saving_accounts:
+        #         response_data.append({
+        #             "id": account['customerInfo']['rowOrder'],
+        #             "account_number": account['accountNum'],
+        #             "name": account['customerInfo']['fullname'],
+        #         })
 
         return self.response_paging(
-            data=response_data,
-            total_item=len(response_data)
+            data=balance_saving_account,
+            total_item=len(balance_saving_account)
         )
 
     async def get_detail_reset_password_teller(self, cif_id: str):
