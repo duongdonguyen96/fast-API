@@ -112,14 +112,6 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
                         "source_code": "DM407",
                         "promo_code": "P311",
                         "active_flag": True
-                    },
-                    {
-                        "id": "2",
-                        "code": "VSDB",
-                        "name": "MASTER CARD",
-                        "source_code": "DM407",
-                        "promo_code": "P311",
-                        "active_flag": False
                     }
                 ]
             }
@@ -139,6 +131,7 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
                 "card_image_url": "https://vi.wikipedia.org/wiki/Trang_Ch%C3%ADn"
             }
             card_delivery_address = {
+                "delivery_address_flag": item.DebitCard.card_delivery_address_flag,
                 "scb_branch": dropdown(item.Branch) if item.Branch else None,
                 "delivery_address": {
                     "province": dropdown(item.AddressProvince) if item.AddressProvince else None,
@@ -161,6 +154,7 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
                 "card_issuance_type": dropdown(item.CardIssuanceType),
                 "payment_online_flag": item.DebitCard.payment_online_flag,
                 "card_delivery_address": {
+                    "delivery_address_flag": item.DebitCard.card_delivery_address_flag,
                     "scb_branch": dropdown(item.Branch) if item.Branch else None,
                     "delivery_address": {
                         "province": dropdown(item.AddressProvince) if item.AddressProvince else None,
@@ -219,7 +213,6 @@ async def repos_add_debit_card(
     session.bulk_save_objects([DebitCardType(**data_sub_type) for data_sub_type in list_sub_debit_card_type])
 
     await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Thẻ ghi nợ -> -- Tạo mới",
         log_data=log_data,
         session=session,
         customer_id=cif_id,
