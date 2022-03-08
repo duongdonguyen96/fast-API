@@ -22,7 +22,7 @@ from app.third_parties.oracle.models.master_data.card import (
 )
 from app.third_parties.oracle.models.master_data.customer import CustomerType
 from app.third_parties.oracle.models.master_data.others import Branch
-from app.utils.constant.cif import BUSINESS_FORM_TGN, CIF_ID_TEST
+from app.utils.constant.cif import BUSINESS_FORM_TGN
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
 from app.utils.functions import dropdown, now
 
@@ -144,7 +144,7 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
         else:
             sub_debit_card_data = {
                 "id": item.DebitCard.id,
-                "cif_number": item.Customer.cif_number,
+                "cif_number": 1234567,  # TODO
                 "name_on_card": {
                     "last_name_on_card": item.DebitCard.last_name_on_card,
                     "middle_name_on_card": item.DebitCard.middle_name_on_card,
@@ -228,28 +228,25 @@ async def repos_add_debit_card(
 
 
 async def repos_get_list_debit_card(
-        cif_id: str,
+        cif_id: str,  # noqa #  TODO
         branch_of_card_id: str,  # noqa
         issuance_fee_id: str,  # noqa
         annual_fee_id: str  # noqa
 ) -> ReposReturn:
-    if cif_id == CIF_ID_TEST:
-        return ReposReturn(data=[
-            {
-                "id": "1",
-                "code": "MDTC1",
-                "name": "VISA",
-                "source_code": "DM407",
-                "promo_code": "P311",
-            },
-            {
-                "id": "2",
-                "code": "VSDB",
-                "name": "MASTER CARD",
-                "source_code": "DM407",
-                "promo_code": "P311",
-            }
-        ]
-        )
-    else:
-        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+    return ReposReturn(data=[
+        {
+            "id": "1",
+            "code": "MDTC1",
+            "name": "VISA",
+            "source_code": "DM407",
+            "promo_code": "P311",
+        },
+        {
+            "id": "2",
+            "code": "VSDB",
+            "name": "MASTER CARD",
+            "source_code": "DM407",
+            "promo_code": "P311",
+        }
+    ]
+    )
