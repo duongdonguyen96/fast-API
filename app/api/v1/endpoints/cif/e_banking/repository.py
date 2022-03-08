@@ -13,8 +13,13 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingInfo, EBankingInfoAuthentication,
     EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
-    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption
+    EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption,
+    TdAccount
 )
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    CasaAccount
+)
+from app.third_parties.oracle.models.master_data.account import AccountType
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerContactType, CustomerRelationshipType
 )
@@ -25,7 +30,7 @@ from app.third_parties.oracle.models.master_data.others import (
     MethodAuthentication
 )
 from app.utils.constant.cif import BUSINESS_FORM_EB, CIF_ID_TEST
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST, ERROR_NO_DATA
 from app.utils.functions import now
 
 
@@ -317,6 +322,27 @@ async def repos_get_list_balance_payment_account(cif_id: str, session: Session) 
     return ReposReturn(data=account_casa)
 
 
+async def repos_get_payment_accounts(cif_id: str, session: Session) -> ReposReturn:
+    payment_accounts = session.execute(
+        select(
+            CasaAccount,
+            AccountType
+        )
+        .join(AccountType, CasaAccount.acc_type_id == AccountType.id)
+        .filter(CasaAccount.customer_id == cif_id)
+    ).all()
+
+    if not payment_accounts:
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_NO_DATA,
+            detail="Create payment account (III. Tài khoản thanh toán) before get data",
+            loc=f"cif_id: {cif_id}"
+        )
+
+    return ReposReturn(data=payment_accounts)
+
+
 async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
     if cif_id != CIF_ID_TEST:
         return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc='cif_id')
@@ -325,35 +351,35 @@ async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
 
 
 async def repos_balance_saving_account_data(cif_id: str, session: Session) -> ReposReturn:
-    cif_number_saving_account = session.execute(
-        select(
-            Customer.cif_number
-        ).filter(Customer.id == cif_id)
-    ).scalar()
-    saving_account = None
-    if cif_number_saving_account:
-        saving_account = await service_soa.deposit_account_from_cif(saving_cif_number=cif_number_saving_account)
-
-    # saving_account = session.execute(
+    # cif_number_saving_account = session.execute(
     #     select(
-    #         Customer,
-    #         TdAccount
+    #         Customer.cif_number
     #     ).filter(Customer.id == cif_id)
-    # ).all()
-    #
-    # if not saving_account:
-    #     return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
-    #
-    # response_data = [
-    #     {
-    #         "id": td_account.id,
-    #         "account_number": td_account.td_account_number,
-    #         "name": customer.full_name_vn,
-    #         "checked_flag": td_account.active_flag
-    #
-    #     } for customer, td_account in saving_account]
+    # ).scalar()
+    # saving_account = None
+    # if cif_number_saving_account:
+    #     saving_account = await service_soa.deposit_account_from_cif(saving_cif_number=cif_number_saving_account)
 
-    return ReposReturn(data=saving_account)
+    saving_accounts = session.execute(
+        select(
+            Customer,
+            TdAccount
+        ).filter(Customer.id == cif_id)
+    ).all()
+
+    if not saving_accounts:
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+
+    response_datas = [
+        {
+            "id": td_account.id,
+            "account_number": td_account.td_account_number,
+            "name": customer.full_name_vn,
+            "checked_flag": td_account.active_flag
+
+        } for customer, td_account in saving_accounts]
+
+    return ReposReturn(data=response_datas)
 
 
 async def repos_get_detail_reset_password_teller(cif_id: str) -> ReposReturn:

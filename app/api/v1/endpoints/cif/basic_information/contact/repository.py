@@ -205,7 +205,6 @@ async def repos_save_contact_information(
 
         # update booking & log
         fail_result, message = await write_transaction_log_and_update_booking(
-            description="Tạo CIF -> Thông tin cá nhân -> Thông tin liên lạc -- Cập nhật",
             log_data=log_data,
             session=session,
             customer_id=cif_id,

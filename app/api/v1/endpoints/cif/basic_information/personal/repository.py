@@ -85,7 +85,6 @@ async def repos_save_personal(
 
     # Lưu log thông tin cá nhân
     await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Thông tin cá nhân -> Thông tin cá nhân -- Cập nhật",
         log_data=log_data,
         session=session,
         customer_id=cif_id,

@@ -114,7 +114,6 @@ async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInfor
     session.bulk_save_objects(data_insert)
 
     is_success, msg = await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Thông tin khác -> Cập nhật",
         log_data=update_other_info_req.json(),
         session=session,
         customer_id=cif_id,
