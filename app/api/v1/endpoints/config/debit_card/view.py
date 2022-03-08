@@ -25,7 +25,7 @@ async def view_card_issuance_type_info(
         current_user=Depends(get_current_user_from_header()),
 ):
     card_issuance_type_info = await CtrDebitCard(current_user).ctr_card_issuance_type_info()
-    return ResponseData[List](**card_issuance_type_info)
+    return ResponseData[List[DropdownResponse]](**card_issuance_type_info)
 
 
 @router.get(
@@ -41,7 +41,7 @@ async def view_card_type_info(
         current_user=Depends(get_current_user_from_header()),
 ):
     card_type_info = await CtrDebitCard(current_user).ctr_card_type_info()
-    return ResponseData[List](**card_type_info)
+    return ResponseData[List[DropdownResponse]](**card_type_info)
 
 
 @router.get(
