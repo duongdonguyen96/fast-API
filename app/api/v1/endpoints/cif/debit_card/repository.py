@@ -252,4 +252,4 @@ async def repos_get_list_debit_card(
         ]
         )
     else:
-        ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
+        return ReposReturn(is_error=True, msg=ERROR_CIF_ID_NOT_EXIST, loc="cif_id")
