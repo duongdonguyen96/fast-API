@@ -53,3 +53,10 @@ def make_short_name(first_name: str, middle_name: Optional[str], last_name: str)
 
     short_name = last_name + first_name[0] + middle_name
     return short_name.lower()
+
+
+def is_vietnamese(text: str):
+    found = re.search("[àáảãạăắằẵặẳâầấậẫẩđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]", text)
+    if found:
+        return True
+    return False
