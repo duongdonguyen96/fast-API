@@ -21,9 +21,7 @@ from app.third_parties.oracle.models.cif.basic_information.model import (
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerRelationshipType
 )
-from app.utils.constant.cif import (
-    CUSTOMER_RELATIONSHIP_TYPE, CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
-)
+from app.utils.constant.cif import CUSTOMER_RELATIONSHIP_TYPE_GUARDIAN
 from app.utils.error_messages import (
     ERROR_CIF_NUMBER_NOT_COMPLETED, ERROR_CIF_NUMBER_NOT_EXIST
 )
@@ -180,7 +178,6 @@ async def repos_save_guardians(
 
     session.bulk_save_objects([CustomerPersonalRelationship(**guardian) for guardian in list_data_insert])
     await write_transaction_log_and_update_booking(
-        description=f"Tạo CIF -> Thông tin cá nhân -> {CUSTOMER_RELATIONSHIP_TYPE[relationship_type]} -- Tạo mới",
         log_data=log_data,
         session=session,
         customer_id=cif_id,

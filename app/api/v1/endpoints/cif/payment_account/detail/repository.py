@@ -89,7 +89,6 @@ async def repos_save_payment_account(
     if is_created:
         session.add(CasaAccount(**data_insert))
         await write_transaction_log_and_update_booking(
-            description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Tạo mới",
             log_data=log_data,
             session=session,
             customer_id=cif_id,
@@ -103,7 +102,6 @@ async def repos_save_payment_account(
             ).values(**data_insert)
         )
         await write_transaction_log_and_update_booking(
-            description="Tạo CIF -> Tài khoản thanh toán -> Chi tiết tài khoản thanh toán -- Cập nhật",
             log_data=log_data,
             session=session,
             customer_id=cif_id,
