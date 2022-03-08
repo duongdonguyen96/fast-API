@@ -2,7 +2,7 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.e_banking.repository import (
     repos_balance_saving_account_data, repos_check_e_banking,
     repos_get_detail_reset_password, repos_get_detail_reset_password_teller,
-    repos_get_e_banking_data, repos_get_list_balance_payment_account,
+    repos_get_e_banking_data, repos_get_payment_accounts,
     repos_save_e_banking_data
 )
 from app.api.v1.endpoints.cif.e_banking.schema import (
@@ -332,23 +332,31 @@ class CtrEBanking(BaseController):
         return self.response(data=data)
 
     async def ctr_balance_payment_account(self, cif_id: str):
-        is_success, payment_account = self.call_repos(
-            await repos_get_list_balance_payment_account(
+        # Lấy danh sách tài khoản thanh toán thông qua service SOA
+        # payment_accounts = self.call_repos(
+        #     await repos_get_list_balance_payment_account(
+        #         cif_id=cif_id,
+        #         session=self.oracle_session
+        #     )
+        # )
+
+        # Luồng tạo mới chỉ lấy tài khoản thanh toán trong DB
+        # Lấy danh sách tài khoản thanh toán trong DB
+        payment_accounts = self.call_repos(
+            await repos_get_payment_accounts(
                 cif_id=cif_id,
                 session=self.oracle_session
             )
         )
-        response_data = []
-        if payment_account:
-            payment_accounts = payment_account['selectCurrentAccountFromCIF_out']['accountInfo']
-            for account in payment_accounts:
-                response_data.append({
-                    "id": account['customerInfo']['rowOrder'],
-                    "account_number": account['accountNum'],
-                    "product_name": account['accountClassName'],
-                })
+        payment_account_infos = []
+        for casa_account, account_type in payment_accounts:
+            payment_account_infos.append({
+                "id": casa_account.id,
+                "account_number": casa_account.casa_account_number,
+                "product_name": account_type.name,
+            })
 
-        return self.response(data=response_data)
+        return self.response(data=payment_account_infos)
 
     async def get_detail_reset_password(self, cif_id: str):
         detail_reset_password_data = self.call_repos(await repos_get_detail_reset_password(cif_id))
