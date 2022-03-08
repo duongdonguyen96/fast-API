@@ -8,12 +8,12 @@ CARD_ANNUAL_FEES = [
     {
         "id": "MIEN_PHI_NAM_DAU",
         "code": "MIEN_PHI_NAM_DAU",
-        "name": "MIEN_PHI_NAM_DAU PHÍ"
+        "name": "Miễn phí năm đầu"
     },
     {
         "id": "MIEN_PHI_NAM_CUOI",
         "code": "MIEN_PHI_NAM_CUOI",
-        "name": "MIEN_PHI_NAM_CUOI"
+        "name": "Miễn phí năm cuối"
     }
 ]
 
