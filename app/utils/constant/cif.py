@@ -1,4 +1,4 @@
-CIF_ID_TEST = '123'  # cif_id dùng tạm để test
+CIF_ID_TEST = '7654321'  # cif_id dùng tạm để test
 CIF_ID_NEW_TEST = 'NEW123'  # cif_id dùng tạm để test khi tạo
 
 CIF_NUMBER_MIN_LENGTH = 7
