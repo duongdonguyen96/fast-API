@@ -28,22 +28,22 @@ class CtrDebitCard(BaseController):
         """
             Phí phát hành thẻ
         """
-        card_fee_db = self.call_repos(
+        card_issuance_fees = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
                 model=CardIssuanceFee
             )
         )
-        return self.response(card_fee_db)
+        return self.response(card_issuance_fees)
 
     async def ctr_brand_of_card(self):
         """
             Thương hiệu thẻ
         """
-        card_fee_db = self.call_repos(
+        brand_of_cards = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
                 model=BrandOfCard
             )
         )
-        return self.response(card_fee_db)
+        return self.response(brand_of_cards)
