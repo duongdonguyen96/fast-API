@@ -15,6 +15,10 @@ from app.third_parties.oracle.models.cif.e_banking.model import (
     EBankingReceiverNotificationRelationship, EBankingRegisterBalance,
     EBankingRegisterBalanceNotification, EBankingRegisterBalanceOption
 )
+from app.third_parties.oracle.models.cif.payment_account.model import (
+    CasaAccount
+)
+from app.third_parties.oracle.models.master_data.account import AccountType
 from app.third_parties.oracle.models.master_data.customer import (
     CustomerContactType, CustomerRelationshipType
 )
@@ -25,7 +29,7 @@ from app.third_parties.oracle.models.master_data.others import (
     MethodAuthentication
 )
 from app.utils.constant.cif import BUSINESS_FORM_EB, CIF_ID_TEST
-from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST
+from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST, ERROR_NO_DATA
 from app.utils.functions import now
 
 
@@ -315,6 +319,27 @@ async def repos_get_list_balance_payment_account(cif_id: str, session: Session) 
         account_casa = await service_soa.current_account_from_cif(casa_cif_number=customer_cif_number)
 
     return ReposReturn(data=account_casa)
+
+
+async def repos_get_payment_accounts(cif_id: str, session: Session) -> ReposReturn:
+    payment_accounts = session.execute(
+        select(
+            CasaAccount,
+            AccountType
+        )
+        .join(AccountType, CasaAccount.acc_type_id == AccountType.id)
+        .filter(CasaAccount.customer_id == cif_id)
+    ).all()
+
+    if not payment_accounts:
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_NO_DATA,
+            detail="Create payment account (III. Tài khoản thanh toán) before get data",
+            loc=f"cif_id: {cif_id}"
+        )
+
+    return ReposReturn(data=payment_accounts)
 
 
 async def repos_get_detail_reset_password(cif_id: str) -> ReposReturn:
