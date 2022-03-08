@@ -1,8 +1,21 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.repository import repos_get_data_model_config
 from app.third_parties.oracle.models.master_data.card import (
-    CardIssuanceFee, CardIssuanceType, CardType
+    BrandOfCard, CardIssuanceFee, CardIssuanceType, CardType
 )
+
+CARD_ANNUAL_FEES = [
+    {
+        "id": "MIEN_PHI_NAM_DAU",
+        "code": "MIEN_PHI_NAM_DAU",
+        "name": "MIEN_PHI_NAM_DAU PHÍ"
+    },
+    {
+        "id": "MIEN_PHI_NAM_CUOI",
+        "code": "MIEN_PHI_NAM_CUOI",
+        "name": "MIEN_PHI_NAM_CUOI"
+    }
+]
 
 
 class CtrDebitCard(BaseController):
@@ -28,10 +41,31 @@ class CtrDebitCard(BaseController):
         """
             Phí phát hành thẻ
         """
-        card_fee_db = self.call_repos(
+        card_issuance_fees = self.call_repos(
             await repos_get_data_model_config(
                 session=self.oracle_session,
                 model=CardIssuanceFee
             )
         )
-        return self.response(card_fee_db)
+        return self.response(card_issuance_fees)
+
+    async def ctr_brand_of_card(self):
+        """
+            Thương hiệu thẻ
+        """
+        brand_of_cards = self.call_repos(
+            await repos_get_data_model_config(
+                session=self.oracle_session,
+                model=BrandOfCard
+            )
+        )
+        return self.response(brand_of_cards)
+
+    async def ctr_card_annual_fee(self):
+        # TODO: chưa có db, tạm thời fake data
+        """
+            Phí thường niên
+        """
+        debit_card_types = CARD_ANNUAL_FEES
+
+        return self.response(debit_card_types)
