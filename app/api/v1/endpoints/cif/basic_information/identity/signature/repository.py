@@ -29,7 +29,6 @@ async def repos_save_signature(
     session.bulk_save_objects([CustomerIdentityImage(**data_insert) for data_insert in list_data_insert])
 
     await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Thông tin cá nhân -> Chữ ký -- Tạo mới",
         log_data=log_data,
         session=session,
         customer_id=cif_id,
