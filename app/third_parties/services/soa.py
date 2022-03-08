@@ -251,7 +251,7 @@ class ServiceSOA:
                     return True, return_data
         except aiohttp.ClientConnectorError as ex:
             logger.error(str(ex))
-            return data
+            return False, data
 
     async def deposit_account_from_cif(self, saving_cif_number):
         request_data = {

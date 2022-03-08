@@ -2,7 +2,7 @@ from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.e_banking.repository import (
     repos_balance_saving_account_data, repos_check_e_banking,
     repos_get_detail_reset_password, repos_get_detail_reset_password_teller,
-    repos_get_e_banking_data, repos_get_list_balance_payment_account,
+    repos_get_e_banking_data, repos_get_payment_accounts,
     repos_save_e_banking_data
 )
 from app.api.v1.endpoints.cif.e_banking.schema import (
@@ -20,8 +20,10 @@ from app.third_parties.oracle.models.master_data.others import (
 )
 from app.utils.constant.cif import (
     EBANKING_ACCOUNT_TYPE_CHECKING, EBANKING_ACTIVE_PASSWORD_EMAIL,
-    EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_HAS_FEE, EBANKING_HAS_NO_FEE
+    EBANKING_ACTIVE_PASSWORD_SMS, EBANKING_NOT_PAYMENT_FEE,
+    EBANKING_PAYMENT_FEE, METHOD_TYPE_HARD_TOKEN
 )
+from app.utils.error_messages import ERROR_E_BANKING
 from app.utils.functions import dropdown, generate_uuid, now
 
 
@@ -30,6 +32,7 @@ class CtrEBanking(BaseController):
         """
         func dùng để tạo mới E-banking phần (I, III.A)
         """
+
         data_reg_balance_option = []  # OTT/SMS
         data_eb_reg_balance = []  # dữ liệu thông tin người nhận thông báo (primary)
         data_eb_receiver_noti_relationship = []  # dữ liệu thông tin người nhận thông báo (relationship)
@@ -128,6 +131,7 @@ class CtrEBanking(BaseController):
         # III. Thông tin e-banking
         # Thông tin tài khoản
         account_information = e_banking.e_banking_information.account_information
+
         if account_information.register_flag:
             # kiểm tra hình thức xác nhận mật khẩu lần đầu
             auth_method_ids = [method.id for method in account_information.method_authentication if method.checked_flag]
@@ -136,10 +140,24 @@ class CtrEBanking(BaseController):
                 model_ids=auth_method_ids,
                 loc="method_authentication -> id"
             )
+            flag = EBANKING_NOT_PAYMENT_FEE
+            account = None
 
-            # List xác thực có HARD TOKEN => tốn phí
-            has_fee = EBANKING_HAS_FEE if "HARD TOKEN" in [auth_type.name for auth_type in auth_types if
-                                                           auth_type.active_flag] else EBANKING_HAS_NO_FEE
+            list_data = []
+            for auth_type in auth_types:
+                if auth_type.active_flag:
+                    list_data.append(auth_type.id)
+
+            if METHOD_TYPE_HARD_TOKEN in list_data:
+                if not account_information.payment_fee:
+                    return self.response_exception(
+                        msg=ERROR_E_BANKING,
+                        detail='payment_fee must be value {}',
+                        loc='account_information -> payment_fee'
+                    )
+                flag = EBANKING_PAYMENT_FEE
+                if account_information.payment_fee.flag:
+                    account = account_information.payment_fee.account
 
             method_active_password_id = EBANKING_ACTIVE_PASSWORD_EMAIL if \
                 account_information.get_initial_password_method == GetInitialPasswordMethod.Email \
@@ -152,8 +170,8 @@ class CtrEBanking(BaseController):
                 "method_active_password_id": method_active_password_id,
                 "account_name": account_information.account_name,
                 "ib_mb_flag": account_information.register_flag,
-                "method_payment_fee_flag": has_fee
-
+                "method_payment_fee_flag": flag,
+                "account_payment_fee": account
             }
 
             # Hình thức xác thực
@@ -251,9 +269,14 @@ class CtrEBanking(BaseController):
         account_info = {}
         for auth_method in e_bank_info:
             if auth_method.EBankingInfo:
+                payment_fee = {
+                    "flag": auth_method.EBankingInfo.method_payment_fee_flag,
+                    "account": auth_method.EBankingInfo.account_payment_fee
+                }
+
                 account_info["register_flag"] = auth_method.EBankingInfo.ib_mb_flag
                 account_info["account_name"] = auth_method.EBankingInfo.account_name
-                account_info["charged_account"] = auth_method.EBankingInfo.account_payment_fee
+                account_info["payment_fee"] = payment_fee
                 account_info["get_initial_password_method"] = GetInitialPasswordMethod(
                     auth_method.EBankingInfo.method_active_password_id)
                 break
@@ -309,23 +332,31 @@ class CtrEBanking(BaseController):
         return self.response(data=data)
 
     async def ctr_balance_payment_account(self, cif_id: str):
-        is_success, payment_account = self.call_repos(
-            await repos_get_list_balance_payment_account(
+        # Lấy danh sách tài khoản thanh toán thông qua service SOA
+        # payment_accounts = self.call_repos(
+        #     await repos_get_list_balance_payment_account(
+        #         cif_id=cif_id,
+        #         session=self.oracle_session
+        #     )
+        # )
+
+        # Luồng tạo mới chỉ lấy tài khoản thanh toán trong DB
+        # Lấy danh sách tài khoản thanh toán trong DB
+        payment_accounts = self.call_repos(
+            await repos_get_payment_accounts(
                 cif_id=cif_id,
                 session=self.oracle_session
             )
         )
-        response_data = []
-        if payment_account:
-            payment_accounts = payment_account['selectCurrentAccountFromCIF_out']['accountInfo']
-            for account in payment_accounts:
-                response_data.append({
-                    "id": account['customerInfo']['rowOrder'],
-                    "account_number": account['accountNum'],
-                    "product_name": account['accountClassName'],
-                })
+        payment_account_infos = []
+        for casa_account, account_type in payment_accounts:
+            payment_account_infos.append({
+                "id": casa_account.id,
+                "account_number": casa_account.casa_account_number,
+                "product_name": account_type.name,
+            })
 
-        return self.response(data=response_data)
+        return self.response(data=payment_account_infos)
 
     async def get_detail_reset_password(self, cif_id: str):
         detail_reset_password_data = self.call_repos(await repos_get_detail_reset_password(cif_id))
@@ -333,26 +364,26 @@ class CtrEBanking(BaseController):
         return self.response(data=detail_reset_password_data)
 
     async def ctr_balance_saving_account(self, cif_id: str):
-        is_success, balance_saving_account = self.call_repos(
+        balance_saving_account = self.call_repos(
             await repos_balance_saving_account_data(
                 cif_id=cif_id,
                 session=self.oracle_session
             )
         )
 
-        response_data = []
-        if balance_saving_account:
-            balance_saving_accounts = balance_saving_account['selectDepositAccountFromCIF_out']['accountInfo']
-            for account in balance_saving_accounts:
-                response_data.append({
-                    "id": account['customerInfo']['rowOrder'],
-                    "account_number": account['accountNum'],
-                    "name": account['customerInfo']['fullname'],
-                })
+        # response_data = []
+        # if balance_saving_account:
+        #     balance_saving_accounts = balance_saving_account['selectDepositAccountFromCIF_out']['accountInfo']
+        #     for account in balance_saving_accounts:
+        #         response_data.append({
+        #             "id": account['customerInfo']['rowOrder'],
+        #             "account_number": account['accountNum'],
+        #             "name": account['customerInfo']['fullname'],
+        #         })
 
         return self.response_paging(
-            data=response_data,
-            total_item=len(response_data)
+            data=balance_saving_account,
+            total_item=len(balance_saving_account)
         )
 
     async def get_detail_reset_password_teller(self, cif_id: str):

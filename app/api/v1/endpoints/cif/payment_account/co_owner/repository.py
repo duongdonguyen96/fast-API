@@ -259,7 +259,6 @@ async def repos_save_co_owner(
     )
 
     await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Tài khoản thanh toán -> Thông tin đồng sở hữu -- Tạo mới",
         log_data=log_data,
         session=session,
         customer_id=cif_id,

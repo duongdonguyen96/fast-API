@@ -47,7 +47,6 @@ async def repos_save_fatca_document(
     # session.bulk_save_objects([CustomerFatcaDocument(**data_insert) for data_insert in list_data_insert_fatca_document])
 
     await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Thông tin cá nhân -> Thông tin FATCA -- Tạo mới",
         log_data=log_data,
         session=session,
         customer_id=cif_id,
