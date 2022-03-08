@@ -55,7 +55,7 @@ class CtrPaymentAccount(BaseController):
         if casa_account.data:
             is_created = False
 
-        casa_account_number = None
+        casa_account_number = cif_id[:12] + "0001"  # TODO: đợi rule cho CIF thông thường
         account_structure_type_level_3_id = None
         account_salary_organization_account_name = None
 
