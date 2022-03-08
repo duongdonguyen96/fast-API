@@ -42,7 +42,7 @@ async def view_debit_card(
     ),
 )
 async def view_add_debit_card(
-        debt_card_req: DebitCardRequest,  # TODO: Thêm example
+        debt_card_req: DebitCardRequest,
         cif_id: str = Path(..., description='Id CIF ảo'),
         current_user=Depends(get_current_user_from_header())
 ):
