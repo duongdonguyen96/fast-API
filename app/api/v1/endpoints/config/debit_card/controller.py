@@ -4,6 +4,19 @@ from app.third_parties.oracle.models.master_data.card import (
     BrandOfCard, CardIssuanceFee, CardIssuanceType, CardType
 )
 
+CARD_ANNUAL_FEES = [
+    {
+        "id": "MIEN_PHI_NAM_DAU",
+        "code": "MIEN_PHI_NAM_DAU",
+        "name": "MIEN_PHI_NAM_DAU PHÍ"
+    },
+    {
+        "id": "MIEN_PHI_NAM_CUOI",
+        "code": "MIEN_PHI_NAM_CUOI",
+        "name": "MIEN_PHI_NAM_CUOI"
+    }
+]
+
 
 class CtrDebitCard(BaseController):
     async def ctr_card_issuance_type_info(self):
@@ -47,3 +60,12 @@ class CtrDebitCard(BaseController):
             )
         )
         return self.response(brand_of_cards)
+
+    async def ctr_card_annual_fee(self):
+        # TODO: chưa có db, tạm thời fake data
+        """
+            Phí thường niên
+        """
+        debit_card_types = CARD_ANNUAL_FEES
+
+        return self.response(debit_card_types)
