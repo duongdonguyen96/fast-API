@@ -42,3 +42,19 @@ async def view_card_type_info(
 ):
     card_type_info = await CtrDebitCard(current_user).ctr_card_type_info()
     return ResponseData[List](**card_type_info)
+
+
+@router.get(
+    path="/card-fee/",
+    name="Card Fee",
+    description="Lấy dữ liệu phí phát hành thẻ",
+    responses=swagger_response(
+        response_model=ResponseData[List[DropdownResponse]],
+        success_status_code=status.HTTP_200_OK
+    )
+)
+async def view_card_fee(
+        current_user=Depends(get_current_user_from_header()),
+):
+    card_fee = await CtrDebitCard(current_user).ctr_card_fee()
+    return ResponseData[List](**card_fee)
