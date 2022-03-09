@@ -94,11 +94,11 @@ class CtrContactInformation(BaseController):
 
             # lấy thông tin nghề nghiệp
             career_information = {
-                "career": dropdown(row.Career),
+                "career": dropdown(row.Career) if row.Career else None,
                 "average_income_amount": dropdown(row.AverageIncomeAmount),
                 "company_name": row.CustomerProfessional.company_name,
                 "company_phone": row.CustomerProfessional.company_phone,
-                "company_position": dropdown(row.Position),
+                "company_position": dropdown(row.Position) if row.Position else None,
                 "company_address": row.CustomerProfessional.company_address
             }
 
@@ -344,8 +344,9 @@ class CtrContactInformation(BaseController):
         # check company_position
         company_position_id = contact_information_save_request.career_information.company_position.id
         if is_create or (customer_professional.position_id != company_position_id):
-            await self.get_model_object_by_id(company_position_id, Position,
-                                              "career_information -> company_position -> id")
+            if company_position_id:
+                await self.get_model_object_by_id(company_position_id, Position,
+                                                  "career_information -> company_position -> id")
 
         if is_create:
             # Tạo thông tin nghề nghiệp khách hàng
