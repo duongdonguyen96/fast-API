@@ -94,11 +94,11 @@ class CtrContactInformation(BaseController):
 
             # lấy thông tin nghề nghiệp
             career_information = {
-                "career": dropdown(row.Career),
+                "career": dropdown(row.Career) if row.Career else None,
                 "average_income_amount": dropdown(row.AverageIncomeAmount),
                 "company_name": row.CustomerProfessional.company_name,
                 "company_phone": row.CustomerProfessional.company_phone,
-                "company_position": dropdown(row.Position),
+                "company_position": dropdown(row.Position) if row.Position else None,
                 "company_address": row.CustomerProfessional.company_address
             }
 
