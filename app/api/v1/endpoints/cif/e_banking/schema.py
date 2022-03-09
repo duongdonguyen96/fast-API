@@ -7,11 +7,12 @@ from pydantic import Field
 from app.api.base.schema import BaseSchema
 from app.api.v1.endpoints.cif.base_field import CustomField
 from app.api.v1.schemas.utils import DropdownRequest, DropdownResponse
-
-
 ########################################################################################################################
 # Response
 ########################################################################################################################
+from app.utils.constant.validate import REGULAR_PHONE_NUMBER
+
+
 class ContactTypeResponse(BaseSchema):
     id: str = Field(..., description='Mã loại dữ liệu liên hệ')
     name: str = Field(..., description='Tên loại liên hệ')
@@ -252,7 +253,7 @@ class ContactTypeRequest(DropdownRequest):
 
 
 class NotificationCasaRelationshipRequest(BaseSchema):
-    mobile_number: str = Field(..., description='Số điện thoại', min_length=9, max_length=10)
+    mobile_number: str = Field(..., description='Số điện thoại', regex=REGULAR_PHONE_NUMBER)
     full_name_vn: str = Field(..., description='Tên tiếng việt', max_length=100)
     relationship_type: DropdownRequest = Field(..., description='Mối quan hệ')
 
@@ -265,7 +266,7 @@ class RegisterBalanceCasaRequest(BaseSchema):
     account_id: str = Field(..., description='Số tài khoản')
     # EBankingRegisterBalance.name (Tên Đăng ký Biến động số dư các loại tài khoản)
     account_name: str = Field(..., description='Tên tài khoản', max_length=100)
-    primary_phone_number: str = Field(..., description='Số điện thoại', min_length=9, max_length=10)
+    primary_phone_number: str = Field(..., description='Số điện thoại', regex=REGULAR_PHONE_NUMBER)
     notification_casa_relationships: List[NotificationCasaRelationshipRequest] = Field(..., description='Mối quan hê')
     e_banking_notifications: List[EBankingNotificationRequest] = Field(
         ...,
