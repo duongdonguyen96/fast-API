@@ -235,7 +235,7 @@ class CtrEBanking(BaseController):
         notification_ids = []
         list_notification = []
 
-        for index, item in enumerate(data_e_banking):
+        for item in data_e_banking:
             id_notification = item.EBankingNotification.id
             id_relationship = item.EBankingReceiverNotificationRelationship.id
             if id_relationship not in relationship_ids:
@@ -265,7 +265,7 @@ class CtrEBanking(BaseController):
         ]
 
         checking_registration_info, saving_registration_info = {}, {}
-        for index, register in enumerate(data_e_banking):
+        for register in data_e_banking:
             if register.EBankingRegisterBalance.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING:
                 if not checking_registration_info.get(register.EBankingRegisterBalance.account_id):
                     checking_registration_info[
