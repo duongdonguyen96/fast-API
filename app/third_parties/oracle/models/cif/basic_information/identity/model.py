@@ -63,6 +63,8 @@ sys_guid()
                                                'Giá trị 1: mặt trước\n'
                                                'Giá trị 0: mặt sau\n')
 
+    ekyc_uuid = Column('ekyc_image_uuid', VARCHAR(36), comment='UUID hình trong hệ thống eKYC')
+
 
 class CustomerIdentityImageTransaction(Base):
     __tablename__ = 'crm_cust_identity_image_transaction'
