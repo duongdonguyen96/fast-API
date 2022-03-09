@@ -31,8 +31,7 @@ class CustomerIdentity(Base):
     maker_id = Column(VARCHAR(36), nullable=False, comment='Người tạo')
     updater_at = Column(DateTime, comment='Ngày cập nhật')
     updater_id = Column(VARCHAR(36), comment='Người cập nhật')
-
-    ekyc_uuid = Column('ekyc_image_uuid', VARCHAR(50), comment='UUID hình trong hệ thống eKYC')
+    identity_number_in_passport = Column('identity_num_pp', VARCHAR(50), comment='Số CMND trong Hộ chiếu')
 
 
 class CustomerIdentityImage(Base):
@@ -63,8 +62,6 @@ sys_guid()
                                        comment='Nếu giấy giờ tịnh danh là CMND:\n'
                                                'Giá trị 1: mặt trước\n'
                                                'Giá trị 0: mặt sau\n')
-
-    finger_type_id = Column(VARCHAR(36), comment='(FK) Id Loại ngón tay. NotNull nếu Loại giấy tờ định danh là Vân tay')
 
 
 class CustomerIdentityImageTransaction(Base):
