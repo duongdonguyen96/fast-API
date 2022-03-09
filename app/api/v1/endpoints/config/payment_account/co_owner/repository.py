@@ -5,14 +5,16 @@ from app.api.base.repository import ReposReturn
 from app.third_parties.oracle.models.cif.payment_account.model import (
     AgreementAuthorization
 )
+from app.utils.constant.cif import AGREEMENT_AUTHOR_TYPE_DD
 
 
 async def repos_get_agreement_authorization(session: Session):
+    # TODO : Hiện tại sử dụng type DD cho danh mục thỏa thuận và ủy quyền
     account_structure_type_infos = session.execute(
         select(
             AgreementAuthorization
         )
-        .filter(AgreementAuthorization.agreement_author_type == "FD")  # TODO
+        .filter(AgreementAuthorization.agreement_author_type == AGREEMENT_AUTHOR_TYPE_DD)
     ).scalars().all()
 
     return ReposReturn(data=[{
