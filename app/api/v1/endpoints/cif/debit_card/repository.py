@@ -1,7 +1,7 @@
 import json
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api.base.repository import ReposReturn, auto_commit
@@ -193,6 +193,10 @@ async def repos_debit_card(cif_id: str, session: Session) -> ReposReturn:
 @auto_commit
 async def repos_add_debit_card(
         cif_id: str,
+        list_card_type: List,
+        list_sub_card_ids: List,
+        list_delivery_address_ids: List,
+        main_card_id,
         list_debit_card_type: List,
         data_card_delivery_address,
         data_debit_card,
@@ -201,6 +205,16 @@ async def repos_add_debit_card(
         list_sub_debit_card_type,
         log_data: json,
         session: Session) -> ReposReturn:
+
+    # Xóa dữ liệu cũ
+    if main_card_id:
+        session.execute(delete(DebitCardType).filter(DebitCardType.card_id.in_(list_card_type)))
+        if len(list_sub_card_ids) > 0:
+            session.execute(delete(DebitCard).filter(DebitCard.id.in_(list_sub_card_ids)))
+
+        session.execute(delete(DebitCard).filter(DebitCard.id == main_card_id))
+        session.execute(delete(CardDeliveryAddress).filter(CardDeliveryAddress.id.in_(list_delivery_address_ids)))
+
     session.add(CardDeliveryAddress(**data_card_delivery_address))
     session.flush()
     session.add(DebitCard(**data_debit_card))
@@ -250,3 +264,13 @@ async def repos_get_list_debit_card(
         }
     ]
     )
+
+
+async def get_data_debit_card_by_cif_num(session: Session, cif_id: str) -> ReposReturn:
+    obj = session.execute(
+        select(DebitCard).filter(
+            DebitCard.customer_id == cif_id,
+            DebitCard.active_flag == 1
+        )).scalars().all()
+
+    return ReposReturn(data=obj)

@@ -1,6 +1,7 @@
 from app.api.base.controller import BaseController
 from app.api.v1.endpoints.cif.debit_card.repository import (
-    repos_add_debit_card, repos_debit_card, repos_get_list_debit_card
+    get_data_debit_card_by_cif_num, repos_add_debit_card, repos_debit_card,
+    repos_get_list_debit_card
 )
 from app.api.v1.endpoints.cif.debit_card.schema import DebitCardRequest
 from app.api.v1.endpoints.cif.repository import repos_get_initializing_customer
@@ -48,6 +49,20 @@ class CtrDebitCard(BaseController):
             current_user.first_name
         )
 
+        # Nếu cif_id tồn tại thi cập nhật lại data
+        data_cards = self.call_repos(await get_data_debit_card_by_cif_num(self.oracle_session, cif_id))
+        list_sub_card_ids = []
+        list_card_type = []
+        list_delivery_address_ids = []
+        main_card_id = None
+        if len(data_cards) > 0:
+            for debit_card in data_cards:
+                list_card_type.append(debit_card.id)
+                list_delivery_address_ids.append(debit_card.card_delivery_address_id)
+                if not debit_card.parent_card_id:
+                    main_card_id = debit_card.id
+                list_sub_card_ids.append(debit_card.id)
+
         """
             I. validate physical_card_type
                  1. check Constant
@@ -61,7 +76,7 @@ class CtrDebitCard(BaseController):
         if len(card_type) > 2 or len(card_type) < 1:
             return self.response_exception(
                 msg=VALIDATE_ERROR,
-                detail="Number physical_card_type must be greater than 1 and less than 2",
+                detail="Number physical_card_type must be greater than 0 and less than 2",
                 loc="issue_debit_card -> physical_card_type"
             )
         if len(card_type) != len(set(card_type)):
@@ -195,7 +210,7 @@ class CtrDebitCard(BaseController):
                 if len(sub_card_type) > 2 or len(sub_card_type) < 1:
                     return self.response_exception(
                         msg=VALIDATE_ERROR,
-                        detail="Number physical_card_type must be greater than 1 and less than 2",
+                        detail="Number physical_card_type must be greater than 0 and less than 2",
                         loc=f"information_sub_debit_card -> sub_debit_cards -> {index} -> physical_card_type"
                     )
                 if len(sub_card_type) != len(set(sub_card_type)):
@@ -381,6 +396,10 @@ class CtrDebitCard(BaseController):
         add_debit_card = self.call_repos(
             await repos_add_debit_card(
                 cif_id,
+                list_sub_card_ids=list_sub_card_ids,
+                list_card_type=list_card_type,
+                list_delivery_address_ids=list_delivery_address_ids,
+                main_card_id=main_card_id,
                 data_card_delivery_address=data_card_delivery_address,
                 data_debit_card=data_debit_card,
                 list_debit_card_type=list_debit_card_type,
