@@ -50,9 +50,9 @@ async def repos_get_detail_contact_info(
         .join(AddressCountry, CustomerAddress.address_country_id == AddressCountry.id)
         .outerjoin(AddressWard, CustomerAddress.address_ward_id == AddressWard.id)
         .join(CustomerProfessional, Customer.customer_professional_id == CustomerProfessional.id)
-        .join(Career, CustomerProfessional.career_id == Career.id)
-        .join(AverageIncomeAmount, CustomerProfessional.average_income_amount_id == AverageIncomeAmount.id)
-        .join(Position, CustomerProfessional.position_id == Position.id)
+        .outerjoin(Career, CustomerProfessional.career_id == Career.id)
+        .outerjoin(AverageIncomeAmount, CustomerProfessional.average_income_amount_id == AverageIncomeAmount.id)
+        .outerjoin(Position, CustomerProfessional.position_id == Position.id)
         .filter(Customer.id == cif_id)
     ).all()
 
