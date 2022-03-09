@@ -229,6 +229,41 @@ class CtrEBanking(BaseController):
         data_e_banking = data['data_e_banking']
         e_bank_info = data['e_bank_info']
 
+        relationship_ids = []
+        list_relationships = []
+
+        notification_ids = []
+        list_notification = []
+
+        for item in data_e_banking:
+            id_notification = item.EBankingNotification.id
+            id_relationship = item.EBankingReceiverNotificationRelationship.id
+            if id_relationship not in relationship_ids:
+                relationship_ids.append(id_relationship)
+                list_relationships.append(
+                    (item.EBankingReceiverNotificationRelationship, item.CustomerRelationshipType))
+            if id_notification not in notification_ids:
+                notification_ids.append(id_notification)
+                list_notification.append(item.EBankingNotification)
+
+        notification_casa_relationships = [
+            {
+                "id": relationship[0].id,
+                "mobile_number": relationship[0].mobile_number,
+                "full_name_vn": relationship[0].full_name,
+                "relationship_type": dropdown(relationship[1])
+            } for relationship in list_relationships
+        ]
+
+        e_banking_notifications = [
+            {
+                "id": notification.id,
+                "code": notification.code,
+                "name": notification.name,
+                "checked_flag": notification.active_flag
+            } for notification in list_notification
+        ]
+
         checking_registration_info, saving_registration_info = {}, {}
         for register in data_e_banking:
             if register.EBankingRegisterBalance.e_banking_register_account_type == EBANKING_ACCOUNT_TYPE_CHECKING:
@@ -299,20 +334,9 @@ class CtrEBanking(BaseController):
                         "checking_account_name": registration_info['name'],
                         "primary_phone_number": registration_info.get('mobile_number'),
                         "full_name_vn": registration_info['full_name'],
-                        "notification_casa_relationships": [
-                            {
-                                "id": relationship["info"].id,
-                                "mobile_number": relationship["info"].mobile_number,
-                                "full_name_vn": relationship["info"].full_name,
-                                "relationship_type": dropdown(relationship["relation_type"])
-                            } for relationship in registration_info['relationships']
-                        ],
-                        "e_banking_notifications": [
-                            {
-                                **dropdown(notification),
-                                "checked_flag": True
-                            } for notification in registration_info['notifications']
-                        ]
+                        "notification_casa_relationships": notification_casa_relationships,
+                        "e_banking_notifications": e_banking_notifications
+
                     } for registration_info in checking_registration_info.values()
                 ]
             },
