@@ -159,6 +159,13 @@ class CtrEBanking(BaseController):
                 if account_information.payment_fee.flag:
                     account = account_information.payment_fee.account
 
+            if account_information.payment_fee and METHOD_TYPE_HARD_TOKEN not in list_data:
+                return self.response_exception(
+                    msg=ERROR_E_BANKING,
+                    detail='method_authentication must have hard token',
+                    loc='account_information -> method_authentication -> hard token'
+                )
+
             method_active_password_id = EBANKING_ACTIVE_PASSWORD_EMAIL if \
                 account_information.get_initial_password_method == GetInitialPasswordMethod.Email \
                 else EBANKING_ACTIVE_PASSWORD_SMS
