@@ -258,12 +258,14 @@ async def repos_save_co_owner(
         ]
     )
 
-    await write_transaction_log_and_update_booking(
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=log_data,
         session=session,
         customer_id=cif_id,
         business_form_id=BUSINESS_FORM_TKTT_DSH,
     )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(
         data={"cif_id": cif_id, "created_at": now(), "created_by": created_by}
