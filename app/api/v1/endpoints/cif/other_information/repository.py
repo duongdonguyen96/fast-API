@@ -116,18 +116,18 @@ async def repos_update_other_info(
     data_insert = [CustomerEmployee(**data_insert) for data_insert in new_customer_employees]
     session.bulk_save_objects(data_insert)
 
-    is_success, response = await write_transaction_log_and_update_booking(
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=update_other_info_req.json(),
         session=session,
         customer_id=cif_id,
         business_form_id=BUSINESS_FORM_TTK
     )
     if not is_success:
-        return ReposReturn(is_error=True, msg=response['msg'])
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
-        'created_at': response['created_at'],
+        'created_at': booking_response['created_at'],
         'created_by': current_user.full_name_vn,
-        'updated_at': response['updated_at'],
+        'updated_at': booking_response['updated_at'],
         'updated_by': current_user.full_name_vn
     })
