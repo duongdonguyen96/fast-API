@@ -204,14 +204,14 @@ async def repos_save_contact_information(
         )
 
         # update booking & log
-        fail_result, message = await write_transaction_log_and_update_booking(
+        is_success, booking_response = await write_transaction_log_and_update_booking(
             log_data=log_data,
             session=session,
             customer_id=cif_id,
             business_form_id=BUSINESS_FORM_TTCN_TTLL
         )
-        if not fail_result:
-            return ReposReturn(is_error=True, msg=message)
+        if not is_success:
+            return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": cif_id
