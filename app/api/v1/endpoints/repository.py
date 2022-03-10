@@ -156,7 +156,7 @@ async def write_transaction_log_and_update_booking(log_data: json,
                                                    business_form_id: str,
                                                    customer_id: Optional[str] = None,
                                                    account_id: Optional[str] = None,
-                                                   ) -> Tuple[bool, Optional[str]]:
+                                                   ) -> Tuple[bool, Optional[dict]]:
     if customer_id:
         booking = session.execute(
             select(
@@ -185,7 +185,7 @@ async def write_transaction_log_and_update_booking(log_data: json,
         booking = None
 
     if not booking:
-        return False, 'Can not found booking'
+        return False, dict(msg='Can not found booking')
 
     booking_business_form = session.execute(
         select(BookingBusinessForm).filter(and_(
@@ -194,26 +194,41 @@ async def write_transaction_log_and_update_booking(log_data: json,
         ))
     ).scalar()
 
+    # Nếu chưa có thì tạo mới
     if not booking_business_form:
-        return False, 'Can not found Booking Business Form'
+        session.add(BookingBusinessForm(**dict(
+            booking_id=booking.id,
+            business_form_id=business_form_id,
+            save_flag=True,
+            created_at=now(),
+            updated_at=now(),
+            form_data=str(log_data)
+        )))
+        response = dict(
+            created_at=now(),
+            updated_at=now()
+        )
 
-    session.flush()
+    # Nếu có thì cập nhật
+    else:
+        booking_business_form = session.execute(
+            select(
+                BookingBusinessForm
+            ).filter(and_(
+                BookingBusinessForm.business_form_id == business_form_id,
+                BookingBusinessForm.booking_id == booking.id
+            ))
+        ).scalar()
+        # Cập nhật đã hoàn thành Tab này]
+        booking_business_form.form_data = str(log_data)
+        booking_business_form.update_at = now()
+        response = dict(
+            created_at=booking_business_form.created_at,
+            updated_at=now()
+        )
+        session.commit()
 
-    booking_business_form = session.execute(
-        select(
-            BookingBusinessForm
-        ).filter(and_(
-            BookingBusinessForm.business_form_id == business_form_id,
-            BookingBusinessForm.booking_id == booking.id
-        ))
-    ).scalar()
-
-    # Cập nhật đã hoàn thành Tab này]
-    booking_business_form.form_data = str(log_data)
-    booking_business_form.update_at = now()
-    session.commit()
-
-    return True, None
+    return True, response
 
 
 async def repos_get_acc_structure_type(acc_structure_type_id: str, level: int, loc: str, session: Session):
