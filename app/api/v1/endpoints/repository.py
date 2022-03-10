@@ -17,10 +17,12 @@ from app.third_parties.oracle.models.master_data.others import (
 )
 from app.utils.constant.cif import ACTIVE_FLAG_ACTIVED
 from app.utils.error_messages import (
-    ERROR_BEGIN_STAGE_NOT_EXIST, ERROR_ID_NOT_EXIST,
+    ERROR_BEGIN_STAGE_NOT_EXIST, ERROR_ID_NOT_EXIST, ERROR_INVALID_NUMBER,
     ERROR_NEXT_RECEIVER_NOT_EXIST
 )
-from app.utils.functions import dropdown, now, special_dropdown
+from app.utils.functions import (
+    dropdown, is_valid_number, now, special_dropdown
+)
 
 
 async def repos_get_model_object_by_id_or_code(model_id: Optional[str], model_code: Optional[str], model: Base,
@@ -378,3 +380,10 @@ async def repos_get_next_receiver(
 #         )
 #
 #     return ReposReturn(data=stage_data)
+
+
+async def repos_is_valid_number(string: str, loc: str):
+    if is_valid_number(string):
+        return ReposReturn(data=None)
+
+    return ReposReturn(is_error=True, msg=ERROR_INVALID_NUMBER, loc=loc)
