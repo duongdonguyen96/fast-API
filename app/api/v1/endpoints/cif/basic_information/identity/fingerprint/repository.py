@@ -50,12 +50,14 @@ async def repos_save_fingerprint(
 
     session.bulk_save_objects([CustomerIdentityImage(**data_insert) for data_insert in list_data_insert])
 
-    await write_transaction_log_and_update_booking(
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=log_data,
         session=session,
         customer_id=cif_id,
         business_form_id=BUSINESS_FORM_TTCN_GTDD_VT
     )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": cif_id,

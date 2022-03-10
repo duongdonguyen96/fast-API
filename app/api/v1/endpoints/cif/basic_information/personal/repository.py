@@ -84,12 +84,14 @@ async def repos_save_personal(
     session.bulk_save_objects([CustomerContactTypeData(**data_insert) for data_insert in list_contact_type_data])
 
     # Lưu log thông tin cá nhân
-    await write_transaction_log_and_update_booking(
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=log_data,
         session=session,
         customer_id=cif_id,
         business_form_id=BUSINESS_FORM_TTCN_TTCN
     )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": cif_id,

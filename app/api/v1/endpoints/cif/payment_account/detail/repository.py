@@ -88,12 +88,14 @@ async def repos_save_payment_account(
     # Tạo mới
     if is_created:
         session.add(CasaAccount(**data_insert))
-        await write_transaction_log_and_update_booking(
+        is_success, booking_response = await write_transaction_log_and_update_booking(
             log_data=log_data,
             session=session,
             customer_id=cif_id,
             business_form_id=BUSINESS_FORM_TKTT_CTTKTT
         )
+        if not is_success:
+            return ReposReturn(is_error=True, msg=booking_response['msg'])
     # Cập nhật
     else:
         session.execute(
@@ -101,12 +103,14 @@ async def repos_save_payment_account(
                 CasaAccount.customer_id == cif_id
             ).values(**data_insert)
         )
-        await write_transaction_log_and_update_booking(
+        is_success, booking_response = await write_transaction_log_and_update_booking(
             log_data=log_data,
             session=session,
             customer_id=cif_id,
             business_form_id=BUSINESS_FORM_TKTT_CTTKTT
         )
+        if not is_success:
+            return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": cif_id,

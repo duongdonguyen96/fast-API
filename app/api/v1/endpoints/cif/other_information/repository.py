@@ -8,6 +8,7 @@ from app.api.v1.endpoints.cif.other_information.schema import (
 from app.api.v1.endpoints.repository import (
     write_transaction_log_and_update_booking
 )
+from app.api.v1.endpoints.user.schema import UserInfoResponse
 from app.third_parties.oracle.models.cif.basic_information.model import (
     Customer
 )
@@ -21,7 +22,6 @@ from app.utils.constant.cif import (
     BUSINESS_FORM_TTK, STAFF_TYPE_BUSINESS_CODE, STAFF_TYPE_REFER_INDIRECT_CODE
 )
 from app.utils.error_messages import ERROR_CIF_ID_NOT_EXIST, ERROR_NO_DATA
-from app.utils.functions import now
 
 
 async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
@@ -74,8 +74,11 @@ async def repos_other_info(cif_id: str, session: Session) -> ReposReturn:
 
 
 @auto_commit
-async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInformationUpdateRequest,
-                                  session: Session) -> ReposReturn:
+async def repos_update_other_info(
+        cif_id: str, update_other_info_req: OtherInformationUpdateRequest,
+        current_user: UserInfoResponse,
+        session: Session
+) -> ReposReturn:
 
     session.execute(
         update(Customer).filter(Customer.id == cif_id).values(
@@ -113,20 +116,18 @@ async def repos_update_other_info(cif_id: str, update_other_info_req: OtherInfor
     data_insert = [CustomerEmployee(**data_insert) for data_insert in new_customer_employees]
     session.bulk_save_objects(data_insert)
 
-    is_success, msg = await write_transaction_log_and_update_booking(
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=update_other_info_req.json(),
         session=session,
         customer_id=cif_id,
         business_form_id=BUSINESS_FORM_TTK
     )
     if not is_success:
-        return ReposReturn(is_error=True, msg=msg)
-
-    # TODO: đợi dữ liệu danh mục và cập nhật trạng thái ở bảng BusinessForm
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
-        'created_at': now(),
-        'created_by': 'system',
-        'updated_at': now(),
-        'updated_by': 'system'
+        'created_at': booking_response['created_at'],
+        'created_by': current_user.full_name_vn,
+        'updated_at': booking_response['updated_at'],
+        'updated_by': current_user.full_name_vn
     })
