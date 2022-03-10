@@ -531,12 +531,14 @@ async def repos_save_identity(
         if is_error:
             return ReposReturn(is_error=True, msg=message)
 
-        await write_transaction_log_and_update_booking(
+        is_success, booking_response = await write_transaction_log_and_update_booking(
             log_data=str(request_data),
             session=session,
             customer_id=customer_id,
             business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDD
         )
+        if not is_success:
+            return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": customer_id
