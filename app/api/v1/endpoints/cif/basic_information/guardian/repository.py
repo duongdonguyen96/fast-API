@@ -177,12 +177,14 @@ async def repos_save_guardians(
     ))
 
     session.bulk_save_objects([CustomerPersonalRelationship(**guardian) for guardian in list_data_insert])
-    await write_transaction_log_and_update_booking(
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=log_data,
         session=session,
         customer_id=cif_id,
         business_form_id=business_form_id
     )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": cif_id,

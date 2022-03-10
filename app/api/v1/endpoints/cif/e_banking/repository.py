@@ -90,12 +90,14 @@ async def repos_save_e_banking_data(
 
     session.bulk_save_objects([EBankingInfoAuthentication(**item) for item in auth_method])
 
-    await write_transaction_log_and_update_booking(
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=log_data,
         session=session,
         customer_id=cif_id,
         business_form_id=BUSINESS_FORM_EB
     )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": cif_id,

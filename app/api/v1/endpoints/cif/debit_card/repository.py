@@ -226,12 +226,15 @@ async def repos_add_debit_card(
     session.bulk_save_objects([DebitCard(**list_sub_debit_card) for list_sub_debit_card in list_sub_debit_card])
     session.bulk_save_objects([DebitCardType(**data_sub_type) for data_sub_type in list_sub_debit_card_type])
 
-    await write_transaction_log_and_update_booking(
+    is_success, booking_responses = await write_transaction_log_and_update_booking(
         log_data=log_data,
         session=session,
         customer_id=cif_id,
         business_form_id=BUSINESS_FORM_TGN
     )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=booking_responses['msg'])
+
     return ReposReturn(data={
         "cif_id": cif_id,
         'created_at': now(),
