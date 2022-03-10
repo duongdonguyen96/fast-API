@@ -162,15 +162,14 @@ async def repos_save_sub_identity(
                                for customer_identity_image_transaction in update_customer_sub_identity_image_transactions])
 
     # Lưu lại Log lịch sử giao dịch trong ngày
-    is_success, message = await write_transaction_log_and_update_booking(
-        description="Tạo CIF -> Thông tin cá nhân -> GTĐDP -- Cập nhật",
+    is_success, booking_response = await write_transaction_log_and_update_booking(
         log_data=log_data,
         session=session,
         customer_id=customer.id,
         business_form_id=BUSINESS_FORM_TTCN_GTDD_GTDDP
     )
     if not is_success:
-        return ReposReturn(is_error=True, msg=message)
+        return ReposReturn(is_error=True, msg=booking_response['msg'])
 
     return ReposReturn(data={
         "cif_id": customer.id
