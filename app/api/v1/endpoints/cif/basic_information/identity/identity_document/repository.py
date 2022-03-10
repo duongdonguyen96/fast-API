@@ -52,7 +52,7 @@ from app.utils.constant.cif import (
 )
 from app.utils.error_messages import (
     ERROR_CALL_SERVICE_EKYC, ERROR_CALL_SERVICE_FILE, ERROR_CIF_ID_NOT_EXIST,
-    ERROR_COMPARE_IMAGE_EXIST
+    ERROR_COMPARE_IMAGE_NOT_EXIST
 )
 from app.utils.functions import (
     date_string_to_other_date_string_format, dropdown, generate_uuid, now
@@ -387,8 +387,10 @@ async def repos_save_identity(
         .filter(CustomerCompareImage.id == saving_customer_compare_image['id'])
     ).scalar()
     if customer_compare_image:
-        return ReposReturn(is_error=True, msg=ERROR_COMPARE_IMAGE_EXIST, loc="face_uuid_ekyc")
-
+        return ReposReturn(
+            is_error=True,
+            msg=ERROR_COMPARE_IMAGE_NOT_EXIST
+        )
     # Tạo mới
     if not customer_id:
         new_customer_id = generate_uuid()
