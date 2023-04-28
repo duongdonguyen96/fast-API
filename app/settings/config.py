@@ -18,7 +18,6 @@ APPLICATION = {
     "secret_key": os.getenv("SECRET_KEY", ""),
     "debug": bool(os.getenv("DEBUG", "") if os.getenv("DEBUG", "") in ["True", "true", "1"] else False),
     "allowed_hosts": list(os.getenv("ALLOWED_HOSTS", ["*"])),
-    "ekyc_proxy": str(os.getenv("SERVICE_EKYC_PROXY", "")),
 }
 
 DATETIME_INPUT_OUTPUT_FORMAT = '%Y-%m-%d %H:%M:%S'

@@ -2,18 +2,15 @@ from typing import Any, Generic, List, TypeVar
 from uuid import UUID
 
 import orjson
-from pydantic import BaseModel, Field
-from pydantic.generics import GenericModel
+from pydantic import Field
+
 from pydantic.schema import date, datetime
 
 from app.utils.functions import date_to_string, datetime_to_string
 from pydantic import BaseModel, conint
 from typing import Optional, Generic, TypeVar
 
-from sqlalchemy import asc, desc
-from sqlalchemy.orm import Query
 from pydantic.generics import GenericModel
-from contextvars import ContextVar
 
 TypeX = TypeVar("TypeX")
 
@@ -38,18 +35,6 @@ class BaseSchema(BaseModel):
 
 class BaseGenericSchema(BaseSchema, GenericModel):
     pass
-
-
-class CreatedUpdatedBaseModel(BaseSchema):
-    created_at: datetime = Field(..., description='Tạo mới vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
-                                 example='2021-15-12 06:07:08')
-
-    created_by: str = Field(..., description='Tạo mới bởi')
-
-    updated_at: datetime = Field(..., description='Cập nhật vào lúc, format dạng: `YYYY-mm-dd HH:MM:SS`',
-                                 example='2021-15-12 06:07:08')
-
-    updated_by: str = Field(..., description='Cập nhật vào lúc')
 
 
 class Error(BaseSchema):
@@ -81,3 +66,22 @@ class ResponseData(BaseSchema, GenericModel, Generic[TypeX]):
 class ResponseError(BaseSchema):
     data: Any = None
     errors: List[Error] = Field(..., description='Lỗi trả về')
+
+
+class UserInfo(BaseSchema):
+    user_id: str = Field(..., description='user_id', example='103C76ECBBC144B7B589C6808C029016')
+    username: str = Field(..., description='Tên tài khoản', example='ddonguyen')
+    full_name: str = Field(..., description='Tên đầy đủ', example='Dương Đỗ Nguyên')
+    email: str = Field(..., description='Thư điện tử', example='ddonguyen@cmc.com.vn')
+    department_id: str = Field(None, description='Phòng ban', example='ddonguyen@cmc.com.vn')
+    company_id: str = Field(None, description='Công ty', example='ddonguyen@cmc.com.vn')
+
+
+class Authentication(BaseSchema):
+    username: str = Field(..., description='Tài khoản', example='ddonguyen')
+    password: str = Field(..., description='Mật khẩu', example='123456')
+
+
+class AuthenticationRes(BaseSchema):
+    access_token: str = Field(..., description='access_token', example='103C76ECBBC144B7B589C6808C029016')
+    user_info: UserInfo

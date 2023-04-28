@@ -4,8 +4,6 @@ from typing import Any
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 
-# from app.utils.error_messages import ERROR_COMMIT
-
 
 @dataclass
 class ReposReturn:
@@ -18,11 +16,11 @@ class ReposReturn:
 
 def auto_commit(func):
     """
-    Decorator to commit session automatically and automatically rollback if error occurs
-    Khi sử dụng nhớ gửi params vào repos phải là session và không session.commit() trong repos
+        Dùng để auto commit và roll back session khi gặp lỗi
     :param func:
     :return:
     """
+
     async def wrapper(*args, **kwargs):
         if 'session' not in kwargs:
             return ReposReturn(is_error=True, msg='', detail='can not found session in kwargs', loc=func.__name__)
