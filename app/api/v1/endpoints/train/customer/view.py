@@ -26,7 +26,7 @@ router = APIRouter()
     ),
 )
 def test():
-    return "{'message': 'troi oi test success! khong co gi quy hon doc lap tu do'}"
+    return "{'message': '_______Hello World!!!'}"
 
 
 @router.post(

@@ -4,7 +4,7 @@
 FROM python:3.12-slim
 
 # set work directory
-WORKDIR /app
+WORKDIR /code
 
 # set env variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -15,8 +15,4 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # copy project
-COPY . .
-
-
-# Expose the port on which the FastAPI app will run
-EXPOSE 8000
+COPY ./app /code/app
